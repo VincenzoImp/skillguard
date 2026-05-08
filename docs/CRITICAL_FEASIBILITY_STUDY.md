@@ -40,6 +40,7 @@ Source URLs:
 - https://docs.solanamobile.com/get-started/web/apps
 - https://solana.com/docs/clients/official/javascript
 - https://solana.com/docs/intro/installation
+- https://www.anchor-lang.com/docs/installation
 - https://www.anchor-lang.com/docs/quickstart
 
 ## Local Feasibility Tests
@@ -51,13 +52,23 @@ Commands run locally on 2026-05-08:
 | `node -v` | `v25.7.0` | Node is available. |
 | `npm -v` | `11.10.1` | npm is available. |
 | `pnpm -v` | `10.33.4` | pnpm is available. |
-| `rustc --version` | `rustc 1.90.0` | Rust is available. |
-| `cargo --version` | `cargo 1.90.0` | Cargo is available. |
-| `solana --version` | missing | Solana CLI must be installed before on-chain work. |
-| `anchor --version` | missing | Anchor CLI must be installed before program work. |
+| `rustc --version` | `rustc 1.95.0` | Rust is available after the Solana quick installer update. |
+| `cargo --version` | `cargo 1.95.0` | Cargo is available after the Solana quick installer update. |
+| `solana --version` | `solana-cli 3.1.15` | Solana CLI is available. |
+| `anchor --version` | `anchor-cli 0.32.1` | Anchor CLI is available. |
+| `surfpool --version` | `surfpool 1.2.1` | Surfpool is available, but the installer logged a requested-version mismatch for `1.1.2`. Not a blocker for the MVP receipt flow. |
+| `solana config get` | devnet RPC configured | Local Solana CLI now points to `https://api.devnet.solana.com`. |
 | `java -version` | missing | JDK must be installed before Android app work. |
 | `gradle --version` | missing | Gradle/Android tooling must be installed or managed by Expo/EAS. |
 | `apps/site npm run build` | passed | Current project site foundation is healthy. |
+
+Toolchain update on 2026-05-08:
+
+- Official Solana quick installer completed with exit code 0.
+- `solana` is available at `~/.local/share/solana/install/active_release/bin/solana`.
+- `anchor` and `avm` are available from `~/.cargo/bin`.
+- `solana config set --url devnet` succeeded.
+- The current shell still needs the Solana binary path exported until a new terminal reads the installer PATH update.
 
 Current package versions checked from npm:
 
