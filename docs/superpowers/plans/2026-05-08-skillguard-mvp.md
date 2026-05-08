@@ -385,8 +385,8 @@ Goal: give agents and mobile app a real integration surface.
 - Create: `apps/api/src/seed.ts`
 - Create: `apps/api/src/server.test.ts`
 
-- [ ] Use Hono for a small MVP API.
-- [ ] Add scripts:
+- [x] Use Hono for a small MVP API.
+- [x] Add scripts:
 
 ```json
 {
@@ -402,7 +402,7 @@ Goal: give agents and mobile app a real integration surface.
 - Modify: `apps/api/src/seed.ts`
 - Modify: `apps/api/src/store.ts`
 
-- [ ] Seed:
+- [x] Seed:
 
 ```text
 Research Agent
@@ -412,7 +412,7 @@ Unsafe overspend action
 Safe receipt-only action
 ```
 
-- [ ] Store in memory first. Add SQLite only if needed.
+- [x] Store in memory first. Add SQLite only if needed.
 
 ### Task 2.3: Implement Endpoints
 
@@ -420,7 +420,7 @@ Safe receipt-only action
 - Modify: `apps/api/src/routes.ts`
 - Modify: `apps/api/src/server.test.ts`
 
-- [ ] Implement:
+- [x] Implement:
 
 ```text
 GET /health
@@ -436,7 +436,7 @@ POST /actions/:actionId/evaluate
 POST /actions/:actionId/decision
 ```
 
-- [ ] Tests:
+- [x] Tests:
 
 ```text
 health returns ok

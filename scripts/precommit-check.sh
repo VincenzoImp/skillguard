@@ -37,4 +37,14 @@ if [ -f packages/protocol/package.json ]; then
   fi
 fi
 
+if [ -f apps/api/package.json ]; then
+  echo "==> Building API"
+  npm --prefix apps/api run build
+
+  if find apps/api/src -name "*.test.ts" | grep -q .; then
+    echo "==> Testing API"
+    npm --prefix apps/api test
+  fi
+fi
+
 echo "==> Pre-commit check passed"

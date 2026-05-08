@@ -28,7 +28,7 @@ export const safeRiskReportManifest: ActionManifest = {
   ],
   rawTransactionRef: null,
   createdAt: 1_800_000_000,
-  expiresAt: 1_800_003_600,
+  expiresAt: 4_100_000_000,
 };
 
 export const unsafeOverspendManifest: ActionManifest = {
@@ -72,7 +72,7 @@ export const askEveryTimePolicy: AgentPolicy = {
   allowedMints: ["SOL", "USDC"],
   maxSpendAtomic: "1000000",
   dailySpendCapAtomic: "5000000",
-  expiresAt: 1_900_000_000,
+  expiresAt: 4_100_000_000,
 };
 
 export const allowUnderLimitsPolicy: AgentPolicy = {
