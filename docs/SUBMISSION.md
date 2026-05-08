@@ -1,0 +1,46 @@
+# Submission Checklist
+
+This file separates what is locally verified from what still requires an external account, final key choice, or recording.
+
+## Local Proofs
+
+- Repository remote: `https://github.com/VincenzoImp/skillguard.git`
+- Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- Devnet Mobile Wallet Adapter receipt transaction: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
+- Standalone local APK: `build/mobile/skillguard-standalone-debugsigned.apk`
+- Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
+- Public project site source: `apps/site`
+- Demo script: `docs/DEMO.md`
+
+## Final Local Gate
+
+Run this after the APK artifacts have been built:
+
+```bash
+. scripts/dev-env.sh
+scripts/precommit-check.sh
+scripts/submission-check.sh
+```
+
+The submission checker verifies the README proof strings, local APK artifacts, release APK signature, origin remote, and clean working tree. It does not deploy the site or record the video.
+
+During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-check.sh` only to validate the checker before committing its own changes. The final run should use the default clean-tree mode.
+
+## External Steps
+
+These require an account, credential, or human review:
+
+1. Make the GitHub repository public.
+2. Choose the final Android upload keystore owner and secure storage location.
+3. Rebuild `build/mobile/skillguard-release-signed.apk` with the final upload keystore.
+4. Deploy `apps/site` and add the public URL to the hackathon submission.
+5. Record the under-3-minute demo using `docs/DEMO.md`.
+6. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
+
+## Video Arc
+
+1. Open with the site hero: SkillGuard is a permission layer for Solana agents.
+2. Show unsafe request: policy blocks spend before wallet prompt.
+3. Show safe request: mobile approval records a devnet receipt.
+4. Show revocation: future agent requests fail policy.
+5. End with SDK snippet: agents integrate without receiving user private keys.

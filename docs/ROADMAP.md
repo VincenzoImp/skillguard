@@ -292,6 +292,7 @@ Required assets:
 - [ ] demo video under 3 minutes
 - [x] architecture diagram in README
 - [x] source links and sponsor integration notes in docs
+- [x] local submission checklist and checker
 
 Current package status:
 

@@ -816,6 +816,7 @@ screenshots or site link
 ```
 
 - [x] Add release APK signing pipeline that uses external keystore environment variables without committing secrets.
+- [x] Add local submission checklist and checker for final package readiness.
 
 ### Task 6.4: Convert Project Site Into Public Project Site
 
