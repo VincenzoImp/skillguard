@@ -45,13 +45,16 @@ Implemented and tested locally:
 Still pending for the hackathon submission:
 
 - manual Android wallet signing verification with a real or fake MWA-compatible wallet
-- devnet deployment of program `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - final signed APK
 - final demo screenshots, deployed public site, and demo video
 
-Verified risk note:
+Devnet deployment proof:
 
-- `solana program show HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam` currently does not find the account on devnet, so public materials must describe the program as built and tested locally until deployment is completed.
+- Program ID: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- Deploy signature: `5qQzTVjGXrGQiMRAD6vaSt3aKTXLHVB7SwZBtfxoYFPZ753hdeSp2gVLavVBNZtXrsF6cdJ5QQHa4GVkdp6mrtom`
+- ProgramData address: `3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By`
+- IDL account: `7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46`
+- `solana program show HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam` returns the program on devnet.
 
 ## What Changed After The Skills Review
 

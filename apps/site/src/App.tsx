@@ -285,7 +285,7 @@ function ProofStrip() {
         icon={FileCheck2}
         label="Program ID"
         value={programId}
-        text="Reserved in the Anchor workspace. Devnet deployment is the next submission blocker."
+        text="Deployed on devnet with ProgramData 3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By."
       />
       <ProofCard
         icon={LockKeyhole}
@@ -521,12 +521,12 @@ function RoadmapSection() {
       <SectionHeader
         kicker="Roadmap"
         title="The remaining work is operational, not conceptual."
-        text="The project is ready to focus on submission proof: wallet signing, devnet deploy, APK, hosted site, and final video."
+        text="The project is ready to focus on submission proof: wallet signing, APK, hosted site, and final video."
       />
       <div className="mt-8 grid gap-3 md:grid-cols-5">
         {[
           ["1", "MWA signing proof", "pending"],
-          ["2", "Devnet deploy", "pending"],
+          ["2", "Devnet deploy", "done"],
           ["3", "Signed APK", "pending"],
           ["4", "Hosted site", "pending"],
           ["5", "Demo video", "pending"],
@@ -534,7 +534,13 @@ function RoadmapSection() {
           <div key={title} className="rounded-xl border border-border-subtle bg-surface-900/70 p-4">
             <p className="text-xs text-brand-blue">Step {step}</p>
             <p className="mt-2 text-sm font-semibold">{title}</p>
-            <p className="mt-3 inline-flex rounded-md bg-status-warning/10 px-2 py-1 text-xs font-semibold text-status-warning">
+            <p
+              className={`mt-3 inline-flex rounded-md px-2 py-1 text-xs font-semibold ${
+                status === "done"
+                  ? "bg-brand-mint/10 text-brand-mint"
+                  : "bg-status-warning/10 text-status-warning"
+              }`}
+            >
               {status}
             </p>
           </div>

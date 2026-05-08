@@ -105,8 +105,17 @@ Agents never receive the user's private key. They submit a manifest to SkillGuar
 
 - Anchor program ID: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Program path: `programs/skillguard`
-- Current network target: devnet
-- Current deploy status: local Anchor build/tests pass; devnet deployment is still pending and must be verified with `solana program show` before submission.
+- Network: devnet
+- Deploy transaction: `5qQzTVjGXrGQiMRAD6vaSt3aKTXLHVB7SwZBtfxoYFPZ753hdeSp2gVLavVBNZtXrsF6cdJ5QQHa4GVkdp6mrtom`
+- ProgramData address: `3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By`
+- IDL account: `7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46`
+- Upgrade authority: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`
+
+Verified with:
+
+```bash
+solana program show HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam
+```
 
 The program stores compact public facts:
 

@@ -284,7 +284,7 @@ Required assets:
 - [x] README with setup, architecture, demo flow, and security boundary
 - [ ] Android APK
 - [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
-- [ ] deployed devnet addresses
+- [x] deployed devnet addresses
 - [ ] demo transaction signatures
 - [ ] demo video under 3 minutes
 - [x] architecture diagram in README
@@ -300,15 +300,22 @@ Ready locally:
   demo-agent tests
   mobile typecheck/tests/doctor
   Anchor build/tests
+  devnet program deploy proof
   local demo orchestration
 
 Not yet submission-ready:
   MWA signing proof
-  devnet deploy proof
   signed APK
   public hosted site
   final video
 ```
+
+Devnet deployment:
+
+- Program ID: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- Deploy signature: `5qQzTVjGXrGQiMRAD6vaSt3aKTXLHVB7SwZBtfxoYFPZ753hdeSp2gVLavVBNZtXrsF6cdJ5QQHa4GVkdp6mrtom`
+- ProgramData address: `3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By`
+- IDL account: `7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46`
 
 Solana Mobile specific:
 

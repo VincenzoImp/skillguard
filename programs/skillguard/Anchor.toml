@@ -8,6 +8,9 @@ skip-lint = false
 [programs.localnet]
 skillguard = "HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam"
 
+[programs.devnet]
+skillguard = "HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam"
+
 [registry]
 url = "https://api.apr.dev"
 

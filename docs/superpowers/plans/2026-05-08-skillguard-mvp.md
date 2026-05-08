@@ -588,6 +588,15 @@ anchor deploy
 
 Record program ID in `README.md`.
 
+Observed devnet deployment:
+
+```text
+Program ID: HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam
+Deploy signature: 5qQzTVjGXrGQiMRAD6vaSt3aKTXLHVB7SwZBtfxoYFPZ753hdeSp2gVLavVBNZtXrsF6cdJ5QQHa4GVkdp6mrtom
+ProgramData: 3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By
+IDL: 7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46
+```
+
 ## Milestone 4: Mobile App
 
 Goal: make the product real and understandable.
