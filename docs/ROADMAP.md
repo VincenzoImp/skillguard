@@ -309,12 +309,14 @@ Ready locally:
   MWA record_decision proof: 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF
   debug APK build: build/mobile/skillguard-debug.apk
   standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
+  release signed APK proof artifact: build/mobile/skillguard-release-signed.apk
+  GitHub Pages deployment workflow: .github/workflows/deploy-site.yml
   local demo orchestration
 
 Not yet submission-ready:
   final store/upload keystore owner decision
   public hosted site
-  final video
+  final video and screenshots
 ```
 
 Devnet deployment:
