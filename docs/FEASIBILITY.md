@@ -26,6 +26,33 @@ Feasibility by area:
 
 My confidence is not high because the Solana Skills page was impressive. It is higher because that page changed the competitive map: "agents can do Solana actions" is already becoming table stakes, while "humans can safely approve and audit those actions on mobile" is a clearer gap.
 
+## Current Implementation Status
+
+The MVP has moved from concept into a local vertical slice.
+
+Implemented and tested locally:
+
+- shared `ActionManifest` and `AgentPolicy` TypeScript contracts
+- canonical manifest hashing
+- deterministic policy evaluation for safe, unsafe, expired, blocked, and revoked paths
+- API endpoints for agents, connections, pending actions, policy evaluation, decisions, and revocation
+- demo agent CLI that submits safe, unsafe, and revoked requests
+- reusable TypeScript SDK for agent developers
+- Anchor program for user profiles, agent connections, policies, revocation, decision receipts, and execution signature hashes
+- mobile approval demo screens for wallet connect, agents, permission editor, inbox, action detail, and receipt timeline
+- local orchestration script for API, site, and demo-agent flows
+
+Still pending for the hackathon submission:
+
+- manual Android wallet signing verification with a real or fake MWA-compatible wallet
+- devnet deployment of program `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- final signed APK
+- final demo screenshots, deployed public site, and demo video
+
+Verified risk note:
+
+- `solana program show HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam` currently does not find the account on devnet, so public materials must describe the program as built and tested locally until deployment is completed.
+
 ## What Changed After The Skills Review
 
 The Solana Skills directory showed that many protocol integrations are already packaged for agents:

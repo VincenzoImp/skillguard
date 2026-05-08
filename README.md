@@ -1,28 +1,93 @@
 # SkillGuard
 
-SkillGuard is the permission layer for Solana agents.
+![SkillGuard wordmark](assets/brand/wordmark.png)
 
-Connect any Solana agent, control what it can do with your wallet, approve sensitive actions from mobile, revoke permissions anytime, and prove every decision on-chain.
+SkillGuard is the permission layer for Solana agents: agents request wallet actions, user policies evaluate them, the user approves from mobile, and the decision can be proven with a Solana receipt.
 
-## What It Does
+## Problem
 
-SkillGuard lets users:
+Solana agent skills make it increasingly easy for AI agents to call wallets, DeFi protocols, infrastructure APIs, and paid resources. The missing layer is user control:
 
-- connect a Solana wallet from an Android app
-- connect AI agents that want to request wallet actions
-- set per-agent permissions
-- receive action requests in a mobile approval inbox
-- approve or reject actions
-- revoke agent access
-- view on-chain approval and rejection receipts
+- users need to understand what an agent wants to do before signing
+- agents need a standard way to request approval without receiving private keys
+- hackathon demos need a clear audit trail for approvals, rejections, and revocations
 
-SkillGuard lets agent developers:
+## Solution
 
-- register an agent
-- create a connect link for users
-- submit action requests through an API/SDK
-- receive approval or rejection callbacks
-- verify action receipts on Solana
+SkillGuard turns agent output into an `ActionManifest`, checks it against a per-agent policy, shows the wallet impact in an Android approval inbox, and records the decision through a small Anchor receipt program.
+
+```text
+Agent proposes action
+  -> ActionManifest
+  -> policy evaluation
+  -> Android approval / rejection / revocation
+  -> Mobile Wallet Adapter signing
+  -> SkillGuard Solana receipt
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+  A[Solana agent or demo agent] --> B[SkillGuard SDK]
+  B --> C[SkillGuard API]
+  C --> D[Canonical manifest hash]
+  C --> E[Policy engine]
+  E --> F[Android approval inbox]
+  F --> G[Mobile Wallet Adapter]
+  G --> H[SkillGuard Anchor program]
+  H --> I[ActionReceipt account]
+  F --> J[Edit policy or revoke agent]
+  J --> E
+```
+
+Core workspaces:
+
+- `packages/protocol`: shared manifest types, canonical hashing, fixtures, policy engine
+- `packages/sdk`: TypeScript client for agent developers
+- `apps/api`: local API for agents, connections, policy evaluation, and decisions
+- `apps/demo-agent`: deterministic safe, unsafe, and revoked action flows
+- `apps/mobile`: Android approval app using the SkillGuard design system
+- `apps/site`: public project site and canonical visual reference
+- `programs/skillguard`: Anchor program for user profiles, agent policies, revocation, and receipts
+
+## Demo Flow
+
+The judge demo is a 3-minute vertical slice:
+
+1. User opens the Android app and connects a devnet wallet.
+2. User sees `Research Agent` and its permission policy.
+3. Demo agent submits an unsafe request; SkillGuard flags `spend_exceeds_max`.
+4. Demo agent submits a safe request; user approves it from mobile.
+5. The decision is recorded as a SkillGuard receipt.
+6. User revokes the agent; future requests are blocked.
+
+See [docs/DEMO.md](docs/DEMO.md) for exact commands and spoken lines.
+
+## Run The Local Demo
+
+```bash
+cp .env.example .env
+. scripts/dev-env.sh
+scripts/dev-demo.sh
+```
+
+The script starts the API and project site, then runs the unsafe, safe, and revoked demo-agent paths. If port `5173` is already used, run:
+
+```bash
+SKILLGUARD_SITE_PORT=5174 scripts/dev-demo.sh
+```
+
+In a second terminal, run the mobile app when the script prints the Android command.
+
+Manual commands:
+
+```bash
+npm --prefix apps/api run dev
+npm --prefix apps/demo-agent run submit:unsafe
+npm --prefix apps/demo-agent run submit:safe
+npm --prefix apps/demo-agent run submit:revoked
+```
 
 ## Agent SDK
 
@@ -34,21 +99,47 @@ const action = await client.submitAction(manifest);
 const decision = await client.onDecision(action.actionId);
 ```
 
-## Hackathon Scope
+Agents never receive the user's private key. They submit a manifest to SkillGuard and wait for a decision.
 
-The MVP proves:
+## Solana Program
 
-```text
-Connect wallet -> connect agent -> set permissions -> agent requests action
--> policy check -> mobile approval/rejection -> Solana devnet receipt.
+- Anchor program ID: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- Program path: `programs/skillguard`
+- Current network target: devnet
+- Current deploy status: local Anchor build/tests pass; devnet deployment is still pending and must be verified with `solana program show` before submission.
+
+The program stores compact public facts:
+
+- user profile
+- agent connection and policy
+- revocation state
+- action receipt with manifest hash
+- optional execution signature hash
+
+## Security Boundary
+
+SkillGuard enforces policy only for actions that go through SkillGuard.
+
+The MVP does not claim universal wallet protection, does not custody funds, and does not give agents private keys. Token-moving actions still require user wallet signing unless a future limited delegation module is added.
+
+## Public Site
+
+The project site lives in `apps/site` and is the visual source of truth for the mobile UI, README screenshots, pitch walkthroughs, and public homepage.
+
+```bash
+npm --prefix apps/site run dev -- --host 0.0.0.0
 ```
 
-Core tracks:
+## Hackathon Scope
 
-- Solana: Anchor/Rust program on devnet.
-- Solana Mobile: Android app using Mobile Wallet Adapter.
+Core scope:
 
-Optional extensions:
+- Solana: Anchor/Rust receipt program.
+- Solana Mobile: Android approval app using Mobile Wallet Adapter.
+- Agents: deterministic demo agent plus reusable TypeScript SDK.
+- UX: safe request, unsafe request, approval, rejection, revocation, receipt timeline.
+
+Optional extensions after the vertical slice is stable:
 
 - LI.FI route preview.
 - x402 paid risk report.
@@ -106,33 +197,13 @@ For local Solana and Android commands on the verified macOS/Homebrew setup:
 . scripts/dev-env.sh
 ```
 
-## Run The Local Demo
-
-```bash
-cp .env.example .env
-. scripts/dev-env.sh
-scripts/dev-demo.sh
-```
-
-In a second terminal, run the mobile app when the script prints the Android command.
-The demo agent scripts are:
-
-```bash
-npm --prefix apps/demo-agent run submit:unsafe
-npm --prefix apps/demo-agent run submit:safe
-npm --prefix apps/demo-agent run submit:revoked
-```
-
-## Demo Narrative
-
-1. User connects wallet in the Android app.
-2. User connects `Research Agent`.
-3. User sets permissions.
-4. Agent submits an unsafe request; SkillGuard blocks or rejects it.
-5. Agent submits a safe request; user approves from mobile.
-6. SkillGuard records the decision on Solana devnet.
-7. User revokes the agent; future requests are blocked.
-
 ## Status
 
-Core MVP scaffolding is underway: shared protocol, API, Anchor receipt program, mobile approval demo, demo agent, and TypeScript SDK are implemented locally with tests and precommit gates. Manual Android wallet verification and end-to-end demo orchestration remain open.
+Core MVP scaffolding is implemented locally: shared protocol, API, Anchor receipt program, mobile approval demo, demo agent, TypeScript SDK, and local demo orchestration all run behind the precommit gate.
+
+Submission blockers still to close:
+
+- manual Android wallet signing verification with an MWA-compatible wallet
+- devnet deployment of the Anchor program
+- signed APK
+- demo video and final screenshots/site deployment

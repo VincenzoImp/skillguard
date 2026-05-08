@@ -781,7 +781,7 @@ cd apps/demo-agent && npm run submit:safe
 - Modify: `docs/FEASIBILITY.md`
 - Modify: `docs/ROADMAP.md`
 
-- [ ] README must show:
+- [x] README must show:
 
 ```text
 one-sentence pitch

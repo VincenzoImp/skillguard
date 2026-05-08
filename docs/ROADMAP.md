@@ -280,15 +280,35 @@ Optional Workflow F: x402 paid report.
 
 Required assets:
 
-- public GitHub repo
-- README with setup
-- Android APK
-- Solana program ID
-- deployed devnet addresses
-- demo transaction signatures
-- demo video under 3 minutes
-- architecture diagram
-- source links and sponsor integrations
+- [x] public GitHub repo remote configured: `https://github.com/VincenzoImp/skillguard.git`
+- [x] README with setup, architecture, demo flow, and security boundary
+- [ ] Android APK
+- [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- [ ] deployed devnet addresses
+- [ ] demo transaction signatures
+- [ ] demo video under 3 minutes
+- [x] architecture diagram in README
+- [x] source links and sponsor integration notes in docs
+
+Current package status:
+
+```text
+Ready locally:
+  protocol tests
+  API tests
+  SDK tests
+  demo-agent tests
+  mobile typecheck/tests/doctor
+  Anchor build/tests
+  local demo orchestration
+
+Not yet submission-ready:
+  MWA signing proof
+  devnet deploy proof
+  signed APK
+  public hosted site
+  final video
+```
 
 Solana Mobile specific:
 
@@ -343,7 +363,7 @@ Optional:
 5. Android inbox/detail/receipt UI.
 6. End-to-end approval receipt.
 7. End-to-end rejection receipt.
-8. Demo polish and README.
+8. Demo polish and README. In progress.
 9. APK signing.
 10. Optional LI.FI route preview.
 11. Optional x402 paid report.
