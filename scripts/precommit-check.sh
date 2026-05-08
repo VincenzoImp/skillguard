@@ -41,6 +41,16 @@ if [ -f packages/protocol/package.json ]; then
   fi
 fi
 
+if [ -f packages/sdk/package.json ]; then
+  echo "==> Building SDK package"
+  npm --prefix packages/sdk run build
+
+  if find packages/sdk/src \( -name "*.test.ts" -o -name "*.test.tsx" \) | grep -q .; then
+    echo "==> Testing SDK package"
+    npm --prefix packages/sdk test
+  fi
+fi
+
 if [ -f apps/api/package.json ]; then
   echo "==> Building API"
   npm --prefix apps/api run build

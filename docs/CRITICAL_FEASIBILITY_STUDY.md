@@ -75,6 +75,8 @@ Commands run locally on 2026-05-08:
 | `apps/demo-agent npm test` | 5 tests passed | Demo agent manifest generation and API client request flow are covered. |
 | `apps/demo-agent npm run build` | passed | Demo agent CLI compiles under TypeScript NodeNext. |
 | `apps/demo-agent submit:*` against local API | passed | Safe returns `requires_approval`, unsafe returns `fail` with `spend_exceeds_max`, and revoked returns `fail` with revocation reasons. |
+| `packages/sdk npm test` | 2 tests passed | SDK submit and decision-read flows are covered with injected fetch. |
+| `packages/sdk npm run build` | passed | SDK package compiles under TypeScript NodeNext. |
 
 Toolchain update on 2026-05-08:
 
@@ -132,6 +134,12 @@ Demo agent update on 2026-05-08:
 - The revoked demo path revokes the demo connection first, then submits an action that should evaluate as blocked by policy revocation.
 - Local tests cover manifest generation and HTTP request order.
 - A local API smoke test confirmed the three CLI paths return the expected policy statuses.
+
+SDK update on 2026-05-08:
+
+- Added `packages/sdk` with `createSkillGuardClient`, `submitAction`, and `onDecision`.
+- The README now includes an agent-developer snippet under 15 lines.
+- Local tests cover authenticated submit headers and one-shot decision reads.
 
 ## Critical Evaluation
 

@@ -24,6 +24,16 @@ SkillGuard lets agent developers:
 - receive approval or rejection callbacks
 - verify action receipts on Solana
 
+## Agent SDK
+
+```ts
+import { createSkillGuardClient } from "@skillguard/sdk";
+
+const client = createSkillGuardClient({ apiUrl, agentId, agentSecret });
+const action = await client.submitAction(manifest);
+const decision = await client.onDecision(action.actionId);
+```
+
 ## Hackathon Scope
 
 The MVP proves:
@@ -108,4 +118,4 @@ For local Solana and Android commands on the verified macOS/Homebrew setup:
 
 ## Status
 
-Planning, feasibility, brand assets, and the project site foundation are ready. Core MVP implementation has not been scaffolded yet.
+Core MVP scaffolding is underway: shared protocol, API, Anchor receipt program, mobile approval demo, demo agent, and TypeScript SDK are implemented locally with tests and precommit gates. Manual Android wallet verification and end-to-end demo orchestration remain open.

@@ -714,7 +714,7 @@ revoked action is blocked
 - Create: `packages/sdk/src/index.ts`
 - Modify: `README.md`
 
-- [ ] Export:
+- [x] Export:
 
 ```ts
 createSkillGuardClient({ apiUrl, agentId, agentSecret })
@@ -722,7 +722,13 @@ client.submitAction(manifest)
 client.onDecision(actionId)
 ```
 
-- [ ] README snippet must fit under 15 lines.
+- [x] README snippet must fit under 15 lines.
+
+Implementation note:
+
+- SDK uses the same API surface as the demo agent but exposes a reusable agent-developer entrypoint.
+- `connectionId` is optional and defaults to the MVP demo connection; production integration should pass the real connection ID.
+- SDK build and tests are now part of the root precommit gate.
 
 ## Milestone 6: End-To-End Demo
 
