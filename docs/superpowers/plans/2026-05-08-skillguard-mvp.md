@@ -69,20 +69,20 @@ Goal: remove setup uncertainty before building product logic.
 - Modify: `README.md`
 - Modify: `docs/superpowers/plans/2026-05-08-skillguard-mvp.md`
 
-- [ ] Document the required loop:
+- [x] Document the required loop:
 
 ```text
 test -> implement -> document -> verify -> stage -> pre-commit -> audit -> fix -> re-verify -> commit -> next step
 ```
 
-- [ ] Configure git hooks:
+- [x] Configure git hooks:
 
 ```bash
 chmod +x scripts/precommit-check.sh scripts/audit-staged-diff.sh .githooks/pre-commit
 git config core.hooksPath .githooks
 ```
 
-- [ ] Verify before baseline commit:
+- [x] Verify before baseline commit:
 
 ```bash
 npm --prefix apps/site run build
@@ -92,7 +92,7 @@ scripts/audit-staged-diff.sh
 git diff --cached --stat
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git commit -m "chore: establish SkillGuard planning baseline"
@@ -236,7 +236,7 @@ Goal: define the product's core abstraction before API/mobile/program integratio
 **Files:**
 - Modify: `packages/protocol/src/types.ts`
 
-- [ ] Define:
+- [x] Define:
 
 ```ts
 export type SkillGuardNetwork = "solana-devnet" | "solana-mainnet";
