@@ -597,8 +597,8 @@ Goal: make the product real and understandable.
 **Files:**
 - Create/replace under: `apps/mobile`
 
-- [ ] Use Expo React Native unless native Kotlin is chosen after spike.
-- [ ] Install current mobile packages:
+- [x] Use Expo React Native unless native Kotlin is chosen after spike.
+- [x] Install current mobile packages:
 
 ```bash
 npx create-expo-app apps/mobile
@@ -606,15 +606,22 @@ cd apps/mobile
 npm install @wallet-ui/react-native-web3js react-native-quick-crypto @solana/web3.js expo-dev-client
 ```
 
+Implementation note:
+
+- The scaffold uses Expo SDK 55, React Native 0.83, React 19, `@wallet-ui/react-native-web3js` 4.1, `@solana/web3.js` 1.98, and `expo-dev-client`.
+- `react-native-quick-base64` is pinned at the top level to dedupe native module registration between wallet/crypto dependencies.
+- `expo-doctor` and TypeScript checks are part of the root precommit gate.
+
 ### Task 4.2: Mobile Wallet Adapter Spike
 
 **Files:**
 - Create: `apps/mobile/src/wallet.ts`
 - Create: `apps/mobile/src/screens/WalletConnectScreen.tsx`
 
-- [ ] Connect wallet on Android.
-- [ ] Show address and devnet badge.
-- [ ] Sign a devnet memo or receipt transaction.
+- [x] Implement wallet connection code path for Android MWA.
+- [x] Show address and devnet badge.
+- [x] Implement devnet Memo signing probe.
+- [ ] Manually verify wallet connection and signature on Android emulator or device with an MWA-compatible wallet installed.
 
 Exit criteria:
 

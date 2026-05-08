@@ -51,6 +51,14 @@ if [ -f apps/api/package.json ]; then
   fi
 fi
 
+if [ -f apps/mobile/package.json ]; then
+  echo "==> Typechecking mobile app"
+  npm --prefix apps/mobile run typecheck
+
+  echo "==> Checking Expo mobile project"
+  npm --prefix apps/mobile run doctor
+fi
+
 if [ -f programs/skillguard/Anchor.toml ]; then
   if [ -f programs/skillguard/package.json ]; then
     echo "==> Linting Anchor workspace"

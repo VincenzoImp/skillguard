@@ -1,18 +1,37 @@
 # SkillGuard Mobile
 
-Android app for wallet connection, connected agents, permission management, action approvals, and receipt history.
+Android-first Expo app for wallet connection, agent permissions, action approvals, and receipt history.
 
-Planned stack:
+## Current Stack
 
-- React Native / Solana Mobile template
-- Mobile Wallet Adapter
-- `@solana/web3.js`
+- Expo SDK 55
+- React Native 0.83
+- React 19
+- Solana Mobile Wallet Adapter through `@wallet-ui/react-native-web3js`
+- `@solana/web3.js` for the current mobile wallet flow
+- `react-native-quick-crypto`, `react-native-get-random-values`, and `buffer` for Solana-compatible runtime primitives
 
-Core screens:
+## Current Screen
 
-- onboarding and wallet connect
-- connected agents
-- permission editor
-- pending requests
-- action detail
-- receipt timeline
+The first mobile slice is a wallet connection and signing probe:
+
+- connect an MWA-compatible wallet on devnet
+- show the connected wallet address
+- show a SkillGuard approval preview
+- sign and send a devnet Memo transaction
+- show the transaction signature and open it in Solana Explorer
+
+## Commands
+
+Run commands through the repo environment so Node 22 and Android paths are selected:
+
+```bash
+. ../../scripts/dev-env.sh
+npm run typecheck
+npm run doctor
+npm run android
+```
+
+## Audit Note
+
+`npm audit --omit=dev` currently reports moderate PostCSS findings through Expo/Metro tooling. `npm audit fix --force` proposes downgrading Expo to an older major version, so it is rejected for the MVP. The project keeps Expo 55-compatible dependencies and tracks this as a tooling dependency risk, not an application runtime feature.

@@ -68,6 +68,9 @@ Commands run locally on 2026-05-08:
 | `apps/site npm run build` | passed | Current project site foundation is healthy. |
 | `programs/skillguard anchor test` | 12 tests passed under Node `22.22.2` | Anchor program compiles, starts the local validator, and covers profiles, agent connections, policy create/update, revocation, receipts, execution signatures, invalid decision codes, and negative cases. |
 | `programs/skillguard npm audit --omit=dev` | 0 vulnerabilities | Runtime dependency audit is clean; reported Anchor template audit findings are limited to dev/test dependencies. |
+| `apps/mobile npm run typecheck` | passed | The Expo wallet connection and devnet Memo signing probe compile under TypeScript. |
+| `apps/mobile npm run doctor` | 18/18 checks passed | The mobile dependency graph is Expo SDK 55-compatible after pinning React, React Native, random values, and quick base64 versions. |
+| `apps/mobile npm audit --omit=dev` | 4 moderate findings | Current findings are PostCSS issues through Expo/Metro. `npm audit fix --force` proposes an Expo major downgrade, so this is tracked as an upstream tooling dependency risk rather than applied blindly. |
 
 Toolchain update on 2026-05-08:
 
@@ -103,7 +106,19 @@ Current package versions checked from npm:
 | `@solana/web3.js` | `1.98.4` |
 | `@wallet-ui/react-native-web3js` | `4.1.0` |
 | `expo` | `55.0.23` |
-| `react-native` | `0.85.3` |
+| `react-native` | `0.83.6` |
+| `react` | `19.2.0` |
+| `expo-dev-client` | `55.0.32` |
+| `react-native-quick-crypto` | `1.1.2` |
+
+Mobile spike update on 2026-05-08:
+
+- Replaced the placeholder `apps/mobile` directory with an Expo TypeScript app.
+- Added a Solana Mobile Wallet Adapter provider using devnet.
+- Added a wallet connection screen that shows SkillGuard branding, devnet state, wallet address, approval preview, and a devnet Memo signing probe.
+- Added runtime polyfills for random values and Buffer.
+- `expo-doctor` initially caught incompatible React Native, React, and random-values versions; the dependency graph was corrected to Expo SDK 55-compatible versions.
+- Manual Android wallet verification remains open until an MWA-compatible wallet is available in the emulator or on device.
 
 ## Critical Evaluation
 
