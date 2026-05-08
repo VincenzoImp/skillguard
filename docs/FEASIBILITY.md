@@ -40,13 +40,20 @@ Implemented and tested locally:
 - reusable TypeScript SDK for agent developers
 - Anchor program for user profiles, agent connections, policies, revocation, decision receipts, and execution signature hashes
 - mobile approval demo screens for wallet connect, agents, permission editor, inbox, action detail, and receipt timeline
+- Android package metadata and a reproducible local APK build script
 - local orchestration script for API, site, and demo-agent flows
 
 Still pending for the hackathon submission:
 
 - manual Android wallet signing verification with a real or fake MWA-compatible wallet
-- final signed APK
+- final store-ready signed APK
 - final demo screenshots, deployed public site, and demo video
+
+Local APK build proof:
+
+- Command: `. scripts/dev-env.sh && scripts/build-mobile-apk.sh`
+- Result: `BUILD SUCCESSFUL` in 6m 48s on May 8, 2026.
+- Artifact: `build/mobile/skillguard-debug.apk` at 188 MB.
 
 Devnet deployment proof:
 

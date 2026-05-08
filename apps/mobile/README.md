@@ -37,6 +37,23 @@ npm run doctor
 npm run android
 ```
 
+Build an installable Android APK for local demo review:
+
+```bash
+. ../../scripts/dev-env.sh
+../../scripts/build-mobile-apk.sh
+```
+
+The default output is a debug-signed APK at:
+
+```text
+<repo-root>/build/mobile/skillguard-debug.apk
+```
+
+Release signing for store submission still needs a real keystore and signing config.
+Do not commit `.jks` files or secret signing properties.
+The generated APK and native `android/` directory are local artifacts and are ignored by git.
+
 ## Audit Note
 
 `npm audit --omit=dev` currently reports moderate PostCSS findings through Expo/Metro tooling. `npm audit fix --force` proposes downgrading Expo to an older major version, so it is rejected for the MVP. The project keeps Expo 55-compatible dependencies and tracks this as a tooling dependency risk, not an application runtime feature.

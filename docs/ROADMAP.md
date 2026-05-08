@@ -282,7 +282,8 @@ Required assets:
 
 - [x] public GitHub repo remote configured: `https://github.com/VincenzoImp/skillguard.git`
 - [x] README with setup, architecture, demo flow, and security boundary
-- [ ] Android APK
+- [x] local debug Android APK build
+- [ ] store-ready signed Android APK
 - [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - [x] deployed devnet addresses
 - [ ] demo transaction signatures
@@ -301,11 +302,13 @@ Ready locally:
   mobile typecheck/tests/doctor
   Anchor build/tests
   devnet program deploy proof
+  debug APK build: build/mobile/skillguard-debug.apk
   local demo orchestration
 
 Not yet submission-ready:
   MWA signing proof
-  signed APK
+  store-ready release signing
+  store-ready signed APK
   public hosted site
   final video
 ```

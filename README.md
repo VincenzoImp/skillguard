@@ -89,6 +89,21 @@ npm --prefix apps/demo-agent run submit:safe
 npm --prefix apps/demo-agent run submit:revoked
 ```
 
+Build a local debug-signed Android APK:
+
+```bash
+. scripts/dev-env.sh
+scripts/build-mobile-apk.sh
+```
+
+APK output:
+
+```text
+build/mobile/skillguard-debug.apk
+```
+
+The APK is a local build artifact ignored by git; rebuild it from source for review or submission packaging.
+
 ## Agent SDK
 
 ```ts
