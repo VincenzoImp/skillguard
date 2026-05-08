@@ -1,0 +1,26 @@
+import { describe, expect, it } from "vitest";
+import { roadmapItems } from "./submissionStatus";
+
+describe("submissionStatus", () => {
+  it("marks verified local submission proofs with non-pending statuses", () => {
+    expect(statusFor("MWA record_decision proof")).toBe("done");
+    expect(statusFor("Devnet program deploy")).toBe("done");
+    expect(statusFor("Release APK signing pipeline")).toBe("done");
+    expect(statusFor("GitHub Pages workflow")).toBe("ready");
+  });
+
+  it("keeps account-owned and human-owned submission steps external", () => {
+    expect(statusFor("Final upload key")).toBe("external");
+    expect(statusFor("Demo video")).toBe("external");
+  });
+});
+
+function statusFor(title: string) {
+  const item = roadmapItems.find((roadmapItem) => roadmapItem.title === title);
+
+  if (!item) {
+    throw new Error(`Missing roadmap item: ${title}`);
+  }
+
+  return item.status;
+}

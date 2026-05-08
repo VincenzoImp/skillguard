@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import iconMark from "../../../assets/brand/icon.png";
 import wordmark from "../../../assets/brand/wordmark.png";
+import { roadmapItems, type RoadmapStatus } from "./submissionStatus";
 
 type Decision = "pending" | "approved" | "rejected" | "revoked";
 
@@ -520,26 +521,17 @@ function RoadmapSection() {
     <section className="scroll-mt-28">
       <SectionHeader
         kicker="Roadmap"
-        title="The remaining work is operational, not conceptual."
-        text="The project is ready to focus on submission proof: wallet signing, APK, hosted site, and final video."
+        title="The core proof is local; the remaining gates are account-owned."
+        text="MWA signing, devnet receipts, release signing, and the public site workflow are in place. Final publication now depends on repo visibility, Pages settings, final keystore ownership, and video recording."
       />
-      <div className="mt-8 grid gap-3 md:grid-cols-5">
-        {[
-          ["1", "MWA signing proof", "pending"],
-          ["2", "Devnet deploy", "done"],
-          ["3", "Signed APK", "pending"],
-          ["4", "Hosted site", "pending"],
-          ["5", "Demo video", "pending"],
-        ].map(([step, title, status]) => (
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {roadmapItems.map(({ step, title, status, note }) => (
           <div key={title} className="rounded-xl border border-border-subtle bg-surface-900/70 p-4">
             <p className="text-xs text-brand-blue">Step {step}</p>
             <p className="mt-2 text-sm font-semibold">{title}</p>
+            <p className="mt-2 text-xs leading-5 text-text-secondary">{note}</p>
             <p
-              className={`mt-3 inline-flex rounded-md px-2 py-1 text-xs font-semibold ${
-                status === "done"
-                  ? "bg-brand-mint/10 text-brand-mint"
-                  : "bg-status-warning/10 text-status-warning"
-              }`}
+              className={`mt-3 inline-flex rounded-md px-2 py-1 text-xs font-semibold ${roadmapStatusClass(status)}`}
             >
               {status}
             </p>
@@ -548,6 +540,17 @@ function RoadmapSection() {
       </div>
     </section>
   );
+}
+
+function roadmapStatusClass(status: RoadmapStatus) {
+  switch (status) {
+    case "done":
+      return "bg-brand-mint/10 text-brand-mint";
+    case "ready":
+      return "bg-brand-blue/10 text-brand-blue";
+    case "external":
+      return "bg-status-warning/10 text-status-warning";
+  }
 }
 
 function ResourceSection() {

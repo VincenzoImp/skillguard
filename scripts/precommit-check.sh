@@ -38,6 +38,11 @@ done
 echo "==> Building project site"
 npm --prefix apps/site run build
 
+if find apps/site/src \( -name "*.test.ts" -o -name "*.test.tsx" \) | grep -q .; then
+  echo "==> Testing project site"
+  npm --prefix apps/site test
+fi
+
 if [ -f packages/protocol/package.json ]; then
   echo "==> Building protocol package"
   npm --prefix packages/protocol run build
