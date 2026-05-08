@@ -72,6 +72,9 @@ Commands run locally on 2026-05-08:
 | `apps/mobile npm test` | 7 tests passed | Local mobile demo state covers pending/blocked actions, approval, rejection, revocation, policy block mode, and action selection. |
 | `apps/mobile npm run doctor` | 18/18 checks passed | The mobile dependency graph is Expo SDK 55-compatible after pinning React, React Native, random values, and quick base64 versions. |
 | `apps/mobile npm audit --omit=dev` | 4 moderate findings | Current findings are PostCSS issues through Expo/Metro. `npm audit fix --force` proposes an Expo major downgrade, so this is tracked as an upstream tooling dependency risk rather than applied blindly. |
+| `apps/demo-agent npm test` | 5 tests passed | Demo agent manifest generation and API client request flow are covered. |
+| `apps/demo-agent npm run build` | passed | Demo agent CLI compiles under TypeScript NodeNext. |
+| `apps/demo-agent submit:*` against local API | passed | Safe returns `requires_approval`, unsafe returns `fail` with `spend_exceeds_max`, and revoked returns `fail` with revocation reasons. |
 
 Toolchain update on 2026-05-08:
 
@@ -121,6 +124,14 @@ Mobile spike update on 2026-05-08:
 - `expo-doctor` initially caught incompatible React Native, React, and random-values versions; the dependency graph was corrected to Expo SDK 55-compatible versions.
 - Added mobile product screens for connected agent, policy editor, inbox, action detail, and decision receipts using tested local demo state.
 - Manual Android wallet verification remains open until an MWA-compatible wallet is available in the emulator or on device.
+
+Demo agent update on 2026-05-08:
+
+- Added `apps/demo-agent` CLI scripts for `submit:safe`, `submit:unsafe`, and `submit:revoked`.
+- The CLI posts ActionManifest payloads to the API and immediately requests policy evaluation.
+- The revoked demo path revokes the demo connection first, then submits an action that should evaluate as blocked by policy revocation.
+- Local tests cover manifest generation and HTTP request order.
+- A local API smoke test confirmed the three CLI paths return the expected policy statuses.
 
 ## Critical Evaluation
 

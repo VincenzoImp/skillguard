@@ -51,6 +51,16 @@ if [ -f apps/api/package.json ]; then
   fi
 fi
 
+if [ -f apps/demo-agent/package.json ]; then
+  echo "==> Building demo agent"
+  npm --prefix apps/demo-agent run build
+
+  if find apps/demo-agent/src \( -name "*.test.ts" -o -name "*.test.tsx" \) | grep -q .; then
+    echo "==> Testing demo agent"
+    npm --prefix apps/demo-agent test
+  fi
+fi
+
 if [ -f apps/mobile/package.json ]; then
   echo "==> Typechecking mobile app"
   npm --prefix apps/mobile run typecheck

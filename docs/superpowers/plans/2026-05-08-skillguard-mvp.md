@@ -690,7 +690,14 @@ npm run submit:unsafe
 npm run submit:revoked
 ```
 
-- [ ] Each command posts an ActionManifest to the API.
+- [x] Each command posts an ActionManifest to the API.
+
+Implementation note:
+
+- `apps/demo-agent` creates deterministic safe, unsafe, and revoked-path manifests.
+- The CLI posts each manifest to `POST /actions` and then calls `POST /actions/:id/evaluate`.
+- The revoked path first calls `POST /connections/:connectionId/revoke`.
+- Demo-agent build and tests are now part of the root precommit gate.
 
 Exit criteria:
 
