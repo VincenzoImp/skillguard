@@ -10,9 +10,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { StatusBadge } from "../components/StatusBadge";
+import type { DemoAction } from "../demoState";
 import {
   approveAction,
   getSelectedAction,
@@ -22,8 +23,12 @@ import {
   selectAction,
   updatePolicyMode,
 } from "../demoState";
+import {
+  buildSkillGuardApprovalInstructions,
+  deriveSkillGuardAccounts,
+  skillGuardBytes32,
+} from "../skillguardProgram";
 import { colors } from "../theme";
-import { asciiBuffer, MEMO_PROGRAM_ID } from "../wallet";
 import { ActionDetailScreen } from "./ActionDetailScreen";
 import { AgentsScreen } from "./AgentsScreen";
 import { InboxScreen } from "./InboxScreen";
@@ -77,20 +82,46 @@ export function WalletConnectScreen() {
     }
 
     setIsBusy(true);
-    setStatus("Preparing devnet receipt probe");
+    setStatus("Preparing SkillGuard receipt");
 
     try {
       const activeAccount = account ?? (await connect());
+      const agentIdHash = skillGuardBytes32("agent", actionToApprove.agentId);
+      const actionIdHash = skillGuardBytes32("action", actionToApprove.id);
+      const skillGuardAccounts = deriveSkillGuardAccounts(
+        activeAccount.publicKey,
+        agentIdHash,
+        actionIdHash
+      );
+      const [userProfileInfo, agentConnectionInfo, actionReceiptInfo] =
+        await Promise.all([
+          connection.getAccountInfo(skillGuardAccounts.userProfile, "confirmed"),
+          connection.getAccountInfo(
+            skillGuardAccounts.agentConnection,
+            "confirmed"
+          ),
+          connection.getAccountInfo(skillGuardAccounts.actionReceipt, "confirmed"),
+        ]);
+
+      if (actionReceiptInfo) {
+        setStatus("SkillGuard receipt already exists for this action");
+        return;
+      }
+
       const latestBlockhash = await connection.getLatestBlockhash("confirmed");
       const minContextSlot = await connection.getSlot("confirmed");
       const transaction = new Transaction({
         feePayer: activeAccount.publicKey,
         recentBlockhash: latestBlockhash.blockhash,
       }).add(
-        new TransactionInstruction({
-          keys: [],
-          programId: new PublicKey(MEMO_PROGRAM_ID),
-          data: asciiBuffer(`SkillGuard receipt ${actionToApprove.manifestHash}`),
+        ...buildSkillGuardApprovalInstructions({
+          actionId: actionToApprove.id,
+          agentId: actionToApprove.agentId,
+          includeConnectAgent: agentConnectionInfo === null,
+          includeCreateUserProfile: userProfileInfo === null,
+          manifestHash: actionToApprove.manifestHash,
+          owner: activeAccount.publicKey,
+          policyResult: policyResultSummary(actionToApprove),
         })
       );
 
@@ -98,7 +129,7 @@ export function WalletConnectScreen() {
       setMobileState((state) =>
         approveAction(state, actionToApprove.id, txSignature)
       );
-      setStatus("Devnet receipt signature received");
+      setStatus("SkillGuard receipt recorded on devnet");
     } catch (error) {
       setStatus(readError(error));
     } finally {
@@ -249,6 +280,13 @@ function readError(error: unknown): string {
     return error.message;
   }
   return "Wallet action failed";
+}
+
+function policyResultSummary(action: DemoAction): string {
+  const checks = action.checks
+    .map((check) => `${check.tone}:${check.label}`)
+    .join("|");
+  return `${action.risk}:${action.network}:${checks}`;
 }
 
 const styles = StyleSheet.create({

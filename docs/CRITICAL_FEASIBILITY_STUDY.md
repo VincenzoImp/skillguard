@@ -68,8 +68,8 @@ Commands run locally on 2026-05-08:
 | `apps/site npm run build` | passed | Current project site foundation is healthy. |
 | `programs/skillguard anchor test` | 12 tests passed under Node `22.22.2` | Anchor program compiles, starts the local validator, and covers profiles, agent connections, policy create/update, revocation, receipts, execution signatures, invalid decision codes, and negative cases. |
 | `programs/skillguard npm audit --omit=dev` | 0 vulnerabilities | Runtime dependency audit is clean; reported Anchor template audit findings are limited to dev/test dependencies. |
-| `apps/mobile npm run typecheck` | passed | The Expo wallet connection and devnet Memo signing probe compile under TypeScript. |
-| `apps/mobile npm test` | 7 tests passed | Local mobile demo state covers pending/blocked actions, approval, rejection, revocation, policy block mode, and action selection. |
+| `apps/mobile npm run typecheck` | passed | The Expo wallet connection and SkillGuard `record_decision` transaction path compile under TypeScript. |
+| `apps/mobile npm test` | 10 tests passed | Local mobile tests cover demo state plus SkillGuard PDA derivation and `record_decision` instruction serialization. |
 | `apps/mobile npm run doctor` | 18/18 checks passed | The mobile dependency graph is Expo SDK 55-compatible after pinning React, React Native, random values, and quick base64 versions. |
 | `apps/mobile npm audit --omit=dev` | 4 moderate findings | Current findings are PostCSS issues through Expo/Metro. `npm audit fix --force` proposes an Expo major downgrade, so this is tracked as an upstream tooling dependency risk rather than applied blindly. |
 | `apps/demo-agent npm test` | 5 tests passed | Demo agent manifest generation and API client request flow are covered. |
@@ -121,12 +121,12 @@ Mobile spike update on 2026-05-08:
 
 - Replaced the placeholder `apps/mobile` directory with an Expo TypeScript app.
 - Added a Solana Mobile Wallet Adapter provider using devnet.
-- Added a wallet connection screen that shows SkillGuard branding, devnet state, wallet address, approval preview, and a devnet Memo signing probe.
+- Added a wallet connection screen that shows SkillGuard branding, devnet state, wallet address, approval preview, and a SkillGuard `record_decision` approval transaction.
 - Added runtime polyfills for random values and Buffer.
 - `expo-doctor` initially caught incompatible React Native, React, and random-values versions; the dependency graph was corrected to Expo SDK 55-compatible versions.
 - Added mobile product screens for connected agent, policy editor, inbox, action detail, and decision receipts using tested local demo state.
 - Manual Android wallet verification passed on May 9, 2026 with the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
-- The app authorized devnet wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` and submitted finalized devnet signature `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987` with memo `SkillGuard receipt 2f4a9d3e5c6b7a18d91c`.
+- The app authorized devnet wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` and submitted finalized devnet signature `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`, which created profile `7DrEwjK8YhEDz1K46qtvFFrYzjkvJKVvyptsubS1jQr9`, connection `BEhjLvVgmCUHC3aa7T3yaAhxQ15BWEL9pFCbDdkkDQfr`, and receipt `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`.
 
 Demo agent update on 2026-05-08:
 

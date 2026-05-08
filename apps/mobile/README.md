@@ -20,7 +20,7 @@ The current mobile slice combines the wallet connection spike with the first pro
 - show the connected Research Agent
 - edit the demo policy mode
 - review pending and blocked agent requests
-- approve a pending request through a devnet Memo transaction
+- approve a pending request through a devnet SkillGuard `record_decision` transaction
 - reject a pending request without wallet signing
 - revoke the connected agent and block future requests
 - show decision receipts, manifest hashes, and Explorer links when signatures exist
@@ -70,11 +70,11 @@ The generated APK and native `android/` directory are local artifacts and are ig
 
 Manual Android verification passed on May 9, 2026 using the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
 
-The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a Memo transaction through Mobile Wallet Adapter:
+The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a SkillGuard program transaction through Mobile Wallet Adapter. The transaction created the user profile, connected the demo agent, and recorded an approval receipt:
 
 ```text
-Signature: 4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987
-Memo: SkillGuard receipt 2f4a9d3e5c6b7a18d91c
+Signature: 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF
+Action receipt: 7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z
 Status: finalized on devnet
 ```
 

@@ -303,7 +303,7 @@ Ready locally:
   mobile typecheck/tests/doctor
   Anchor build/tests
   devnet program deploy proof
-  MWA signing proof: 4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987
+  MWA record_decision proof: 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF
   debug APK build: build/mobile/skillguard-debug.apk
   standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
   local demo orchestration
@@ -322,12 +322,13 @@ Devnet deployment:
 - ProgramData address: `3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By`
 - IDL account: `7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46`
 
-MWA demo transaction:
+MWA `record_decision` demo transaction:
 
 - Wallet: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`
-- Signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`
-- Slot: `461031097`
-- Memo: `SkillGuard receipt 2f4a9d3e5c6b7a18d91c`
+- Signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
+- Slot: `461036533`
+- Instructions: `create_user_profile`, `connect_agent`, `record_decision`
+- Action receipt: `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`
 - Status: finalized on devnet with `Status: Ok`.
 
 Solana Mobile specific:

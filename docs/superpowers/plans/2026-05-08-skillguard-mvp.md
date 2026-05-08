@@ -629,8 +629,9 @@ Implementation note:
 
 - [x] Implement wallet connection code path for Android MWA.
 - [x] Show address and devnet badge.
-- [x] Implement devnet Memo signing probe.
+- [x] Implement initial devnet Memo signing probe.
 - [x] Manually verify wallet connection and signature on Android emulator or device with an MWA-compatible wallet installed.
+- [x] Replace Memo probe with a real SkillGuard `record_decision` transaction path.
 
 Exit criteria:
 
@@ -646,8 +647,9 @@ Verification note:
 - Emulator: `skillguard_api36`.
 - Wallet: official Solana Mobile mock MWA wallet.
 - Wallet address: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`.
-- Signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`.
-- Devnet confirmation: `Status: Ok`, `Finalized`, slot `461031097`.
+- Signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`.
+- Action receipt: `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`.
+- Devnet confirmation: `Status: Ok`, `Finalized`, slot `461036533`.
 
 ### Task 4.3: Product Screens
 

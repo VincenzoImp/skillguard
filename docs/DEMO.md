@@ -54,7 +54,7 @@ cd apps/demo-agent && npm run submit:safe
 ```
 
 Open the safe request in mobile, show zero spend, approve it through the wallet,
-and open the devnet receipt signature.
+and open the devnet SkillGuard receipt transaction.
 
 ## Scene 4: Revoke Agent
 

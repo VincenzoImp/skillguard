@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@noble/hashes": "^1.8.0",
     "@solana/web3.js": "^1.98.4",
     "@wallet-ui/react-native-web3js": "^4.1.0",
     "buffer": "^6.0.3",

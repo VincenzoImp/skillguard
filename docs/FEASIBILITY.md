@@ -75,12 +75,16 @@ Mobile Wallet Adapter proof:
 - App artifact: `build/mobile/skillguard-standalone-debugsigned.apk`.
 - Wallet: official Solana Mobile mock MWA wallet built locally from `https://github.com/solana-mobile/mock-mwa-wallet`.
 - Test wallet: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`. Key material stayed local and is not committed.
-- Flow: authenticate mock wallet, authorize SkillGuard on `solana:devnet`, approve the pending `Publish wallet-risk receipt` action, and submit a devnet Memo transaction through MWA.
-- Signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`.
-- Slot: `461031097`.
-- Block time: `2026-05-09T00:18:09+02:00`.
-- Memo payload: `SkillGuard receipt 2f4a9d3e5c6b7a18d91c`.
-- Command proof: `. scripts/dev-env.sh && solana confirm -v 4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987 --url devnet` returns `Status: Ok` and `Finalized`.
+- Flow: authenticate mock wallet, authorize SkillGuard on `solana:devnet`, approve the pending `Publish wallet-risk receipt` action, and submit a SkillGuard program transaction through MWA.
+- Signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`.
+- Slot: `461036533`.
+- Block time: `2026-05-09T00:52:41+02:00`.
+- Instructions: `create_user_profile`, `connect_agent`, `record_decision`.
+- User profile: `7DrEwjK8YhEDz1K46qtvFFrYzjkvJKVvyptsubS1jQr9`.
+- Agent connection: `BEhjLvVgmCUHC3aa7T3yaAhxQ15BWEL9pFCbDdkkDQfr`.
+- Action receipt: `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`.
+- Receipt decode: `anchor account skillguard.ActionReceipt 7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z --provider.cluster devnet` returns owner `Dd6t...TdTx`, decision `1`, and the expected action, agent, manifest, and policy-result hashes.
+- Command proof: `. scripts/dev-env.sh && solana confirm -v 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF --url devnet` returns `Status: Ok` and `Finalized`.
 
 ## What Changed After The Skills Review
 
