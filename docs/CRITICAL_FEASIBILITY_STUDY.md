@@ -69,6 +69,7 @@ Commands run locally on 2026-05-08:
 | `programs/skillguard anchor test` | 12 tests passed under Node `22.22.2` | Anchor program compiles, starts the local validator, and covers profiles, agent connections, policy create/update, revocation, receipts, execution signatures, invalid decision codes, and negative cases. |
 | `programs/skillguard npm audit --omit=dev` | 0 vulnerabilities | Runtime dependency audit is clean; reported Anchor template audit findings are limited to dev/test dependencies. |
 | `apps/mobile npm run typecheck` | passed | The Expo wallet connection and devnet Memo signing probe compile under TypeScript. |
+| `apps/mobile npm test` | 7 tests passed | Local mobile demo state covers pending/blocked actions, approval, rejection, revocation, policy block mode, and action selection. |
 | `apps/mobile npm run doctor` | 18/18 checks passed | The mobile dependency graph is Expo SDK 55-compatible after pinning React, React Native, random values, and quick base64 versions. |
 | `apps/mobile npm audit --omit=dev` | 4 moderate findings | Current findings are PostCSS issues through Expo/Metro. `npm audit fix --force` proposes an Expo major downgrade, so this is tracked as an upstream tooling dependency risk rather than applied blindly. |
 
@@ -118,6 +119,7 @@ Mobile spike update on 2026-05-08:
 - Added a wallet connection screen that shows SkillGuard branding, devnet state, wallet address, approval preview, and a devnet Memo signing probe.
 - Added runtime polyfills for random values and Buffer.
 - `expo-doctor` initially caught incompatible React Native, React, and random-values versions; the dependency graph was corrected to Expo SDK 55-compatible versions.
+- Added mobile product screens for connected agent, policy editor, inbox, action detail, and decision receipts using tested local demo state.
 - Manual Android wallet verification remains open until an MWA-compatible wallet is available in the emulator or on device.
 
 ## Critical Evaluation

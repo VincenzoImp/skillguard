@@ -2,9 +2,7 @@ import "../polyfills";
 
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
-  Linking,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -14,19 +12,26 @@ import {
 } from "react-native";
 import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
-import { asciiBuffer, explorerUrl, MEMO_PROGRAM_ID } from "../wallet";
-
-type StepTone = "safe" | "warning" | "danger" | "info";
-
-const receiptPreview = [
-  ["Agent", "Research Agent"],
-  ["Network", "Solana devnet"],
-  ["Policy", "Within read-only wallet-risk policy"],
-  ["Manifest", "2f4a...d91c"],
-];
+import { StatusBadge } from "../components/StatusBadge";
+import {
+  approveAction,
+  getSelectedAction,
+  initialMobileState,
+  rejectAction,
+  revokeAgent,
+  selectAction,
+  updatePolicyMode,
+} from "../demoState";
+import { colors } from "../theme";
+import { asciiBuffer, MEMO_PROGRAM_ID } from "../wallet";
+import { ActionDetailScreen } from "./ActionDetailScreen";
+import { AgentsScreen } from "./AgentsScreen";
+import { InboxScreen } from "./InboxScreen";
+import { PermissionEditorScreen } from "./PermissionEditorScreen";
+import { ReceiptScreen } from "./ReceiptScreen";
 
 export function WalletConnectScreen() {
-  const [signature, setSignature] = useState<string | null>(null);
+  const [mobileState, setMobileState] = useState(initialMobileState);
   const [status, setStatus] = useState("Wallet not connected");
   const [isBusy, setIsBusy] = useState(false);
   const { account, connect, disconnect, signAndSendTransaction, connection } =
@@ -37,6 +42,7 @@ export function WalletConnectScreen() {
     if (!address) return "No wallet";
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   }, [address]);
+  const selectedAction = getSelectedAction(mobileState);
 
   async function handleConnect() {
     setIsBusy(true);
@@ -55,7 +61,6 @@ export function WalletConnectScreen() {
     setIsBusy(true);
     try {
       await disconnect();
-      setSignature(null);
       setStatus("Wallet disconnected");
     } catch (error) {
       setStatus(readError(error));
@@ -65,6 +70,12 @@ export function WalletConnectScreen() {
   }
 
   async function handleSignProbe() {
+    const actionToApprove = getSelectedAction(mobileState);
+    if (actionToApprove.status !== "pending") {
+      setStatus("Select a pending action to approve");
+      return;
+    }
+
     setIsBusy(true);
     setStatus("Preparing devnet receipt probe");
 
@@ -79,18 +90,35 @@ export function WalletConnectScreen() {
         new TransactionInstruction({
           keys: [],
           programId: new PublicKey(MEMO_PROGRAM_ID),
-          data: asciiBuffer("SkillGuard devnet receipt probe"),
+          data: asciiBuffer(`SkillGuard receipt ${actionToApprove.manifestHash}`),
         })
       );
 
       const txSignature = await signAndSendTransaction(transaction, minContextSlot);
-      setSignature(txSignature);
-      setStatus("Devnet signature received");
+      setMobileState((state) =>
+        approveAction(state, actionToApprove.id, txSignature)
+      );
+      setStatus("Devnet receipt signature received");
     } catch (error) {
       setStatus(readError(error));
     } finally {
       setIsBusy(false);
     }
+  }
+
+  function handleRejectSelected() {
+    const actionToReject = getSelectedAction(mobileState);
+    setMobileState((state) => rejectAction(state, actionToReject.id));
+    setStatus("Action rejected by wallet owner");
+  }
+
+  function handleRevokeAgent() {
+    setMobileState((state) => revokeAgent(state));
+    setStatus("Agent revoked. Future requests are blocked.");
+  }
+
+  function handleSelectAction(actionId: string) {
+    setMobileState((state) => selectAction(state, actionId));
   }
 
   return (
@@ -110,8 +138,8 @@ export function WalletConnectScreen() {
 
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
-            <Badge tone="info" label="devnet" />
-            <Badge
+            <StatusBadge tone="info" label="devnet" />
+            <StatusBadge
               tone={account ? "safe" : "warning"}
               label={account ? "connected" : "approval"}
             />
@@ -142,75 +170,27 @@ export function WalletConnectScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Approval preview</Text>
-          <View style={styles.requestCard}>
-            {receiptPreview.map(([label, value]) => (
-              <View key={label} style={styles.metaRow}>
-                <Text style={styles.metaLabel}>{label}</Text>
-                <Text style={styles.metaValue}>{value}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Receipt probe</Text>
-          <View style={styles.timeline}>
-            <TimelineStep tone="safe" title="Policy evaluated" body="Read-only risk request fits policy." />
-            <TimelineStep tone="warning" title="Wallet approval" body="User approval is required on mobile." />
-            <TimelineStep
-              tone={signature ? "safe" : "info"}
-              title="Devnet signature"
-              body={signature ? `${signature.slice(0, 16)}...${signature.slice(-12)}` : "Not signed yet"}
-            />
-          </View>
-
-          <PrimaryButton
-            label={isBusy ? "Working..." : "Sign devnet probe"}
-            onPress={handleSignProbe}
-            disabled={isBusy}
-          />
-          {signature ? (
-            <View style={styles.secondaryAction}>
-              <SecondaryButton
-                label="Open in Explorer"
-                onPress={() => Linking.openURL(explorerUrl(signature))}
-              />
-            </View>
-          ) : null}
-          {isBusy ? <ActivityIndicator color="#00F0A8" style={styles.spinner} /> : null}
-        </View>
+        <AgentsScreen agent={mobileState.agent} onRevoke={handleRevokeAgent} />
+        <PermissionEditorScreen
+          policy={mobileState.agent.policy}
+          onModeChange={(mode) =>
+            setMobileState((state) => updatePolicyMode(state, mode))
+          }
+        />
+        <InboxScreen
+          actions={mobileState.actions}
+          selectedActionId={mobileState.selectedActionId}
+          onSelectAction={handleSelectAction}
+        />
+        <ActionDetailScreen
+          action={selectedAction}
+          isBusy={isBusy}
+          onApprove={handleSignProbe}
+          onReject={handleRejectSelected}
+        />
+        <ReceiptScreen actions={mobileState.actions} />
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function Badge({ label, tone }: { label: string; tone: StepTone }) {
-  return (
-    <View style={[styles.badge, toneStyles[tone].badge]}>
-      <Text style={[styles.badgeText, toneStyles[tone].text]}>{label}</Text>
-    </View>
-  );
-}
-
-function TimelineStep({
-  body,
-  title,
-  tone,
-}: {
-  body: string;
-  title: string;
-  tone: StepTone;
-}) {
-  return (
-    <View style={styles.timelineStep}>
-      <View style={[styles.timelineDot, toneStyles[tone].dot]} />
-      <View style={styles.timelineCopy}>
-        <Text style={styles.timelineTitle}>{title}</Text>
-        <Text style={styles.timelineBody}>{body}</Text>
-      </View>
-    </View>
   );
 }
 
@@ -271,48 +251,23 @@ function readError(error: unknown): string {
   return "Wallet action failed";
 }
 
-const toneStyles = {
-  safe: {
-    badge: { borderColor: "rgba(0,240,168,0.36)", backgroundColor: "rgba(0,240,168,0.1)" },
-    dot: { backgroundColor: "#00F0A8" },
-    text: { color: "#00F0A8" },
-  },
-  warning: {
-    badge: { borderColor: "rgba(245,184,75,0.38)", backgroundColor: "rgba(245,184,75,0.12)" },
-    dot: { backgroundColor: "#F5B84B" },
-    text: { color: "#F5B84B" },
-  },
-  danger: {
-    badge: { borderColor: "rgba(255,90,104,0.4)", backgroundColor: "rgba(255,90,104,0.12)" },
-    dot: { backgroundColor: "#FF5A68" },
-    text: { color: "#FF5A68" },
-  },
-  info: {
-    badge: { borderColor: "rgba(88,166,255,0.36)", backgroundColor: "rgba(88,166,255,0.1)" },
-    dot: { backgroundColor: "#58A6FF" },
-    text: { color: "#58A6FF" },
-  },
-} as const;
-
 const styles = StyleSheet.create({
   actionRow: { flexDirection: "row", gap: 10, marginTop: 18 },
-  appName: { color: "#F8FAFC", fontSize: 24, fontWeight: "800", letterSpacing: 0 },
-  badge: { borderRadius: 6, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5 },
-  badgeText: { fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
+  appName: { color: colors.text, fontSize: 24, fontWeight: "800", letterSpacing: 0 },
   content: { gap: 18, padding: 18, paddingBottom: 36 },
   disabledButton: { opacity: 0.45 },
   header: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 8 },
   headerCopy: { flex: 1 },
-  heroBody: { color: "#A7B0C0", fontSize: 15, lineHeight: 22, marginTop: 10 },
+  heroBody: { color: colors.textSecondary, fontSize: 15, lineHeight: 22, marginTop: 10 },
   heroCard: {
-    backgroundColor: "#0B1220",
-    borderColor: "rgba(148,163,184,0.16)",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     padding: 18,
   },
   heroTitle: {
-    color: "#F8FAFC",
+    color: colors.text,
     fontSize: 28,
     fontWeight: "800",
     letterSpacing: 0,
@@ -321,37 +276,22 @@ const styles = StyleSheet.create({
   },
   heroTopRow: { flexDirection: "row", gap: 8 },
   icon: { height: 48, width: 48 },
-  metaLabel: { color: "#6B7280", fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
-  metaRow: {
-    borderBottomColor: "rgba(148,163,184,0.1)",
-    borderBottomWidth: 1,
-    gap: 4,
-    paddingVertical: 10,
-  },
-  metaValue: { color: "#F8FAFC", fontSize: 15, fontWeight: "600" },
-  panelLabel: { color: "#6B7280", fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
+  panelLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
   pressedButton: { transform: [{ scale: 0.99 }] },
   primaryButton: {
     alignItems: "center",
-    backgroundColor: "#00F0A8",
+    backgroundColor: colors.mint,
     borderRadius: 8,
     flex: 1,
     justifyContent: "center",
     minHeight: 48,
     paddingHorizontal: 14,
   },
-  primaryButtonText: { color: "#03130D", fontSize: 15, fontWeight: "800" },
-  requestCard: {
-    backgroundColor: "#070D18",
-    borderColor: "rgba(148,163,184,0.16)",
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-  },
-  safeArea: { backgroundColor: "#030712", flex: 1 },
+  primaryButtonText: { color: colors.mintText, fontSize: 15, fontWeight: "800" },
+  safeArea: { backgroundColor: colors.bg, flex: 1 },
   secondaryButton: {
     alignItems: "center",
-    borderColor: "rgba(248,250,252,0.18)",
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -359,30 +299,13 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 14,
   },
-  secondaryButtonText: { color: "#F8FAFC", fontSize: 15, fontWeight: "700" },
-  secondaryAction: { marginTop: 10 },
-  section: {
-    backgroundColor: "#0B1220",
-    borderColor: "rgba(148,163,184,0.16)",
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 14,
-    padding: 18,
-  },
-  sectionTitle: { color: "#F8FAFC", fontSize: 18, fontWeight: "800" },
-  spinner: { marginTop: 12 },
-  statusText: { color: "#A7B0C0", fontSize: 13, marginTop: 6 },
-  tagline: { color: "#A7B0C0", fontSize: 13, lineHeight: 18 },
-  timeline: { gap: 14 },
-  timelineBody: { color: "#A7B0C0", fontSize: 13, lineHeight: 19 },
-  timelineCopy: { flex: 1, gap: 3 },
-  timelineDot: { borderRadius: 999, height: 10, marginTop: 4, width: 10 },
-  timelineStep: { flexDirection: "row", gap: 10 },
-  timelineTitle: { color: "#F8FAFC", fontSize: 14, fontWeight: "700" },
-  walletAddress: { color: "#F8FAFC", fontSize: 20, fontWeight: "800", marginTop: 5 },
+  secondaryButtonText: { color: colors.text, fontSize: 15, fontWeight: "700" },
+  statusText: { color: colors.textSecondary, fontSize: 13, marginTop: 6 },
+  tagline: { color: colors.textSecondary, fontSize: 13, lineHeight: 18 },
+  walletAddress: { color: colors.text, fontSize: 20, fontWeight: "800", marginTop: 5 },
   walletPanel: {
-    backgroundColor: "#070D18",
-    borderColor: "rgba(148,163,184,0.16)",
+    backgroundColor: colors.deep,
+    borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 18,

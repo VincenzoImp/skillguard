@@ -643,7 +643,7 @@ signature opens in explorer
 - Create: `apps/mobile/src/components/ActionCard.tsx`
 - Create: `apps/mobile/src/components/PolicyCheckList.tsx`
 
-- [ ] Implement screens in this order:
+- [x] Implement screens in this order:
 
 ```text
 Wallet connect
@@ -653,6 +653,12 @@ Inbox
 Action detail
 Receipt
 ```
+
+Implementation note:
+
+- Product screens are wired to a local, tested mobile demo state until API integration lands.
+- The mobile state covers pending, blocked, approved, rejected, policy-mode changes, and revocation.
+- `npm test` is now part of the root precommit gate for mobile when test files exist.
 
 Acceptance:
 

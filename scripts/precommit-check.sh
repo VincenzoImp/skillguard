@@ -55,6 +55,11 @@ if [ -f apps/mobile/package.json ]; then
   echo "==> Typechecking mobile app"
   npm --prefix apps/mobile run typecheck
 
+  if find apps/mobile/src \( -name "*.test.ts" -o -name "*.test.tsx" \) | grep -q .; then
+    echo "==> Testing mobile app"
+    npm --prefix apps/mobile test
+  fi
+
   echo "==> Checking Expo mobile project"
   npm --prefix apps/mobile run doctor
 fi
