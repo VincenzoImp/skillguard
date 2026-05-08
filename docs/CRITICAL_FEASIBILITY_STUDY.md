@@ -50,6 +50,7 @@ Commands run locally on 2026-05-08:
 | Check | Result | Meaning |
 |---|---|---|
 | `node -v` | `v25.7.0` | Node is available. |
+| `. scripts/dev-env.sh && node -v` | `v22.22.2` | Repo verification uses Node 22 because the generated Anchor test runner currently fails under Node 25 ESM behavior. |
 | `npm -v` | `11.10.1` | npm is available. |
 | `pnpm -v` | `10.33.4` | pnpm is available. |
 | `rustc --version` | `rustc 1.95.0` | Rust is available after the Solana quick installer update. |
@@ -65,6 +66,8 @@ Commands run locally on 2026-05-08:
 | `avdmanager list avd` | `skillguard_api36` exists | A Google Play ARM64 emulator profile is available for mobile testing. |
 | `gradle --version` | missing | Gradle is not globally installed; Expo/Android builds should use project-managed Gradle wrappers once the mobile app is scaffolded. |
 | `apps/site npm run build` | passed | Current project site foundation is healthy. |
+| `programs/skillguard anchor test` | passed under Node `22.22.2` | Anchor scaffold compiles, starts the local validator, and runs the generated initialize test. |
+| `programs/skillguard npm audit --omit=dev` | 0 vulnerabilities | Runtime dependency audit is clean; reported Anchor template audit findings are limited to dev/test dependencies. |
 
 Toolchain update on 2026-05-08:
 
@@ -82,6 +85,14 @@ Android tooling update on 2026-05-08:
 - Created AVD `skillguard_api36` at `~/.android/avd/skillguard_api36.avd`.
 - Added `scripts/dev-env.sh` so repo commands can source the verified Solana and Android paths.
 - Android Studio is still not installed; CLI/emulator tooling is enough for the first Expo/React Native build spike, while Android Studio may still help for emulator/device management.
+
+Solana program tooling update on 2026-05-08:
+
+- Replaced the placeholder `programs/skillguard` directory with an Anchor workspace from `anchor init skillguard --no-git --package-manager npm`.
+- Generated a local Solana development keypair at `~/.config/solana/id.json` so `anchor test` can fund and run against the local validator. The keypair is outside the repo and must never be committed.
+- `anchor test` passes for the generated scaffold when `scripts/dev-env.sh` selects Node `22.22.2`.
+- Anchor's generated JavaScript dependency tree currently emits a Node deprecation warning for `punycode`; this is dependency noise, not a program failure.
+- `npm install` for the generated Anchor workspace reports six dependency audit findings in the dev/test dependency tree. `npm audit --omit=dev` reports 0 vulnerabilities, so the current runtime dependency surface is clean while dev tooling must still be reviewed before production hardening.
 
 Current package versions checked from npm:
 
@@ -240,6 +251,11 @@ Pass criteria:
 
 - Anchor local test compiles and runs.
 - One custom receipt account can be created.
+
+Current status:
+
+- The generated Anchor workspace compiles and runs with `anchor test` under Node 22.
+- The custom receipt account remains the next implementation step in Milestone 3.2 and must be proven with test-first program tests before demo integration.
 
 ### Spike 3: Mobile Wallet Adapter
 

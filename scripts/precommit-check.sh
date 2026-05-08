@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# Load repo-verified Solana, Anchor, Android, and Node 22 paths.
+# shellcheck source=/dev/null
+. "$ROOT_DIR/scripts/dev-env.sh"
+
 echo "==> Checking staged whitespace"
 git diff --cached --check
 
@@ -45,6 +49,14 @@ if [ -f apps/api/package.json ]; then
     echo "==> Testing API"
     npm --prefix apps/api test
   fi
+fi
+
+if [ -f programs/skillguard/Anchor.toml ]; then
+  echo "==> Building Anchor program"
+  (cd programs/skillguard && anchor build)
+
+  echo "==> Testing Anchor program"
+  (cd programs/skillguard && anchor test)
 fi
 
 echo "==> Pre-commit check passed"

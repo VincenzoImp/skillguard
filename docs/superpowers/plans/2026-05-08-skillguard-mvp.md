@@ -467,20 +467,25 @@ Goal: record the minimum meaningful on-chain facts.
 **Files:**
 - Create/replace under: `programs/skillguard`
 
-- [ ] Initialize:
+- [x] Initialize:
 
 ```bash
 cd programs
-anchor init skillguard
+anchor init skillguard --no-git --package-manager npm
 ```
 
-- [ ] Keep the generated Anchor structure:
+- [x] Keep the generated Anchor structure:
 
 ```text
 programs/skillguard/Anchor.toml
 programs/skillguard/programs/skillguard/src/lib.rs
 programs/skillguard/tests/skillguard.ts
 ```
+
+Implementation note:
+
+- The existing placeholder directory was replaced with the generated Anchor workspace.
+- The generated test runner requires the repo `scripts/dev-env.sh` Node 22 path on this machine; Node 25 fails in the generated Anchor/yargs dependency path.
 
 ### Task 3.2: Define Accounts
 
