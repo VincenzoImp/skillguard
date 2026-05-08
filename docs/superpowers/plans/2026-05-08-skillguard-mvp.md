@@ -741,7 +741,7 @@ Goal: produce a reliable 3-minute judge demo.
 - Create: `.env.example`
 - Modify: `README.md`
 
-- [ ] Script starts:
+- [x] Script starts:
 
 ```text
 API server
@@ -755,7 +755,7 @@ site public site
 **Files:**
 - Modify: `docs/DEMO.md`
 
-- [ ] Demo script should include exact commands:
+- [x] Demo script should include exact commands:
 
 ```bash
 cd apps/api && npm run dev
@@ -763,7 +763,7 @@ cd apps/demo-agent && npm run submit:unsafe
 cd apps/demo-agent && npm run submit:safe
 ```
 
-- [ ] Include exact spoken lines:
+- [x] Include exact spoken lines:
 
 ```text
 "This agent is asking to use my wallet."

@@ -106,6 +106,23 @@ For local Solana and Android commands on the verified macOS/Homebrew setup:
 . scripts/dev-env.sh
 ```
 
+## Run The Local Demo
+
+```bash
+cp .env.example .env
+. scripts/dev-env.sh
+scripts/dev-demo.sh
+```
+
+In a second terminal, run the mobile app when the script prints the Android command.
+The demo agent scripts are:
+
+```bash
+npm --prefix apps/demo-agent run submit:unsafe
+npm --prefix apps/demo-agent run submit:safe
+npm --prefix apps/demo-agent run submit:revoked
+```
+
 ## Demo Narrative
 
 1. User connects wallet in the Android app.

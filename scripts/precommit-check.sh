@@ -28,6 +28,13 @@ if git diff --cached --name-only | grep -E '\.(md|ts|tsx|js|jsx|json|rs|toml|sh)
   fi
 fi
 
+echo "==> Checking shell script syntax"
+for script in scripts/*.sh .githooks/pre-commit; do
+  if [ -f "$script" ]; then
+    bash -n "$script"
+  fi
+done
+
 echo "==> Building project site"
 npm --prefix apps/site run build
 

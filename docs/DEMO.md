@@ -2,64 +2,73 @@
 
 Target length: under 3 minutes.
 
+## Full Local Script
+
+```bash
+. scripts/dev-env.sh
+scripts/dev-demo.sh
+```
+
+## Manual Commands
+
+```bash
+cd apps/api && npm run dev
+cd apps/demo-agent && npm run submit:unsafe
+cd apps/demo-agent && npm run submit:safe
+cd apps/demo-agent && npm run submit:revoked
+```
+
+## Spoken Lines
+
+```text
+"This agent is asking to use my wallet."
+"SkillGuard checks it against my policy before I sign anything."
+"This one is blocked because it exceeds my limit."
+"This one is safe, so I approve it from mobile."
+"The decision is now recorded as a Solana devnet receipt."
+"Now I revoke the agent, and future requests are blocked."
+```
+
 ## Scene 1: Connect Wallet
 
-Open SkillGuard mobile app and connect a devnet wallet using Mobile Wallet Adapter.
+Open SkillGuard mobile and connect a devnet wallet through Mobile Wallet Adapter.
+Show the wallet address, devnet badge, connected Research Agent, and policy mode.
 
-Show:
+## Scene 2: Unsafe Request
 
-- wallet address
-- devnet badge
-- empty connected agents list
+Run:
 
-## Scene 2: Connect Agent
+```bash
+cd apps/demo-agent && npm run submit:unsafe
+```
 
-Open a connect link or QR for `Research Agent`.
+Show the unsafe request in the inbox and the `spend_exceeds_max` policy reason.
+Say: "This one is blocked because it exceeds my limit."
 
-Show permission setup:
+## Scene 3: Safe Request
 
-- mode: Ask every time
-- max spend: 0.05 SOL
-- allowed protocols: SkillGuard demo, wallet analysis, LI.FI preview
+Run:
 
-## Scene 3: Unsafe Request
+```bash
+cd apps/demo-agent && npm run submit:safe
+```
 
-Research Agent submits an action over the spend limit.
+Open the safe request in mobile, show zero spend, approve it through the wallet,
+and open the devnet receipt signature.
 
-Show:
+## Scene 4: Revoke Agent
 
-- mobile request appears
-- policy failure reason
-- user rejects or app blocks
-- rejection receipt recorded on devnet
+Revoke Research Agent in mobile, then run:
 
-## Scene 4: Safe Request
+```bash
+cd apps/demo-agent && npm run submit:revoked
+```
 
-Research Agent submits a wallet-risk report request within policy.
+Show that the future request is blocked because the policy is inactive/revoked.
 
-Show:
+## Scene 5: Developer Integration
 
-- mobile action detail
-- protocol list
-- spend impact
-- approve button
-- Mobile Wallet Adapter signing
-- approval receipt recorded on devnet
-
-## Scene 5: Revoke Agent
-
-User opens agent settings and revokes Research Agent.
-
-Show:
-
-- agent status changes to revoked
-- future request is blocked
-
-## Scene 6: Developer Integration
-
-Show a small SDK snippet and webhook response.
-
-Point:
+Show the README SDK snippet.
 
 ```text
 Any Solana agent can integrate SkillGuard without receiving the user's private key.
