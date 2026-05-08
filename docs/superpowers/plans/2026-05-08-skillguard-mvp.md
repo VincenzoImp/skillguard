@@ -209,7 +209,7 @@ Goal: define the product's core abstraction before API/mobile/program integratio
 - Create: `packages/protocol/src/policy.ts`
 - Create: `packages/protocol/src/policy.test.ts`
 
-- [ ] Add dependencies:
+- [x] Add dependencies:
 
 ```json
 {

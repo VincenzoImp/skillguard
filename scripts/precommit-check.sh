@@ -27,4 +27,14 @@ fi
 echo "==> Building project site"
 npm --prefix apps/site run build
 
+if [ -f packages/protocol/package.json ]; then
+  echo "==> Building protocol package"
+  npm --prefix packages/protocol run build
+
+  if find packages/protocol/src -name "*.test.ts" | grep -q .; then
+    echo "==> Testing protocol package"
+    npm --prefix packages/protocol test
+  fi
+fi
+
 echo "==> Pre-commit check passed"
