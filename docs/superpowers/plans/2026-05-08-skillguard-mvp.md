@@ -320,7 +320,7 @@ changed spend amount -> different hash
 - Modify: `packages/protocol/src/fixtures.ts`
 - Modify: `packages/protocol/src/policy.test.ts`
 
-- [ ] Add fixtures:
+- [x] Add fixtures:
 
 ```text
 safeRiskReportManifest
@@ -332,7 +332,7 @@ allowUnderLimitsPolicy
 blockPolicy
 ```
 
-- [ ] Implement checks in this order:
+- [x] Implement checks in this order:
 
 ```text
 policy active
@@ -346,7 +346,7 @@ mode is not block
 unknown raw transaction requires approval
 ```
 
-- [ ] Test at minimum:
+- [x] Test at minimum:
 
 ```text
 safe manifest with ask mode -> requires_approval

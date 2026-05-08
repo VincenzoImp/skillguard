@@ -10,3 +10,13 @@ export type {
   SpendItem,
 } from "./types.js";
 export { canonicalJson, hashActionManifest } from "./hash.js";
+export { evaluatePolicy } from "./policy.js";
+export {
+  allowUnderLimitsPolicy,
+  askEveryTimePolicy,
+  blockPolicy,
+  expiredManifest,
+  revokedPolicy,
+  safeRiskReportManifest,
+  unsafeOverspendManifest,
+} from "./fixtures.js";
