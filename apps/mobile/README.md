@@ -66,6 +66,18 @@ Release signing for store submission still needs a real keystore and signing con
 Do not commit `.jks` files or secret signing properties.
 The generated APK and native `android/` directory are local artifacts and are ignored by git.
 
+## MWA Verification
+
+Manual Android verification passed on May 9, 2026 using the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
+
+The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a Memo transaction through Mobile Wallet Adapter:
+
+```text
+Signature: 4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987
+Memo: SkillGuard receipt 2f4a9d3e5c6b7a18d91c
+Status: finalized on devnet
+```
+
 ## Audit Note
 
 `npm audit --omit=dev` currently reports moderate PostCSS findings through Expo/Metro tooling. `npm audit fix --force` proposes downgrading Expo to an older major version, so it is rejected for the MVP. The project keeps Expo 55-compatible dependencies and tracks this as a tooling dependency risk, not an application runtime feature.

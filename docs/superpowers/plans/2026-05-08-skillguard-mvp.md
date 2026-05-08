@@ -630,7 +630,7 @@ Implementation note:
 - [x] Implement wallet connection code path for Android MWA.
 - [x] Show address and devnet badge.
 - [x] Implement devnet Memo signing probe.
-- [ ] Manually verify wallet connection and signature on Android emulator or device with an MWA-compatible wallet installed.
+- [x] Manually verify wallet connection and signature on Android emulator or device with an MWA-compatible wallet installed.
 
 Exit criteria:
 
@@ -639,6 +639,15 @@ wallet address visible in app
 signature visible in app
 signature opens in explorer
 ```
+
+Verification note:
+
+- Date: May 9, 2026.
+- Emulator: `skillguard_api36`.
+- Wallet: official Solana Mobile mock MWA wallet.
+- Wallet address: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`.
+- Signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`.
+- Devnet confirmation: `Status: Ok`, `Finalized`, slot `461031097`.
 
 ### Task 4.3: Product Screens
 

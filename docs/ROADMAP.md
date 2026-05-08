@@ -287,7 +287,7 @@ Required assets:
 - [ ] store-ready signed Android APK
 - [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - [x] deployed devnet addresses
-- [ ] demo transaction signatures
+- [x] demo transaction signatures
 - [ ] demo video under 3 minutes
 - [x] architecture diagram in README
 - [x] source links and sponsor integration notes in docs
@@ -303,12 +303,12 @@ Ready locally:
   mobile typecheck/tests/doctor
   Anchor build/tests
   devnet program deploy proof
+  MWA signing proof: 4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987
   debug APK build: build/mobile/skillguard-debug.apk
   standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
   local demo orchestration
 
 Not yet submission-ready:
-  MWA signing proof
   store-ready release signing
   store-ready signed APK
   public hosted site
@@ -321,6 +321,14 @@ Devnet deployment:
 - Deploy signature: `5qQzTVjGXrGQiMRAD6vaSt3aKTXLHVB7SwZBtfxoYFPZ753hdeSp2gVLavVBNZtXrsF6cdJ5QQHa4GVkdp6mrtom`
 - ProgramData address: `3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By`
 - IDL account: `7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46`
+
+MWA demo transaction:
+
+- Wallet: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`
+- Signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`
+- Slot: `461031097`
+- Memo: `SkillGuard receipt 2f4a9d3e5c6b7a18d91c`
+- Status: finalized on devnet with `Status: Ok`.
 
 Solana Mobile specific:
 
@@ -423,7 +431,7 @@ Never cut:
 
 After Milestone 0:
 
-- If MWA works: proceed with SkillGuard Mobile.
+- MWA works on the Android emulator with the official mock MWA wallet, so continue with SkillGuard Mobile.
 - If MWA is unstable but Android app builds: continue only if Phantom fallback still keeps the Solana Mobile requirements plausible.
 - If Android build blocks: pivot to Access402 or web SkillGuard.
 - If Anchor mobile integration is painful: keep Anchor interaction in backend-prepared transaction flow and sign from mobile.

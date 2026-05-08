@@ -241,7 +241,11 @@ Core MVP scaffolding is implemented locally: shared protocol, API, Anchor receip
 
 Submission blockers still to close:
 
-- manual Android wallet signing verification with an MWA-compatible wallet
-- devnet deployment of the Anchor program
-- signed APK
+- store-ready signed APK
 - demo video and final screenshots/site deployment
+
+Verified submission proofs:
+
+- Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
+- Mobile Wallet Adapter devnet signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`
+- Standalone local Android APK: `build/mobile/skillguard-standalone-debugsigned.apk`

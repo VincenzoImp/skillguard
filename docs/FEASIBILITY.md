@@ -45,7 +45,6 @@ Implemented and tested locally:
 
 Still pending for the hackathon submission:
 
-- manual Android wallet signing verification with a real or fake MWA-compatible wallet
 - final store-ready signed APK
 - final demo screenshots, deployed public site, and demo video
 
@@ -68,6 +67,20 @@ Devnet deployment proof:
 - ProgramData address: `3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By`
 - IDL account: `7DosFKnbsmXM1CFM2gAi1Y5AUuRqBE31RjFJtU5osz46`
 - `solana program show HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam` returns the program on devnet.
+
+Mobile Wallet Adapter proof:
+
+- Date: May 9, 2026.
+- Device: Android emulator `skillguard_api36`, Android 16, `emulator-5554`.
+- App artifact: `build/mobile/skillguard-standalone-debugsigned.apk`.
+- Wallet: official Solana Mobile mock MWA wallet built locally from `https://github.com/solana-mobile/mock-mwa-wallet`.
+- Test wallet: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`. Key material stayed local and is not committed.
+- Flow: authenticate mock wallet, authorize SkillGuard on `solana:devnet`, approve the pending `Publish wallet-risk receipt` action, and submit a devnet Memo transaction through MWA.
+- Signature: `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987`.
+- Slot: `461031097`.
+- Block time: `2026-05-09T00:18:09+02:00`.
+- Memo payload: `SkillGuard receipt 2f4a9d3e5c6b7a18d91c`.
+- Command proof: `. scripts/dev-env.sh && solana confirm -v 4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987 --url devnet` returns `Status: Ok` and `Finalized`.
 
 ## What Changed After The Skills Review
 

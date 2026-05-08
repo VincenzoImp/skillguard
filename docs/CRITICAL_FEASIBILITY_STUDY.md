@@ -125,7 +125,8 @@ Mobile spike update on 2026-05-08:
 - Added runtime polyfills for random values and Buffer.
 - `expo-doctor` initially caught incompatible React Native, React, and random-values versions; the dependency graph was corrected to Expo SDK 55-compatible versions.
 - Added mobile product screens for connected agent, policy editor, inbox, action detail, and decision receipts using tested local demo state.
-- Manual Android wallet verification remains open until an MWA-compatible wallet is available in the emulator or on device.
+- Manual Android wallet verification passed on May 9, 2026 with the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
+- The app authorized devnet wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` and submitted finalized devnet signature `4Tf8p2Rn8TYCqsLeQKNWnBudeEhhErwsczZ1XgFycuJzh7FRj6vpvZTtmekbKZX6UfqfDYYRdxDdGJuinv37f987` with memo `SkillGuard receipt 2f4a9d3e5c6b7a18d91c`.
 
 Demo agent update on 2026-05-08:
 
