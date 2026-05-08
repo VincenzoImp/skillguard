@@ -171,7 +171,7 @@ Observed:
 **Files:**
 - Modify: `.gitignore`
 
-- [ ] Ensure these patterns exist:
+- [x] Ensure these patterns exist:
 
 ```gitignore
 node_modules/
@@ -183,7 +183,7 @@ apps/*/vite.config.js
 apps/*/vite.config.d.ts
 ```
 
-- [ ] Run:
+- [x] Run:
 
 ```bash
 git status --short
