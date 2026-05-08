@@ -58,8 +58,12 @@ Commands run locally on 2026-05-08:
 | `anchor --version` | `anchor-cli 0.32.1` | Anchor CLI is available. |
 | `surfpool --version` | `surfpool 1.2.1` | Surfpool is available, but the installer logged a requested-version mismatch for `1.1.2`. Not a blocker for the MVP receipt flow. |
 | `solana config get` | devnet RPC configured | Local Solana CLI now points to `https://api.devnet.solana.com`. |
-| `java -version` | missing | JDK must be installed before Android app work. |
-| `gradle --version` | missing | Gradle/Android tooling must be installed or managed by Expo/EAS. |
+| `java -version` | OpenJDK `17.0.19` | JDK is available after Homebrew setup. |
+| `adb version` | Android Debug Bridge `37.0.0` | Android device bridge is available. |
+| `emulator -version` | Android emulator `36.5.11.0` | Android emulator CLI is available. |
+| `sdkmanager --list_installed` | Android SDK 36 packages installed | Platform tools, build tools, emulator, Android 36 platform, and ARM64 Google Play system image are installed. |
+| `avdmanager list avd` | `skillguard_api36` exists | A Google Play ARM64 emulator profile is available for mobile testing. |
+| `gradle --version` | missing | Gradle is not globally installed; Expo/Android builds should use project-managed Gradle wrappers once the mobile app is scaffolded. |
 | `apps/site npm run build` | passed | Current project site foundation is healthy. |
 
 Toolchain update on 2026-05-08:
@@ -69,6 +73,15 @@ Toolchain update on 2026-05-08:
 - `anchor` and `avm` are available from `~/.cargo/bin`.
 - `solana config set --url devnet` succeeded.
 - The current shell still needs the Solana binary path exported until a new terminal reads the installer PATH update.
+
+Android tooling update on 2026-05-08:
+
+- Installed or upgraded `openjdk@17`, `android-commandlinetools`, and `android-platform-tools` with Homebrew.
+- Accepted Android SDK licenses through `sdkmanager`.
+- Installed Android SDK packages: `platform-tools`, `platforms;android-36`, `build-tools;36.0.0`, `emulator`, and `system-images;android-36;google_apis_playstore;arm64-v8a`.
+- Created AVD `skillguard_api36` at `~/.android/avd/skillguard_api36.avd`.
+- Added `scripts/dev-env.sh` so repo commands can source the verified Solana and Android paths.
+- Android Studio is still not installed; CLI/emulator tooling is enough for the first Expo/React Native build spike, while Android Studio may still help for emulator/device management.
 
 Current package versions checked from npm:
 

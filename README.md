@@ -90,6 +90,12 @@ test -> implement -> document -> verify -> stage -> pre-commit -> audit -> fix -
 
 See [Operating Protocol](docs/OPERATING_PROTOCOL.md).
 
+For local Solana and Android commands on the verified macOS/Homebrew setup:
+
+```bash
+. scripts/dev-env.sh
+```
+
 ## Demo Narrative
 
 1. User connects wallet in the Android app.

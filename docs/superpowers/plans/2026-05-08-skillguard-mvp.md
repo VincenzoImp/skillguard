@@ -108,15 +108,15 @@ Expected:
 **Files:**
 - Modify: `docs/CRITICAL_FEASIBILITY_STUDY.md` if results differ from this plan.
 
-- [ ] Run:
+- [x] Run:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
 ```
 
-- [ ] Restart shell or source the installer PATH instructions.
+- [x] Restart shell or source the installer PATH instructions.
 
-- [ ] Verify:
+- [x] Verify:
 
 ```bash
 rustc --version
@@ -130,7 +130,7 @@ Expected:
 - `solana` exists.
 - `anchor` exists.
 
-- [ ] Configure devnet:
+- [x] Configure devnet:
 
 ```bash
 solana config set --url devnet
@@ -146,8 +146,8 @@ Expected:
 **Files:**
 - Modify: `docs/CRITICAL_FEASIBILITY_STUDY.md` if results differ from this plan.
 
-- [ ] Install JDK and Android Studio or the Android command-line tools.
-- [ ] Verify:
+- [x] Install JDK and Android Studio or the Android command-line tools.
+- [x] Verify:
 
 ```bash
 java -version
@@ -158,6 +158,13 @@ Expected:
 
 - Java runtime exists.
 - Android Debug Bridge exists.
+
+Observed:
+
+- OpenJDK 17.0.19 is available.
+- Android Debug Bridge 37.0.0 is available.
+- Android SDK 36 packages and AVD `skillguard_api36` are available.
+- Android Studio is not installed; continue with CLI/emulator tooling unless mobile debugging requires the GUI.
 
 ### Task 0.3: Clean Generated Files
 
