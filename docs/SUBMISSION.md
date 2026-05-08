@@ -10,6 +10,7 @@ This file separates what is locally verified from what still requires an externa
 - Standalone local APK: `build/mobile/skillguard-standalone-debugsigned.apk`
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Public project site source: `apps/site`
+- GitHub Pages workflow: `.github/workflows/deploy-site.yml`
 - Demo script: `docs/DEMO.md`
 
 ## Final Local Gate
@@ -33,7 +34,7 @@ These require an account, credential, or human review:
 1. Make the GitHub repository public.
 2. Choose the final Android upload keystore owner and secure storage location.
 3. Rebuild `build/mobile/skillguard-release-signed.apk` with the final upload keystore.
-4. Deploy `apps/site` and add the public URL to the hackathon submission.
+4. Enable GitHub Pages with GitHub Actions, run `Deploy Site`, and add the public URL to the hackathon submission.
 5. Record the under-3-minute demo using `docs/DEMO.md`.
 6. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
 

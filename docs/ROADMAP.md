@@ -293,6 +293,7 @@ Required assets:
 - [x] architecture diagram in README
 - [x] source links and sponsor integration notes in docs
 - [x] local submission checklist and checker
+- [x] GitHub Pages deployment workflow for project site
 
 Current package status:
 
