@@ -50,6 +50,18 @@ The default output is a debug-signed APK at:
 <repo-root>/build/mobile/skillguard-debug.apk
 ```
 
+Build a standalone local APK with the JavaScript bundle embedded:
+
+```bash
+SKILLGUARD_ANDROID_BUILD_PROFILE=standalone ../../scripts/build-mobile-apk.sh
+```
+
+Standalone local output:
+
+```text
+<repo-root>/build/mobile/skillguard-standalone-debugsigned.apk
+```
+
 Release signing for store submission still needs a real keystore and signing config.
 Do not commit `.jks` files or secret signing properties.
 The generated APK and native `android/` directory are local artifacts and are ignored by git.

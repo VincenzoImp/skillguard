@@ -96,13 +96,25 @@ Build a local debug-signed Android APK:
 scripts/build-mobile-apk.sh
 ```
 
-APK output:
+APK output for the default development profile:
 
 ```text
 build/mobile/skillguard-debug.apk
 ```
 
-The APK is a local build artifact ignored by git; rebuild it from source for review or submission packaging.
+Build a standalone local APK with the JavaScript bundle embedded:
+
+```bash
+SKILLGUARD_ANDROID_BUILD_PROFILE=standalone scripts/build-mobile-apk.sh
+```
+
+Standalone local output:
+
+```text
+build/mobile/skillguard-standalone-debugsigned.apk
+```
+
+These APKs are local build artifacts ignored by git. The standalone profile is still debug-signed by the generated native config; a store-ready APK needs a real release keystore.
 
 ## Agent SDK
 

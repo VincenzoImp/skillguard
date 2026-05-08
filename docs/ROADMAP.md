@@ -283,6 +283,7 @@ Required assets:
 - [x] public GitHub repo remote configured: `https://github.com/VincenzoImp/skillguard.git`
 - [x] README with setup, architecture, demo flow, and security boundary
 - [x] local debug Android APK build
+- [x] local standalone debug-signed Android APK build
 - [ ] store-ready signed Android APK
 - [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - [x] deployed devnet addresses
@@ -303,6 +304,7 @@ Ready locally:
   Anchor build/tests
   devnet program deploy proof
   debug APK build: build/mobile/skillguard-debug.apk
+  standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
   local demo orchestration
 
 Not yet submission-ready:

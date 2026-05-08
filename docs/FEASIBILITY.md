@@ -51,9 +51,15 @@ Still pending for the hackathon submission:
 
 Local APK build proof:
 
-- Command: `. scripts/dev-env.sh && scripts/build-mobile-apk.sh`
-- Result: `BUILD SUCCESSFUL` in 6m 48s on May 8, 2026.
-- Artifact: `build/mobile/skillguard-debug.apk` at 188 MB.
+- Debug command: `. scripts/dev-env.sh && scripts/build-mobile-apk.sh`
+- Debug result: `BUILD SUCCESSFUL` in 6m 48s on May 8, 2026.
+- Debug artifact: `build/mobile/skillguard-debug.apk` at 188 MB.
+- Standalone feasibility command: `. scripts/dev-env.sh && cd apps/mobile/android && ./gradlew assembleRelease`
+- Standalone feasibility result: `BUILD SUCCESSFUL` in 3m 15s on May 8, 2026.
+- Standalone artifact: `apps/mobile/android/app/build/outputs/apk/release/app-release.apk` at 101 MB.
+- Standalone packaging command: `. scripts/dev-env.sh && SKILLGUARD_ANDROID_BUILD_PROFILE=standalone scripts/build-mobile-apk.sh`
+- Standalone packaging result: `BUILD SUCCESSFUL` in 13s on May 8, 2026.
+- Standalone packaged artifact: `build/mobile/skillguard-standalone-debugsigned.apk` at 101 MB.
 
 Devnet deployment proof:
 
