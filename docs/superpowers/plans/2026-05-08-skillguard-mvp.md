@@ -304,9 +304,9 @@ export interface PolicyResult {
 - Modify: `packages/protocol/src/hash.ts`
 - Modify: `packages/protocol/src/policy.test.ts`
 
-- [ ] Implement canonical JSON by sorting object keys recursively.
-- [ ] Hash canonical JSON with SHA-256.
-- [ ] Test:
+- [x] Implement canonical JSON by sorting object keys recursively.
+- [x] Hash canonical JSON with SHA-256.
+- [x] Test:
 
 ```text
 same manifest with reordered keys -> same hash

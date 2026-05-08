@@ -9,3 +9,4 @@ export type {
   SkillGuardNetwork,
   SpendItem,
 } from "./types.js";
+export { canonicalJson, hashActionManifest } from "./hash.js";
