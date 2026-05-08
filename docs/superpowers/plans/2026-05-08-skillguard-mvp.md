@@ -492,7 +492,7 @@ Implementation note:
 **Files:**
 - Modify: `programs/skillguard/programs/skillguard/src/lib.rs`
 
-- [ ] Add accounts:
+- [x] Add accounts:
 
 ```text
 UserProfile
@@ -543,7 +543,7 @@ ActionReceipt:
 - Modify: `programs/skillguard/programs/skillguard/src/lib.rs`
 - Modify: `programs/skillguard/tests/skillguard.ts`
 
-- [ ] Implement:
+- [x] Implement:
 
 ```text
 create_user_profile
@@ -554,15 +554,17 @@ record_decision
 attach_execution_signature
 ```
 
-- [ ] Program tests:
+- [x] Program tests:
 
 ```text
 creates user profile
 connects agent
 updates policy
+updates existing policy
 revokes agent
 records approval receipt
 records rejection receipt
+rejects invalid decision code
 rejects receipt for revoked agent
 rejects unauthorized owner
 rejects duplicate action receipt

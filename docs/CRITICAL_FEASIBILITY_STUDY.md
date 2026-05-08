@@ -66,7 +66,7 @@ Commands run locally on 2026-05-08:
 | `avdmanager list avd` | `skillguard_api36` exists | A Google Play ARM64 emulator profile is available for mobile testing. |
 | `gradle --version` | missing | Gradle is not globally installed; Expo/Android builds should use project-managed Gradle wrappers once the mobile app is scaffolded. |
 | `apps/site npm run build` | passed | Current project site foundation is healthy. |
-| `programs/skillguard anchor test` | passed under Node `22.22.2` | Anchor scaffold compiles, starts the local validator, and runs the generated initialize test. |
+| `programs/skillguard anchor test` | 12 tests passed under Node `22.22.2` | Anchor program compiles, starts the local validator, and covers profiles, agent connections, policy create/update, revocation, receipts, execution signatures, invalid decision codes, and negative cases. |
 | `programs/skillguard npm audit --omit=dev` | 0 vulnerabilities | Runtime dependency audit is clean; reported Anchor template audit findings are limited to dev/test dependencies. |
 
 Toolchain update on 2026-05-08:
@@ -90,7 +90,7 @@ Solana program tooling update on 2026-05-08:
 
 - Replaced the placeholder `programs/skillguard` directory with an Anchor workspace from `anchor init skillguard --no-git --package-manager npm`.
 - Generated a local Solana development keypair at `~/.config/solana/id.json` so `anchor test` can fund and run against the local validator. The keypair is outside the repo and must never be committed.
-- `anchor test` passes for the generated scaffold when `scripts/dev-env.sh` selects Node `22.22.2`.
+- `anchor test` passes the SkillGuard receipt program test suite when `scripts/dev-env.sh` selects Node `22.22.2`.
 - Anchor's generated JavaScript dependency tree currently emits a Node deprecation warning for `punycode`; this is dependency noise, not a program failure.
 - `npm install` for the generated Anchor workspace reports six dependency audit findings in the dev/test dependency tree. `npm audit --omit=dev` reports 0 vulnerabilities, so the current runtime dependency surface is clean while dev tooling must still be reviewed before production hardening.
 
@@ -254,8 +254,8 @@ Pass criteria:
 
 Current status:
 
-- The generated Anchor workspace compiles and runs with `anchor test` under Node 22.
-- The custom receipt account remains the next implementation step in Milestone 3.2 and must be proven with test-first program tests before demo integration.
+- The Anchor workspace compiles and runs with `anchor test` under Node 22.
+- The custom `ActionReceipt` account is implemented and covered by approval, rejection, invalid-decision, revoked-agent, duplicate-action, and execution-signature tests. Agent policy creation and later permission updates are covered as well.
 
 ### Spike 3: Mobile Wallet Adapter
 

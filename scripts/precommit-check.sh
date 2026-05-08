@@ -52,6 +52,14 @@ if [ -f apps/api/package.json ]; then
 fi
 
 if [ -f programs/skillguard/Anchor.toml ]; then
+  if [ -f programs/skillguard/package.json ]; then
+    echo "==> Linting Anchor workspace"
+    npm --prefix programs/skillguard run lint
+  fi
+
+  echo "==> Checking Anchor Rust formatting"
+  (cd programs/skillguard && cargo fmt --all --check)
+
   echo "==> Building Anchor program"
   (cd programs/skillguard && anchor build)
 

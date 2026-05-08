@@ -5,17 +5,17 @@ Anchor workspace for SkillGuard on-chain receipts.
 Current status:
 
 - Anchor scaffold generated with `anchor init skillguard --no-git --package-manager npm`.
-- Local generated `initialize` test passes with Node 22 via `../../scripts/dev-env.sh`.
-- Custom accounts and instructions are planned in the next milestone.
+- SkillGuard receipt accounts and instructions are implemented.
+- `anchor test` passes 12 program tests with Node 22 via `../../scripts/dev-env.sh`.
 
-Planned accounts:
+Accounts:
 
 - `UserProfile`
 - `AgentConnection`
 - `AgentPolicy`
 - `ActionReceipt`
 
-Planned instructions:
+Instructions:
 
 - `create_user_profile`
 - `connect_agent`
