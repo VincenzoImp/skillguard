@@ -65,6 +65,19 @@
     mask-image: linear-gradient(to bottom, black, transparent 78%);
   }
 
+  .section-grid {
+    background:
+      linear-gradient(90deg, rgba(0, 240, 168, 0.08), transparent 34%),
+      linear-gradient(180deg, rgba(88, 166, 255, 0.08), transparent 44%),
+      linear-gradient(rgba(248, 250, 252, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(248, 250, 252, 0.035) 1px, transparent 1px);
+    background-size:
+      auto,
+      auto,
+      44px 44px,
+      44px 44px;
+  }
+
   .glass-panel {
     background: rgba(11, 18, 32, 0.74);
     border: 1px solid rgba(148, 163, 184, 0.16);

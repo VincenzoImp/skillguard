@@ -130,6 +130,8 @@ The project site lives in `apps/site` and is the visual source of truth for the 
 npm --prefix apps/site run dev -- --host 0.0.0.0
 ```
 
+It includes the public pitch, problem statement, architecture, demo flow, developer SDK snippet, security boundary, roadmap, and brand system.
+
 ## Hackathon Scope
 
 Core scope:

@@ -803,9 +803,9 @@ screenshots or site link
 - Modify: `apps/site/index.html`
 - Modify: `README.md`
 
-- [ ] Keep `apps/site` as the visual source of truth for product UI.
-- [ ] Make the page work as a public project site, not only as a design board.
-- [ ] Required sections:
+- [x] Keep `apps/site` as the visual source of truth for product UI.
+- [x] Make the page work as a public project site, not only as a design board.
+- [x] Required sections:
 
 ```text
 Hero with one-sentence pitch
@@ -819,7 +819,7 @@ Roadmap and hackathon scope
 Links to GitHub, docs, demo video, and brand assets
 ```
 
-- [ ] Required visual constraints:
+- [x] Required visual constraints:
 
 ```text
 Use current wordmark and icon assets
@@ -830,7 +830,7 @@ Avoid generic crypto landing-page sections
 Keep the product visible in the first viewport
 ```
 
-- [ ] Verification:
+- [x] Verification:
 
 ```bash
 cd apps/site
@@ -844,7 +844,7 @@ Expected:
 - Site explains SkillGuard without needing a live presenter.
 - Mobile mock still demonstrates approve, reject, and revoke states.
 
-- [ ] Final verification:
+- [x] Final verification:
 
 ```bash
 cd packages/protocol && npm test && npm run build

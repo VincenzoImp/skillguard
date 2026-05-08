@@ -21,9 +21,9 @@
 - Create: `apps/site/src/styles.css`
 - Create: `apps/site/src/App.tsx`
 
-- [ ] Create a standalone Vite React TypeScript app.
-- [ ] Configure Tailwind CSS 4 through `@tailwindcss/vite`.
-- [ ] Add scripts: `dev`, `build`, `preview`.
+- [x] Create a standalone Vite React TypeScript app.
+- [x] Configure Tailwind CSS 4 through `@tailwindcss/vite`.
+- [x] Add scripts: `dev`, `build`, `preview`.
 
 ### Task 2: Brand And Vision Experience
 
@@ -31,19 +31,19 @@
 - Modify: `apps/site/src/App.tsx`
 - Modify: `apps/site/src/styles.css`
 
-- [ ] Render the SkillGuard wordmark and shield icon from `../../assets/brand`.
-- [ ] Add sections for Vision, Brand, System, and Demo UI.
-- [ ] Use a dark mobile-wallet visual language with mint, violet, blue, warning, and danger states.
-- [ ] Keep the product and mobile approval mock visible in the first viewport.
+- [x] Render the SkillGuard wordmark and shield icon from `../../assets/brand`.
+- [x] Add sections for Vision, Brand, System, and Demo UI.
+- [x] Use a dark mobile-wallet visual language with mint, violet, blue, warning, and danger states.
+- [x] Keep the product and mobile approval mock visible in the first viewport.
 
 ### Task 3: Interactive Demo Screen
 
 **Files:**
 - Modify: `apps/site/src/App.tsx`
 
-- [ ] Add a mobile approval mock with agent card, permission policy, action request, policy checks, and receipt timeline.
-- [ ] Use Motion for subtle entrance and state animations.
-- [ ] Keep all copy aligned to the product boundary: permission layer, mobile approval, revocation, on-chain receipts.
+- [x] Add a mobile approval mock with agent card, permission policy, action request, policy checks, and receipt timeline.
+- [x] Keep first-viewport content visible without opacity-hidden entrance animations for screenshot and judge-demo reliability.
+- [x] Keep all copy aligned to the product boundary: permission layer, mobile approval, revocation, on-chain receipts.
 
 ### Task 4: Public Project Site
 
@@ -52,7 +52,7 @@
 - Modify: `apps/site/src/styles.css`
 - Modify: `apps/site/index.html`
 
-- [ ] Add project-site sections:
+- [x] Add project-site sections:
 
 ```text
 Problem
@@ -64,14 +64,20 @@ Security boundary
 Hackathon scope
 ```
 
-- [ ] Keep `apps/site` as the canonical visual reference for `apps/mobile`.
-- [ ] The site should be suitable for README screenshots, pitch walkthroughs, and deployment as the public project homepage.
+- [x] Keep `apps/site` as the canonical visual reference for `apps/mobile`.
+- [x] The site should be suitable for README screenshots, pitch walkthroughs, and deployment as the public project homepage.
 
 ### Task 5: Verification And Server
 
 **Files:**
 - No file changes required.
 
-- [ ] Run `npm install` inside `apps/site`.
-- [ ] Run `npm run build` to verify the app compiles.
-- [ ] Start `npm run dev -- --host 0.0.0.0` and report the local URL.
+- [x] Run `npm install` inside `apps/site`.
+- [x] Run `npm run build` to verify the app compiles.
+- [x] Start `npm run dev` for browser verification.
+
+Observed local URL for this verification:
+
+```text
+http://127.0.0.1:5174/
+```
