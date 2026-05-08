@@ -284,7 +284,8 @@ Required assets:
 - [x] README with setup, architecture, demo flow, and security boundary
 - [x] local debug Android APK build
 - [x] local standalone debug-signed Android APK build
-- [ ] store-ready signed Android APK
+- [x] release APK signing pipeline with external keystore env vars
+- [ ] final store/upload keystore owner decision
 - [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - [x] deployed devnet addresses
 - [x] demo transaction signatures
@@ -309,8 +310,7 @@ Ready locally:
   local demo orchestration
 
 Not yet submission-ready:
-  store-ready release signing
-  store-ready signed APK
+  final store/upload keystore owner decision
   public hosted site
   final video
 ```

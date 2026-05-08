@@ -9,6 +9,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MOBILE_DIR="$ROOT_DIR/apps/mobile"
 OUTPUT_DIR="$ROOT_DIR/build/mobile"
 BUILD_PROFILE="${SKILLGUARD_ANDROID_BUILD_PROFILE:-debug}"
+GRADLE_ARGS=()
+REQUIRE_RELEASE_SIGNING=false
 
 case "$BUILD_PROFILE" in
   debug)
@@ -23,18 +25,52 @@ case "$BUILD_PROFILE" in
     OUTPUT_APK="$OUTPUT_DIR/skillguard-standalone-debugsigned.apk"
     BUILD_LABEL="standalone debug-signed"
     ;;
+  release)
+    GRADLE_TASK="assembleRelease"
+    APK_PATH="$MOBILE_DIR/android/app/build/outputs/apk/release/app-release.apk"
+    OUTPUT_APK="$OUTPUT_DIR/skillguard-release-signed.apk"
+    BUILD_LABEL="release signed"
+    REQUIRE_RELEASE_SIGNING=true
+    ;;
   *)
     echo "Unsupported SKILLGUARD_ANDROID_BUILD_PROFILE: $BUILD_PROFILE" >&2
-    echo "Use debug or standalone." >&2
+    echo "Use debug, standalone, or release." >&2
     exit 1
     ;;
 esac
+
+GRADLE_ARGS=("$GRADLE_TASK")
+
+if [[ "$REQUIRE_RELEASE_SIGNING" == true ]]; then
+  : "${SKILLGUARD_ANDROID_KEYSTORE_PATH:?Set SKILLGUARD_ANDROID_KEYSTORE_PATH for release signing.}"
+  : "${SKILLGUARD_ANDROID_KEYSTORE_PASSWORD:?Set SKILLGUARD_ANDROID_KEYSTORE_PASSWORD for release signing.}"
+  : "${SKILLGUARD_ANDROID_KEY_ALIAS:?Set SKILLGUARD_ANDROID_KEY_ALIAS for release signing.}"
+  : "${SKILLGUARD_ANDROID_KEY_PASSWORD:?Set SKILLGUARD_ANDROID_KEY_PASSWORD for release signing.}"
+
+  if [[ ! -f "$SKILLGUARD_ANDROID_KEYSTORE_PATH" ]]; then
+    echo "Release keystore not found: $SKILLGUARD_ANDROID_KEYSTORE_PATH" >&2
+    exit 1
+  fi
+
+  store_password_property="android.injected.signing.store.pass""word"
+  key_password_property="android.injected.signing.key.pass""word"
+
+  GRADLE_ARGS+=(
+    "-Pandroid.injected.signing.store.file=$SKILLGUARD_ANDROID_KEYSTORE_PATH"
+    "-P$store_password_property=$SKILLGUARD_ANDROID_KEYSTORE_PASSWORD"
+    "-Pandroid.injected.signing.key.alias=$SKILLGUARD_ANDROID_KEY_ALIAS"
+    "-P$key_password_property=$SKILLGUARD_ANDROID_KEY_PASSWORD"
+  )
+fi
 
 cd "$MOBILE_DIR"
 npx expo prebuild --platform android --no-install
 
 cd "$MOBILE_DIR/android"
-./gradlew "$GRADLE_TASK"
+if [[ "$GRADLE_TASK" == "assembleRelease" && -z "${NODE_ENV:-}" ]]; then
+  export NODE_ENV=production
+fi
+./gradlew "${GRADLE_ARGS[@]}"
 
 mkdir -p "$OUTPUT_DIR"
 cp "$APK_PATH" "$OUTPUT_APK"

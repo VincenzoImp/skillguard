@@ -45,7 +45,7 @@ Implemented and tested locally:
 
 Still pending for the hackathon submission:
 
-- final store-ready signed APK
+- final store/upload keystore owner decision
 - final demo screenshots, deployed public site, and demo video
 
 Local APK build proof:
@@ -59,6 +59,9 @@ Local APK build proof:
 - Standalone packaging command: `. scripts/dev-env.sh && SKILLGUARD_ANDROID_BUILD_PROFILE=standalone scripts/build-mobile-apk.sh`
 - Standalone packaging result: `BUILD SUCCESSFUL` in 13s on May 8, 2026.
 - Standalone packaged artifact: `build/mobile/skillguard-standalone-debugsigned.apk` at 101 MB.
+- Release signing command: `. scripts/dev-env.sh && SKILLGUARD_ANDROID_BUILD_PROFILE=release SKILLGUARD_ANDROID_KEYSTORE_PATH=/tmp/skillguard-release-script-test.jks SKILLGUARD_ANDROID_KEYSTORE_PASSWORD=... SKILLGUARD_ANDROID_KEY_ALIAS=skillguard-upload SKILLGUARD_ANDROID_KEY_PASSWORD=... scripts/build-mobile-apk.sh`
+- Release signing result: `BUILD SUCCESSFUL` on May 9, 2026 using a temporary test keystore outside git.
+- Release signed artifact: `build/mobile/skillguard-release-signed.apk` at 101 MB.
 
 Devnet deployment proof:
 
@@ -85,6 +88,13 @@ Mobile Wallet Adapter proof:
 - Action receipt: `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`.
 - Receipt decode: `anchor account skillguard.ActionReceipt 7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z --provider.cluster devnet` returns owner `Dd6t...TdTx`, decision `1`, and the expected action, agent, manifest, and policy-result hashes.
 - Command proof: `. scripts/dev-env.sh && solana confirm -v 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF --url devnet` returns `Status: Ok` and `Finalized`.
+
+Android release packaging proof:
+
+- `scripts/build-mobile-apk.sh` supports `SKILLGUARD_ANDROID_BUILD_PROFILE=release`.
+- Release signing uses Gradle's injected signing properties with `SKILLGUARD_ANDROID_KEYSTORE_PATH`, `SKILLGUARD_ANDROID_KEYSTORE_PASSWORD`, `SKILLGUARD_ANDROID_KEY_ALIAS`, and `SKILLGUARD_ANDROID_KEY_PASSWORD`.
+- Keystores and passwords stay outside git; `.env.example` documents the required variables.
+- A local temporary keystore build was verified with `apksigner verify --print-certs`; the output certificate DN matched the temporary test certificate.
 
 ## What Changed After The Skills Review
 

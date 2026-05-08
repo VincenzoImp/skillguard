@@ -62,7 +62,23 @@ Standalone local output:
 <repo-root>/build/mobile/skillguard-standalone-debugsigned.apk
 ```
 
-Release signing for store submission still needs a real keystore and signing config.
+Build a release-mode APK with a private upload keystore kept outside git:
+
+```bash
+SKILLGUARD_ANDROID_BUILD_PROFILE=release \
+SKILLGUARD_ANDROID_KEYSTORE_PATH=/absolute/path/to/skillguard-upload.jks \
+SKILLGUARD_ANDROID_KEYSTORE_PASSWORD=... \
+SKILLGUARD_ANDROID_KEY_ALIAS=skillguard-upload \
+SKILLGUARD_ANDROID_KEY_PASSWORD=... \
+../../scripts/build-mobile-apk.sh
+```
+
+The release output is:
+
+```text
+<repo-root>/build/mobile/skillguard-release-signed.apk
+```
+
 Do not commit `.jks` files or secret signing properties.
 The generated APK and native `android/` directory are local artifacts and are ignored by git.
 

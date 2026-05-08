@@ -114,7 +114,24 @@ Standalone local output:
 build/mobile/skillguard-standalone-debugsigned.apk
 ```
 
-These APKs are local build artifacts ignored by git. The standalone profile is still debug-signed by the generated native config; a store-ready APK needs a real release keystore.
+Build a release-mode APK with a private upload keystore kept outside git:
+
+```bash
+SKILLGUARD_ANDROID_BUILD_PROFILE=release \
+SKILLGUARD_ANDROID_KEYSTORE_PATH=/absolute/path/to/skillguard-upload.jks \
+SKILLGUARD_ANDROID_KEYSTORE_PASSWORD=... \
+SKILLGUARD_ANDROID_KEY_ALIAS=skillguard-upload \
+SKILLGUARD_ANDROID_KEY_PASSWORD=... \
+scripts/build-mobile-apk.sh
+```
+
+Release output:
+
+```text
+build/mobile/skillguard-release-signed.apk
+```
+
+These APKs are local build artifacts ignored by git. The standalone profile is debug-signed; the release profile uses an external keystore through Gradle signing injection.
 
 ## Agent SDK
 
@@ -241,7 +258,7 @@ Core MVP scaffolding is implemented locally: shared protocol, API, Anchor receip
 
 Submission blockers still to close:
 
-- store-ready signed APK
+- final store/upload keystore owner decision
 - demo video and final screenshots/site deployment
 
 Verified submission proofs:
@@ -249,3 +266,4 @@ Verified submission proofs:
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Mobile Wallet Adapter `record_decision` signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
 - Standalone local Android APK: `build/mobile/skillguard-standalone-debugsigned.apk`
+- Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`

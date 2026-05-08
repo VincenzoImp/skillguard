@@ -702,7 +702,7 @@ Goal: show that any agent can integrate without getting the user's private key.
 - Create: `apps/demo-agent/src/actions.ts`
 - Create: `apps/demo-agent/src/client.ts`
 
-- [ ] Implement commands:
+- [x] Implement commands:
 
 ```bash
 npm run submit:safe
@@ -814,6 +814,8 @@ security boundary
 program ID
 screenshots or site link
 ```
+
+- [x] Add release APK signing pipeline that uses external keystore environment variables without committing secrets.
 
 ### Task 6.4: Convert Project Site Into Public Project Site
 
