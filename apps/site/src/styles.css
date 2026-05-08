@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-bg-950: #030712;
+  --color-bg-900: #070d18;
+  --color-surface-900: #0b1220;
+  --color-surface-850: #0f172a;
+  --color-surface-800: #111827;
+  --color-border-subtle: #1f2937;
+  --color-brand-mint: #00f0a8;
+  --color-brand-green: #00c781;
+  --color-brand-violet: #7b3ff7;
+  --color-brand-blue: #58a6ff;
+  --color-status-warning: #f5b84b;
+  --color-status-danger: #ff5a68;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #a7b0c0;
+  --color-text-muted: #6b7280;
+}
+
+@layer base {
+  html {
+    background: #030712;
+    color: #f8fafc;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .brand-gradient {
+    background: linear-gradient(135deg, #00f0a8 0%, #58a6ff 48%, #7b3ff7 100%);
+  }
+
+  .approval-gradient {
+    background: linear-gradient(135deg, #00f0a8 0%, #00c781 100%);
+  }
+
+  .danger-gradient {
+    background: linear-gradient(135deg, #ff5a68 0%, #f5b84b 100%);
+  }
+
+  .grid-mask {
+    background-image:
+      linear-gradient(rgba(248, 250, 252, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(248, 250, 252, 0.045) 1px, transparent 1px);
+    background-size: 38px 38px;
+    mask-image: linear-gradient(to bottom, black, transparent 78%);
+  }
+
+  .glass-panel {
+    background: rgba(11, 18, 32, 0.74);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(22px);
+  }
+}

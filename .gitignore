@@ -1,0 +1,16 @@
+.DS_Store
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+.next/
+.expo/
+.turbo/
+target/
+coverage/
+*.log
+*.tsbuildinfo
+apps/*/vite.config.js
+apps/*/vite.config.d.ts
