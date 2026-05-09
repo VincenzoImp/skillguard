@@ -46,7 +46,8 @@ export const SKILLGUARD_AGENT = {
 } satisfies SkillGuardAgentInput;
 
 export const DEFAULT_SKILLGUARD_API_URL =
-  process?.env?.EXPO_PUBLIC_SKILLGUARD_API_URL ?? "http://10.0.2.2:8787";
+  process?.env?.EXPO_PUBLIC_SKILLGUARD_API_URL ??
+  "https://skillguard-sol.vercel.app/api";
 
 export function connectionIdForWallet(
   userWallet: string,

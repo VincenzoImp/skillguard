@@ -18,6 +18,12 @@ function response(body: unknown, status = 200): Response {
 }
 
 describe("mobile live API client", () => {
+  it("defaults production builds to the hosted SkillGuard API", async () => {
+    const { DEFAULT_SKILLGUARD_API_URL } = await import("./liveApi");
+
+    expect(DEFAULT_SKILLGUARD_API_URL).toBe("https://skillguard-sol.vercel.app/api");
+  });
+
   it("creates a deterministic live agent connection for the connected wallet", async () => {
     const requests: Array<{ body: unknown; method: string; url: string }> = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
