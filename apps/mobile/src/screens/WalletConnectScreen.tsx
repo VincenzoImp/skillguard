@@ -38,9 +38,14 @@ export function WalletConnectScreen() {
   const [mobileState, setMobileState] = useState(emptyMobileState);
   const [status, setStatus] = useState("Wallet not connected");
   const [isBusy, setIsBusy] = useState(false);
+  const [walletSession, setWalletSession] = useState<{
+    token: string;
+    wallet: string;
+  } | null>(null);
   const [agentIdInput, setAgentIdInput] = useState("");
   const [agentNameInput, setAgentNameInput] = useState("");
   const [agentDescriptionInput, setAgentDescriptionInput] = useState("");
+  const [agentPublicKeyInput, setAgentPublicKeyInput] = useState("");
   const [agentPolicyMode, setAgentPolicyMode] =
     useState<PolicyMode>("ask_every_time");
   const [allowedMintsInput, setAllowedMintsInput] = useState("SOL,USDC");
@@ -65,13 +70,15 @@ export function WalletConnectScreen() {
     async function loadRestoredSession() {
       if (!address) {
         setMobileState(emptyMobileState);
+        setWalletSession(null);
         setStatus("Wallet not connected");
         return;
       }
 
-      setStatus("Wallet session restored. Loading live SkillGuard state.");
+      setStatus("Signing wallet session and loading live SkillGuard state.");
       try {
-        const nextState = await apiClient.loadWalletState(address);
+        const sessionToken = await ensureWalletSession(address);
+        const nextState = await apiClient.loadWalletState(address, sessionToken);
         if (!cancelled) {
           setMobileState(nextState);
           setStatus(
@@ -90,12 +97,22 @@ export function WalletConnectScreen() {
     return () => {
       cancelled = true;
     };
-  }, [address, apiClient]);
+  }, [address, apiClient, signMessage, walletSession]);
 
   async function refreshWalletState(userWallet: string) {
-    const nextState = await apiClient.loadWalletState(userWallet);
+    const sessionToken = await ensureWalletSession(userWallet);
+    const nextState = await apiClient.loadWalletState(userWallet, sessionToken);
     setMobileState(nextState);
     return nextState;
+  }
+
+  async function ensureWalletSession(userWallet: string) {
+    if (walletSession?.wallet === userWallet) {
+      return walletSession.token;
+    }
+    const session = await apiClient.createWalletSession(userWallet, signMessage);
+    setWalletSession({ token: session.token, wallet: userWallet });
+    return session.token;
   }
 
   async function handleConnect() {
@@ -120,6 +137,7 @@ export function WalletConnectScreen() {
     setIsBusy(true);
     try {
       await disconnect();
+      setWalletSession(null);
       setMobileState(emptyMobileState);
       setStatus("Wallet disconnected");
     } catch (error) {
@@ -202,8 +220,11 @@ export function WalletConnectScreen() {
       const txSignature = await signAndSendTransaction(transaction, minContextSlot);
       await apiClient.approveAction(
         actionToApprove.id,
+        actionToApprove.connectionId,
         txSignature,
-        skillGuardAccounts.actionReceipt.toBase58()
+        skillGuardAccounts.actionReceipt.toBase58(),
+        userWallet,
+        signMessage
       );
       await refreshWalletState(userWallet);
       setStatus("SkillGuard receipt recorded on devnet");
@@ -223,7 +244,12 @@ export function WalletConnectScreen() {
 
     setIsBusy(true);
     try {
-      await apiClient.rejectAction(actionToReject.id);
+      await apiClient.rejectAction(
+        actionToReject.id,
+        actionToReject.connectionId,
+        address,
+        signMessage
+      );
       await refreshWalletState(address);
       setStatus("Action rejected by wallet owner");
     } catch (error) {
@@ -241,7 +267,7 @@ export function WalletConnectScreen() {
 
     setIsBusy(true);
     try {
-      await apiClient.revokeConnection(connectionId);
+      await apiClient.revokeConnection(connectionId, address, signMessage);
       await refreshWalletState(address);
       setStatus("Agent revoked. Future requests are blocked.");
     } catch (error) {
@@ -280,6 +306,7 @@ export function WalletConnectScreen() {
           agentId,
           description,
           name,
+          publicKey: agentPublicKeyInput.trim() || undefined,
         },
         policyInput,
         signMessage
@@ -291,6 +318,7 @@ export function WalletConnectScreen() {
       setAgentIdInput("");
       setAgentNameInput("");
       setAgentDescriptionInput("");
+      setAgentPublicKeyInput("");
     } catch (error) {
       setStatus(readError(error));
     } finally {
@@ -309,7 +337,9 @@ export function WalletConnectScreen() {
       await apiClient.updatePolicyMode(
         mobileState.agent.connectionId,
         mobileState.agent.rawPolicy,
-        mode
+        mode,
+        address,
+        signMessage
       );
       await refreshWalletState(address);
       setStatus("Agent policy updated");
@@ -334,6 +364,7 @@ export function WalletConnectScreen() {
     setAgentIdInput(pairing.agentId);
     setAgentNameInput(pairing.name);
     setAgentDescriptionInput(pairing.description);
+    setAgentPublicKeyInput(pairing.publicKey ?? "");
     if (pairing.allowedProtocols) {
       setAllowedProtocolsInput(pairing.allowedProtocols);
     }
@@ -441,6 +472,17 @@ export function WalletConnectScreen() {
               placeholderTextColor={colors.textMuted}
               style={[styles.input, styles.textArea]}
               value={agentDescriptionInput}
+            />
+            <Text style={styles.fieldLabel}>Agent public key</Text>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isBusy}
+              onChangeText={setAgentPublicKeyInput}
+              placeholder="Required in pairing link for new agents"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={agentPublicKeyInput}
             />
             <Text style={styles.fieldLabel}>Approval mode</Text>
             <PolicyModeSelector

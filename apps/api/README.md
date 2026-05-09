@@ -16,19 +16,20 @@ npm run dev
 
 - `GET /health`
 - `GET /agents`
-- `POST /agents`
+- `POST /agents` with immutable `publicKey`
 - `GET /agents/:agentId`
+- `POST /wallet-sessions` with wallet-owner proof
 - `POST /connections` with `ownerProof`
-- `GET /connections?wallet=...`
-- `PATCH /connections/:connectionId/policy`
-- `POST /connections/:connectionId/revoke`
-- `DELETE /connections/:connectionId`
-- `POST /actions`
-- `GET /actions?wallet=...`
-- `GET /actions/pending?wallet=...`
+- `GET /connections?wallet=...` with `x-skillguard-wallet-session`
+- `PATCH /connections/:connectionId/policy` with wallet-owner proof
+- `POST /connections/:connectionId/revoke` with wallet-owner proof
+- `DELETE /connections/:connectionId` with wallet-owner proof
+- `POST /actions` with `agentProof`
+- `GET /actions?wallet=...` with `x-skillguard-wallet-session`
+- `GET /actions/pending?wallet=...` with `x-skillguard-wallet-session`
 - `GET /actions/:actionId`
 - `POST /actions/:actionId/evaluate`
-- `POST /actions/:actionId/decision`
+- `POST /actions/:actionId/decision` with wallet-owner proof
 - `DELETE /smoke-runs/:runId?wallet=SmokeWallet...`
 
 The local MVP uses an in-memory store and starts empty. Deterministic fixtures
@@ -41,8 +42,12 @@ The API is intentionally public: external agents and apps can register an
 agent, submit `ActionManifest` payloads, and poll for decisions. A new
 wallet-owned connection requires `ownerProof`: a Solana sign-message proof over
 the wallet, agent ID, connection ID, and exact policy fields. This prevents third
-parties from connecting agents to wallets that did not actively import them. The
-API never receives wallet private keys.
+parties from connecting agents to wallets that did not actively import them.
+Registered agents have immutable public keys, and each `POST /actions` request
+must include an Ed25519 `agentProof` over the manifest hash, action ID,
+connection ID, agent ID, and timestamp. Wallet feed reads require a short-lived
+session token from `POST /wallet-sessions`, created by a wallet-owner
+sign-message proof. The API never receives wallet private keys.
 
 Approved decisions must include both:
 

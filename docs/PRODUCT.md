@@ -215,8 +215,9 @@ External project flow:
 ```text
 Agent app
   -> register agent with SkillGuard
+  -> publish pairing link with agent public key
   -> ask user to connect SkillGuard
-  -> submit action requests
+  -> submit signed action requests
   -> wait for approval webhook
   -> execute only after approval
 ```
@@ -227,7 +228,9 @@ For hackathon, expose a small TypeScript SDK wrapper:
 
 ```ts
 const skillguard = new SkillGuardClient({
-  apiKey: process.env.SKILLGUARD_AGENT_KEY,
+  agentId: "research-agent",
+  agentSigner,
+  apiUrl: "https://skillguard-sol.vercel.app/api",
 });
 
 const request = await skillguard.requestApproval({
@@ -245,13 +248,13 @@ const request = await skillguard.requestApproval({
 
 Useful endpoints:
 
-- `POST /api/agents/register`
-- `POST /api/agents/connect-link`
+- `POST /api/agents`
+- `POST /api/wallet-sessions`
+- `POST /api/connections`
 - `GET /api/agents/:agentId`
 - `POST /api/actions`
 - `GET /api/actions/:actionId`
-- `POST /api/actions/:actionId/cancel`
-- `POST /api/webhooks/test`
+- `POST /api/actions/:actionId/decision`
 
 Developer-facing outputs:
 

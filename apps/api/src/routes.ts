@@ -1,9 +1,16 @@
-import type { AgentPolicy, DecisionStatus } from "@skillguard/protocol";
+import type { DecisionStatus } from "@skillguard/protocol";
 import { evaluatePolicy } from "@skillguard/protocol";
 import { Hono } from "hono";
 
 import type { SkillGuardStore } from "./store.js";
-import { verifyConnectionOwnerProof } from "./ownerProof.js";
+import { verifyAgentActionProof } from "./agentProof.js";
+import {
+  verifyActionDecisionOwnerProof,
+  verifyConnectionOwnerProof,
+  verifyConnectionRevokeOwnerProof,
+  verifyPolicyUpdateOwnerProof,
+  verifyWalletSessionOwnerProof,
+} from "./ownerProof.js";
 import {
   hasText,
   isDecisionStatus,
@@ -11,7 +18,13 @@ import {
   parseActionPostBody,
   parseAgentRecord,
   parseConnectionRecord,
+  parsePolicyPatch,
 } from "./validation.js";
+import {
+  createWalletSessionToken,
+  hashWalletSessionToken,
+  walletSessionExpiresAt,
+} from "./walletSession.js";
 
 function notFound(message: string) {
   return { error: message };
@@ -43,6 +56,28 @@ function reevaluateOpenActionsForConnection(store: SkillGuardStore, connectionId
   }
 }
 
+function walletSessionError(
+  store: SkillGuardStore,
+  wallet: string,
+  token: string | undefined,
+): string | null {
+  if (wallet.startsWith("SmokeWallet")) {
+    return null;
+  }
+  if (!hasText(token) || !store.hasActiveWalletSession(wallet, hashWalletSessionToken(token))) {
+    return "wallet_session_required";
+  }
+  return null;
+}
+
+async function readOptionalJson(c: { req: { json(): Promise<unknown> } }): Promise<unknown> {
+  try {
+    return await c.req.json();
+  } catch {
+    return {};
+  }
+}
+
 export function createApp(store: SkillGuardStore): Hono {
   const app = new Hono();
 
@@ -56,6 +91,19 @@ export function createApp(store: SkillGuardStore): Hono {
       return c.json({ error: "invalid_agent" }, 400);
     }
 
+    const existingAgent = store.getAgent(agent.agentId);
+    if (existingAgent) {
+      if (
+        existingAgent.publicKey !== agent.publicKey ||
+        existingAgent.name !== agent.name ||
+        existingAgent.description !== agent.description
+      ) {
+        return c.json({ error: "agent_id_conflict" }, 409);
+      }
+
+      return c.json({ agent: existingAgent }, 200);
+    }
+
     return c.json({ agent: store.createAgent(agent) }, 201);
   });
 
@@ -66,6 +114,32 @@ export function createApp(store: SkillGuardStore): Hono {
     }
 
     return c.json({ agent });
+  });
+
+  app.post("/wallet-sessions", async (c) => {
+    const body = await c.req.json();
+    const wallet = (body as { wallet?: unknown }).wallet;
+    if (!hasText(wallet)) {
+      return c.json({ error: "invalid_wallet_session" }, 400);
+    }
+
+    const proofResult = verifyWalletSessionOwnerProof(
+      (body as { ownerProof?: unknown }).ownerProof,
+      wallet,
+    );
+    if (!proofResult.ok) {
+      return c.json({ error: proofResult.error }, 403);
+    }
+
+    const token = createWalletSessionToken();
+    const expiresAt = walletSessionExpiresAt();
+    const session = store.createWalletSession({
+      expiresAt,
+      sessionId: `wallet-session-${hashWalletSessionToken(token).slice(0, 24)}`,
+      tokenHash: hashWalletSessionToken(token),
+      userWallet: wallet,
+    });
+    return c.json({ session: { expiresAt: session.expiresAt, token } }, 201);
   });
 
   app.post("/connections", async (c) => {
@@ -105,11 +179,41 @@ export function createApp(store: SkillGuardStore): Hono {
 
   app.get("/connections", (c) => {
     const wallet = c.req.query("wallet");
+    if (!wallet) {
+      return c.json({ error: "wallet_query_required" }, 400);
+    }
+    const sessionError = walletSessionError(
+      store,
+      wallet,
+      c.req.header("x-skillguard-wallet-session"),
+    );
+    if (sessionError) {
+      return c.json({ error: sessionError }, 401);
+    }
     return c.json({ connections: store.listConnections(wallet) });
   });
 
   app.patch("/connections/:connectionId/policy", async (c) => {
-    const policyPatch = (await c.req.json()) as Partial<AgentPolicy>;
+    const body = await c.req.json();
+    const policyPatch = parsePolicyPatch(body);
+    if (!policyPatch) {
+      return c.json({ error: "invalid_policy_patch" }, 400);
+    }
+
+    const currentConnection = store.getConnection(c.req.param("connectionId"));
+    if (!currentConnection) {
+      return c.json(notFound("connection_not_found"), 404);
+    }
+
+    const proofResult = verifyPolicyUpdateOwnerProof(
+      (body as { ownerProof?: unknown }).ownerProof,
+      currentConnection,
+      policyPatch,
+    );
+    if (!proofResult.ok) {
+      return c.json({ error: proofResult.error }, 403);
+    }
+
     const connection = store.updatePolicy(c.req.param("connectionId"), policyPatch);
     if (!connection) {
       return c.json(notFound("connection_not_found"), 404);
@@ -119,7 +223,21 @@ export function createApp(store: SkillGuardStore): Hono {
     return c.json({ connection });
   });
 
-  app.post("/connections/:connectionId/revoke", (c) => {
+  app.post("/connections/:connectionId/revoke", async (c) => {
+    const currentConnection = store.getConnection(c.req.param("connectionId"));
+    if (!currentConnection) {
+      return c.json(notFound("connection_not_found"), 404);
+    }
+
+    const body = await readOptionalJson(c);
+    const proofResult = verifyConnectionRevokeOwnerProof(
+      (body as { ownerProof?: unknown }).ownerProof,
+      currentConnection,
+    );
+    if (!proofResult.ok) {
+      return c.json({ error: proofResult.error }, 403);
+    }
+
     const connection = store.revokeConnection(c.req.param("connectionId"));
     if (!connection) {
       return c.json(notFound("connection_not_found"), 404);
@@ -129,7 +247,21 @@ export function createApp(store: SkillGuardStore): Hono {
     return c.json({ connection });
   });
 
-  app.delete("/connections/:connectionId", (c) => {
+  app.delete("/connections/:connectionId", async (c) => {
+    const currentConnection = store.getConnection(c.req.param("connectionId"));
+    if (!currentConnection) {
+      return c.json(notFound("connection_not_found"), 404);
+    }
+
+    const body = await readOptionalJson(c);
+    const proofResult = verifyConnectionRevokeOwnerProof(
+      (body as { ownerProof?: unknown }).ownerProof,
+      currentConnection,
+    );
+    if (!proofResult.ok) {
+      return c.json({ error: proofResult.error }, 403);
+    }
+
     const connection = store.revokeConnection(c.req.param("connectionId"));
     if (!connection) {
       return c.json(notFound("connection_not_found"), 404);
@@ -152,6 +284,18 @@ export function createApp(store: SkillGuardStore): Hono {
     if (!manifestMatchesConnection(body.manifest, connection)) {
       return c.json({ error: "manifest_connection_mismatch" }, 403);
     }
+    const agent = store.getAgent(connection.agentId);
+    if (!agent) {
+      return c.json(notFound("agent_not_found"), 404);
+    }
+    const proofResult = verifyAgentActionProof(body.agentProof, {
+      agent,
+      connection,
+      manifest: body.manifest,
+    });
+    if (!proofResult.ok) {
+      return c.json({ error: proofResult.error }, 403);
+    }
     if (store.getAction(body.manifest.actionId)) {
       return c.json({ error: "action_already_exists" }, 409);
     }
@@ -173,6 +317,14 @@ export function createApp(store: SkillGuardStore): Hono {
     if (!wallet) {
       return c.json({ error: "wallet_query_required" }, 400);
     }
+    const sessionError = walletSessionError(
+      store,
+      wallet,
+      c.req.header("x-skillguard-wallet-session"),
+    );
+    if (sessionError) {
+      return c.json({ error: sessionError }, 401);
+    }
 
     return c.json({ actions: store.listActionsForWallet(wallet) });
   });
@@ -181,6 +333,14 @@ export function createApp(store: SkillGuardStore): Hono {
     const wallet = c.req.query("wallet");
     if (!wallet) {
       return c.json({ error: "wallet_query_required" }, 400);
+    }
+    const sessionError = walletSessionError(
+      store,
+      wallet,
+      c.req.header("x-skillguard-wallet-session"),
+    );
+    if (sessionError) {
+      return c.json({ error: sessionError }, 401);
     }
 
     return c.json({ actions: store.listPendingActions(wallet) });
@@ -229,6 +389,10 @@ export function createApp(store: SkillGuardStore): Hono {
     if (!currentAction) {
       return c.json(notFound("action_not_found"), 404);
     }
+    const connection = store.getConnectionForAction(currentAction);
+    if (!connection) {
+      return c.json(notFound("connection_not_found"), 404);
+    }
     if (currentAction.decisionStatus === "blocked" && body.status === "approved") {
       return c.json({ error: "blocked_action_cannot_be_approved" }, 409);
     }
@@ -236,9 +400,25 @@ export function createApp(store: SkillGuardStore): Hono {
       return c.json({ error: "decision_already_final" }, 409);
     }
 
+    const receiptAddress = hasText(body.receiptAddress) ? body.receiptAddress : null;
+    const signature = hasText(body.signature) ? body.signature : null;
+    const proofResult = verifyActionDecisionOwnerProof(
+      (body as { decisionProof?: unknown }).decisionProof,
+      {
+        action: currentAction,
+        connection,
+        receiptAddress,
+        signature,
+        status: body.status,
+      },
+    );
+    if (!proofResult.ok) {
+      return c.json({ error: proofResult.error }, 403);
+    }
+
     const action = store.storeDecision(c.req.param("actionId"), body.status, {
-      receiptAddress: hasText(body.receiptAddress) ? body.receiptAddress : null,
-      signature: hasText(body.signature) ? body.signature : null,
+      receiptAddress,
+      signature,
     });
     if (!action) {
       return c.json(notFound("action_not_found"), 404);

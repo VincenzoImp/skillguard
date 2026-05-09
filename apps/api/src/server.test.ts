@@ -1,9 +1,16 @@
 import { describe, expect, test } from "vitest";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
-import type { AgentPolicy } from "@skillguard/protocol";
+import type { ActionManifest, AgentPolicy } from "@skillguard/protocol";
+import { buildAgentActionMessage, fixtureWallet } from "@skillguard/protocol";
 
-import { buildConnectionOwnerMessage } from "./ownerProof.js";
+import {
+  buildActionDecisionOwnerMessage,
+  buildConnectionOwnerMessage,
+  buildConnectionRevokeOwnerMessage,
+  buildPolicyUpdateOwnerMessage,
+  buildWalletSessionOwnerMessage,
+} from "./ownerProof.js";
 import { createApp } from "./routes.js";
 import { createSeededStore } from "./seed.js";
 import { SkillGuardStore } from "./store.js";
@@ -27,6 +34,10 @@ function testKeyPair(seedByte: number): nacl.SignKeyPair {
 function walletFor(keyPair: nacl.SignKeyPair): string {
   return bs58.encode(keyPair.publicKey);
 }
+
+const SEEDED_WALLET_KEYPAIR = testKeyPair(1);
+const SEEDED_AGENT_KEYPAIR = testKeyPair(2);
+const SEEDED_WALLET = fixtureWallet;
 
 function ownerProofFor({
   agentId,
@@ -58,6 +69,242 @@ function ownerProofFor({
     signedAt,
     type: "solana-sign-message",
     wallet: userWallet,
+  };
+}
+
+function ownerProofForMessage(message: string, keyPair: nacl.SignKeyPair, userWallet: string) {
+  return {
+    message,
+    signatureBase64: Buffer.from(
+      nacl.sign.detached(new TextEncoder().encode(message), keyPair.secretKey),
+    ).toString("base64"),
+    signedAt: Number(message.match(/^signedAt:(\d+)$/m)?.[1] ?? Date.now()),
+    type: "solana-sign-message",
+    wallet: userWallet,
+  };
+}
+
+function agentProofFor({
+  agentId,
+  connectionId,
+  keyPair,
+  manifest,
+  signedAt = Date.now(),
+}: {
+  agentId: string;
+  connectionId: string;
+  keyPair: nacl.SignKeyPair;
+  manifest: ActionManifest;
+  signedAt?: number;
+}) {
+  const message = buildAgentActionMessage({
+    agentId,
+    connectionId,
+    manifest,
+    signedAt,
+  });
+  return {
+    agentId,
+    message,
+    signatureBase64: Buffer.from(
+      nacl.sign.detached(new TextEncoder().encode(message), keyPair.secretKey),
+    ).toString("base64"),
+    signedAt,
+    type: "ed25519-action",
+  };
+}
+
+function seededAgentProof(manifest: ActionManifest) {
+  return agentProofFor({
+    agentId: "agent-research",
+    connectionId: "conn-seeded",
+    keyPair: SEEDED_AGENT_KEYPAIR,
+    manifest,
+  });
+}
+
+function seededRevokeOwnerProof() {
+  const signedAt = Date.now();
+  return ownerProofForMessage(
+    buildConnectionRevokeOwnerMessage({
+      connectionId: "conn-seeded",
+      signedAt,
+      userWallet: SEEDED_WALLET,
+    }),
+    SEEDED_WALLET_KEYPAIR,
+    SEEDED_WALLET,
+  );
+}
+
+function seededDecisionOwnerProof({
+  actionId = "action-safe-risk-report",
+  receiptAddress = null,
+  signature = null,
+  status,
+}: {
+  actionId?: string;
+  receiptAddress?: string | null;
+  signature?: string | null;
+  status: "approved" | "blocked" | "expired" | "rejected";
+}) {
+  const signedAt = Date.now();
+  return ownerProofForMessage(
+    buildActionDecisionOwnerMessage({
+      actionId,
+      connectionId: "conn-seeded",
+      receiptAddress,
+      signature,
+      signedAt,
+      status,
+      userWallet: SEEDED_WALLET,
+    }),
+    SEEDED_WALLET_KEYPAIR,
+    SEEDED_WALLET,
+  );
+}
+
+function walletSessionProofFor({
+  keyPair,
+  signedAt = Date.now(),
+  userWallet,
+}: {
+  keyPair: nacl.SignKeyPair;
+  signedAt?: number;
+  userWallet: string;
+}) {
+  return ownerProofForMessage(
+    buildWalletSessionOwnerMessage({ signedAt, userWallet }),
+    keyPair,
+    userWallet,
+  );
+}
+
+async function createWalletSession({
+  app,
+  wallet,
+  walletKeyPair,
+}: {
+  app: ReturnType<typeof createEmptyTestApp>;
+  wallet: string;
+  walletKeyPair: nacl.SignKeyPair;
+}): Promise<string> {
+  const response = await app.request("/wallet-sessions", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      ownerProof: walletSessionProofFor({ keyPair: walletKeyPair, userWallet: wallet }),
+      wallet,
+    }),
+  });
+  const body = await json<{ session: { token: string } }>(response);
+  expect(response.status).toBe(201);
+  expect(body.session.token).toMatch(/^sgw_/);
+  return body.session.token;
+}
+
+async function walletSessionHeaders({
+  app,
+  wallet,
+  walletKeyPair,
+}: {
+  app: ReturnType<typeof createEmptyTestApp>;
+  wallet: string;
+  walletKeyPair: nacl.SignKeyPair;
+}) {
+  const token = await createWalletSession({ app, wallet, walletKeyPair });
+  return { "x-skillguard-wallet-session": token };
+}
+
+async function createLiveConnection({
+  agentKeyPair = testKeyPair(21),
+  agentId = "agent-live",
+  app = createEmptyTestApp(),
+  connectionId = "conn-agent-live-wallet",
+  walletKeyPair = testKeyPair(22),
+}: {
+  agentId?: string;
+  agentKeyPair?: nacl.SignKeyPair;
+  app?: ReturnType<typeof createEmptyTestApp>;
+  connectionId?: string;
+  walletKeyPair?: nacl.SignKeyPair;
+} = {}) {
+  const wallet = walletFor(walletKeyPair);
+  const policy: AgentPolicy = {
+    active: true,
+    agentId,
+    allowedMints: ["SOL", "USDC"],
+    allowedNetworks: ["solana-devnet"],
+    allowedProtocols: ["helius", "birdeye"],
+    dailySpendCapAtomic: "5000000",
+    expiresAt: 4_100_000_000,
+    maxSpendAtomic: "1000000",
+    mode: "ask_every_time",
+    policyId: `policy-${agentId}-${wallet}`,
+    revoked: false,
+    userWallet: wallet,
+  };
+
+  const agentResponse = await app.request("/agents", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      agentId,
+      description: "Live agent used by security tests.",
+      name: "Live Agent",
+      publicKey: walletFor(agentKeyPair),
+    }),
+  });
+  expect(agentResponse.status).toBe(201);
+
+  const connectionResponse = await app.request("/connections", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      agentId,
+      connectionId,
+      ownerProof: ownerProofFor({ agentId, connectionId, keyPair: walletKeyPair, policy, userWallet: wallet }),
+      policy,
+      userWallet: wallet,
+    }),
+  });
+  expect(connectionResponse.status).toBe(201);
+
+  return {
+    agentId,
+    agentKeyPair,
+    app,
+    connectionId,
+    policy,
+    wallet,
+    walletKeyPair,
+  };
+}
+
+function liveManifest({
+  actionId = "action-live-secure",
+  agentId,
+  wallet,
+}: {
+  actionId?: string;
+  agentId: string;
+  wallet: string;
+}): ActionManifest {
+  return {
+    actionId,
+    accountsTouched: [wallet],
+    agentId,
+    createdAt: 1_800_000_000,
+    expiresAt: 4_100_000_000,
+    kind: "wallet_risk_report",
+    network: "solana-devnet",
+    protocols: ["helius", "birdeye"],
+    rawTransactionRef: null,
+    riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+    schemaVersion: "skillguard.action.v1",
+    spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+    summary: "Live secure request.",
+    title: "Live secure request",
+    userWallet: wallet,
   };
 }
 
@@ -107,7 +354,11 @@ describe("SkillGuard API", () => {
   test("revoke blocks future action", async () => {
     const app = createTestApp();
 
-    const revokeResponse = await app.request("/connections/conn-seeded/revoke", { method: "POST" });
+    const revokeResponse = await app.request("/connections/conn-seeded/revoke", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ownerProof: seededRevokeOwnerProof() }),
+    });
     expect(revokeResponse.status).toBe(200);
 
     const response = await app.request("/actions/action-safe-risk-report/evaluate", {
@@ -126,6 +377,12 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        decisionProof: seededDecisionOwnerProof({
+          actionId: "action-safe-risk-report",
+          receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
+          signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
+          status: "approved",
+        }),
         receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
         signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
         status: "approved",
@@ -167,6 +424,7 @@ describe("SkillGuard API", () => {
         agentId: "agent-live",
         description: "Live agent used by the hackathon flow.",
         name: "Live Agent",
+        publicKey: walletFor(testKeyPair(8)),
       }),
     });
     expect(agentResponse.status).toBe(201);
@@ -184,7 +442,9 @@ describe("SkillGuard API", () => {
     });
     expect(connectionResponse.status).toBe(201);
 
-    const listResponse = await app.request(`/connections?wallet=${wallet}`);
+    const listResponse = await app.request(`/connections?wallet=${wallet}`, {
+      headers: await walletSessionHeaders({ app, wallet, walletKeyPair: keyPair }),
+    });
     const body = await json<{
       connections: Array<{ agentId: string; connectionId: string; userWallet: string }>;
     }>(listResponse);
@@ -199,6 +459,27 @@ describe("SkillGuard API", () => {
     ]);
   });
 
+  test("wallet feeds require a wallet session and accept signed session tokens", async () => {
+    const { app, wallet, walletKeyPair } = await createLiveConnection();
+
+    const blockedConnections = await app.request(`/connections?wallet=${wallet}`);
+    expect(blockedConnections.status).toBe(401);
+    expect(await json<{ error: string }>(blockedConnections)).toEqual({
+      error: "wallet_session_required",
+    });
+
+    const blockedActions = await app.request(`/actions?wallet=${wallet}`);
+    expect(blockedActions.status).toBe(401);
+
+    const headers = await walletSessionHeaders({ app, wallet, walletKeyPair });
+
+    const connections = await app.request(`/connections?wallet=${wallet}`, { headers });
+    const actions = await app.request(`/actions?wallet=${wallet}`, { headers });
+
+    expect(connections.status).toBe(200);
+    expect(actions.status).toBe(200);
+  });
+
   test("connection creation rejects requests without wallet owner proof", async () => {
     const app = createEmptyTestApp();
     const wallet = "Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx";
@@ -210,6 +491,7 @@ describe("SkillGuard API", () => {
         agentId: "agent-live",
         description: "Live agent used by the hackathon flow.",
         name: "Live Agent",
+        publicKey: walletFor(testKeyPair(8)),
       }),
     });
     expect(agentResponse.status).toBe(201);
@@ -250,10 +532,9 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        connectionId: "conn-seeded",
-        manifest: {
+        agentProof: seededAgentProof({
           actionId: "action-live-safe",
-          accountsTouched: ["FixtureWallet111111111111111111111111111111"],
+          accountsTouched: [SEEDED_WALLET],
           agentId: "agent-research",
           createdAt: 1_800_000_000,
           expiresAt: 4_100_000_000,
@@ -266,7 +547,25 @@ describe("SkillGuard API", () => {
           spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
           summary: "Live safe request.",
           title: "Live safe request",
-          userWallet: "FixtureWallet111111111111111111111111111111",
+          userWallet: SEEDED_WALLET,
+        }),
+        connectionId: "conn-seeded",
+        manifest: {
+          actionId: "action-live-safe",
+          accountsTouched: [SEEDED_WALLET],
+          agentId: "agent-research",
+          createdAt: 1_800_000_000,
+          expiresAt: 4_100_000_000,
+          kind: "wallet_risk_report",
+          network: "solana-devnet",
+          protocols: ["helius", "birdeye"],
+          rawTransactionRef: null,
+          riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+          schemaVersion: "skillguard.action.v1",
+          spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+          summary: "Live safe request.",
+          title: "Live safe request",
+          userWallet: SEEDED_WALLET,
         },
       }),
     });
@@ -282,9 +581,13 @@ describe("SkillGuard API", () => {
     expect(postBody.action.policyResult.status).toBe("requires_approval");
     expect(postBody.action.decisionStatus).toBeNull();
 
-    const feedResponse = await app.request(
-      "/actions?wallet=FixtureWallet111111111111111111111111111111",
-    );
+    const feedResponse = await app.request(`/actions?wallet=${SEEDED_WALLET}`, {
+      headers: await walletSessionHeaders({
+        app,
+        wallet: SEEDED_WALLET,
+        walletKeyPair: SEEDED_WALLET_KEYPAIR,
+      }),
+    });
     const feedBody = await json<{
       actions: Array<{ actionId: string; policyResult: { manifestHash: string } | null }>;
     }>(feedResponse);
@@ -297,6 +600,182 @@ describe("SkillGuard API", () => {
     ).toMatch(/^[a-f0-9]{64}$/);
   });
 
+  test("action creation rejects requests without an agent signature proof", async () => {
+    const { agentId, app, connectionId, wallet, walletKeyPair } = await createLiveConnection();
+    const manifest = liveManifest({ agentId, wallet });
+
+    const response = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        connectionId,
+        manifest,
+      }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("agent_action_proof_required");
+    expect(
+      await json<{ actions: unknown[] }>(
+        await app.request(`/actions?wallet=${wallet}`, {
+          headers: await walletSessionHeaders({ app, wallet, walletKeyPair }),
+        }),
+      ),
+    ).toEqual({ actions: [] });
+  });
+
+  test("action creation rejects agent signatures from a different key", async () => {
+    const { agentId, app, connectionId, wallet } = await createLiveConnection();
+    const manifest = liveManifest({ actionId: "action-live-attacker-proof", agentId, wallet });
+    const attackerKeyPair = testKeyPair(23);
+
+    const response = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentProof: agentProofFor({ agentId, connectionId, keyPair: attackerKeyPair, manifest }),
+        connectionId,
+        manifest,
+      }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("invalid_agent_action_proof");
+  });
+
+  test("policy updates require a wallet owner proof", async () => {
+    const { app, connectionId } = await createLiveConnection();
+
+    const response = await app.request(`/connections/${connectionId}/policy`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ policyPatch: { mode: "block" } }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("wallet_owner_proof_required");
+  });
+
+  test("connection revocation requires a wallet owner proof", async () => {
+    const { app, connectionId } = await createLiveConnection();
+
+    const response = await app.request(`/connections/${connectionId}/revoke`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("wallet_owner_proof_required");
+  });
+
+  test("manual decisions require a wallet owner proof", async () => {
+    const { agentId, agentKeyPair, app, connectionId, wallet } = await createLiveConnection();
+    const manifest = liveManifest({ actionId: "action-live-decision-proof", agentId, wallet });
+    const postResponse = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentProof: agentProofFor({ agentId, connectionId, keyPair: agentKeyPair, manifest }),
+        connectionId,
+        manifest,
+      }),
+    });
+    expect(postResponse.status).toBe(201);
+
+    const response = await app.request(`/actions/${manifest.actionId}/decision`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: "rejected" }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("wallet_owner_proof_required");
+  });
+
+  test("wallet owner can update policy, revoke, and reject with signed proofs", async () => {
+    const { agentId, agentKeyPair, app, connectionId, policy, wallet, walletKeyPair } =
+      await createLiveConnection();
+    const policyPatch = { maxSpendAtomic: "2000000" };
+    const patchSignedAt = Date.now();
+    const policyMessage = buildPolicyUpdateOwnerMessage({
+      connectionId,
+      policyPatch,
+      signedAt: patchSignedAt,
+      userWallet: wallet,
+    });
+
+    const policyResponse = await app.request(`/connections/${connectionId}/policy`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ownerProof: ownerProofForMessage(policyMessage, walletKeyPair, wallet),
+        policyPatch,
+      }),
+    });
+    expect(policyResponse.status).toBe(200);
+
+    const manifest = liveManifest({ actionId: "action-live-owner-decision", agentId, wallet });
+    const actionResponse = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentProof: agentProofFor({ agentId, connectionId, keyPair: agentKeyPair, manifest }),
+        connectionId,
+        manifest,
+      }),
+    });
+    expect(actionResponse.status).toBe(201);
+
+    const decisionSignedAt = Date.now();
+    const decisionMessage = buildActionDecisionOwnerMessage({
+      actionId: manifest.actionId,
+      connectionId,
+      receiptAddress: null,
+      signature: null,
+      signedAt: decisionSignedAt,
+      status: "rejected",
+      userWallet: wallet,
+    });
+    const decisionResponse = await app.request(`/actions/${manifest.actionId}/decision`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        decisionProof: ownerProofForMessage(decisionMessage, walletKeyPair, wallet),
+        status: "rejected",
+      }),
+    });
+    expect(decisionResponse.status).toBe(200);
+
+    const revokeSignedAt = Date.now();
+    const revokeMessage = buildConnectionRevokeOwnerMessage({
+      connectionId,
+      signedAt: revokeSignedAt,
+      userWallet: wallet,
+    });
+    const revokeResponse = await app.request(`/connections/${connectionId}/revoke`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ownerProof: ownerProofForMessage(revokeMessage, walletKeyPair, wallet),
+      }),
+    });
+    const revokeBody = await json<{ connection: { policy: AgentPolicy } }>(revokeResponse);
+
+    expect(revokeResponse.status).toBe(200);
+    expect(revokeBody.connection.policy).toMatchObject({
+      active: false,
+      maxSpendAtomic: "2000000",
+      policyId: policy.policyId,
+      revoked: true,
+    });
+  });
+
   test("connection creation rejects missing fields instead of creating malformed records", async () => {
     const app = createTestApp();
 
@@ -305,7 +784,7 @@ describe("SkillGuard API", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         agentId: "agent-research",
-        userWallet: "FixtureWallet111111111111111111111111111111",
+        userWallet: SEEDED_WALLET,
       }),
     });
     const body = await json<{ error: string }>(response);
@@ -321,6 +800,23 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        agentProof: seededAgentProof({
+          actionId: "action-safe-risk-report",
+          accountsTouched: [SEEDED_WALLET],
+          agentId: "agent-research",
+          createdAt: 1_800_000_000,
+          expiresAt: 4_100_000_000,
+          kind: "wallet_risk_report",
+          network: "solana-devnet",
+          protocols: ["helius", "birdeye"],
+          rawTransactionRef: null,
+          riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+          schemaVersion: "skillguard.action.v1",
+          spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+          summary: "Duplicate safe request.",
+          title: "Duplicate safe request",
+          userWallet: SEEDED_WALLET,
+        }),
         connectionId: "conn-seeded",
         manifest: {
           actionId: "action-wallet-mismatch",
@@ -345,11 +841,10 @@ describe("SkillGuard API", () => {
 
     expect(response.status).toBe(403);
     expect(body.error).toBe("manifest_connection_mismatch");
-    expect(
-      await json<{ actions: unknown[] }>(
-        await app.request("/actions?wallet=AttackerWallet111111111111111111111111111111"),
-      ),
-    ).toEqual({ actions: [] });
+    const attackerFeed = await app.request(
+      "/actions?wallet=AttackerWallet111111111111111111111111111111",
+    );
+    expect(attackerFeed.status).toBe(401);
   });
 
   test("action creation rejects duplicate action ids instead of overwriting history", async () => {
@@ -359,10 +854,9 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        connectionId: "conn-seeded",
-        manifest: {
+        agentProof: seededAgentProof({
           actionId: "action-safe-risk-report",
-          accountsTouched: ["FixtureWallet111111111111111111111111111111"],
+          accountsTouched: [SEEDED_WALLET],
           agentId: "agent-research",
           createdAt: 1_800_000_000,
           expiresAt: 4_100_000_000,
@@ -375,7 +869,25 @@ describe("SkillGuard API", () => {
           spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
           summary: "Duplicate safe request.",
           title: "Duplicate safe request",
-          userWallet: "FixtureWallet111111111111111111111111111111",
+          userWallet: SEEDED_WALLET,
+        }),
+        connectionId: "conn-seeded",
+        manifest: {
+          actionId: "action-safe-risk-report",
+          accountsTouched: [SEEDED_WALLET],
+          agentId: "agent-research",
+          createdAt: 1_800_000_000,
+          expiresAt: 4_100_000_000,
+          kind: "wallet_risk_report",
+          network: "solana-devnet",
+          protocols: ["helius", "birdeye"],
+          rawTransactionRef: null,
+          riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+          schemaVersion: "skillguard.action.v1",
+          spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+          summary: "Duplicate safe request.",
+          title: "Duplicate safe request",
+          userWallet: SEEDED_WALLET,
         },
       }),
     });
@@ -391,7 +903,10 @@ describe("SkillGuard API", () => {
     const rejectResponse = await app.request("/actions/action-safe-risk-report/decision", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ status: "rejected" }),
+      body: JSON.stringify({
+        decisionProof: seededDecisionOwnerProof({ status: "rejected" }),
+        status: "rejected",
+      }),
     });
     expect(rejectResponse.status).toBe(200);
 
@@ -413,7 +928,11 @@ describe("SkillGuard API", () => {
   test("connection upsert does not reactivate a revoked agent", async () => {
     const app = createTestApp();
 
-    const revokeResponse = await app.request("/connections/conn-seeded/revoke", { method: "POST" });
+    const revokeResponse = await app.request("/connections/conn-seeded/revoke", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ownerProof: seededRevokeOwnerProof() }),
+    });
     expect(revokeResponse.status).toBe(200);
 
     const reconnectResponse = await app.request("/connections", {
@@ -434,9 +953,9 @@ describe("SkillGuard API", () => {
           mode: "ask_every_time",
           policyId: "policy-ask-every-time",
           revoked: false,
-          userWallet: "FixtureWallet111111111111111111111111111111",
+          userWallet: SEEDED_WALLET,
         },
-        userWallet: "FixtureWallet111111111111111111111111111111",
+        userWallet: SEEDED_WALLET,
       }),
     });
     const reconnectBody = await json<{
@@ -484,7 +1003,11 @@ describe("SkillGuard API", () => {
   test("revoking a connection blocks unresolved actions and removes approval ability", async () => {
     const app = createTestApp();
 
-    const revokeResponse = await app.request("/connections/conn-seeded", { method: "DELETE" });
+    const revokeResponse = await app.request("/connections/conn-seeded", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ownerProof: seededRevokeOwnerProof() }),
+    });
     expect(revokeResponse.status).toBe(200);
 
     const actionResponse = await app.request("/actions/action-safe-risk-report");
@@ -511,6 +1034,12 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        decisionProof: seededDecisionOwnerProof({
+          actionId: "action-safe-risk-report",
+          receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
+          signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
+          status: "approved",
+        }),
         receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
         signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
         status: "approved",

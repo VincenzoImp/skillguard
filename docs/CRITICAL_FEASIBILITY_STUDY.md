@@ -131,7 +131,7 @@ Mobile spike update on 2026-05-08:
 Research agent update on 2026-05-08:
 
 - Added `apps/research-agent` CLI scripts for `submit:safe`, `submit:unsafe`, and `submit:revoked`.
-- The CLI requires `SKILLGUARD_USER_WALLET`, creates or updates the matching Research Agent connection, posts ActionManifest payloads to the API, and immediately requests policy evaluation.
+- The CLI requires `SKILLGUARD_USER_WALLET`, uses an agent private key from `SKILLGUARD_AGENT_PRIVATE_KEY_B58`, posts signed ActionManifest payloads to the API, and immediately requests policy evaluation. For real wallets, the wallet owner must import the agent in mobile first; automatic connection is reserved for generated `SmokeWallet...` test flows.
 - The revoked demo path revokes the demo connection first, then submits an action that should evaluate as blocked by policy revocation.
 - Local tests cover manifest generation and HTTP request order.
 - A local API smoke test confirmed the three CLI paths return the expected policy statuses.

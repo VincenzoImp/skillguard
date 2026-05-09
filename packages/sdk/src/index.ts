@@ -1,13 +1,19 @@
-import type { ActionManifest, DecisionStatus } from "@skillguard/protocol";
+import type { ActionManifest, AgentActionProof, DecisionStatus } from "@skillguard/protocol";
+import { buildAgentActionMessage } from "@skillguard/protocol";
 
 type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Response>;
 
 export interface SkillGuardClientOptions {
   agentId: string;
-  agentSecret?: string;
+  agentSigner?: SkillGuardAgentSigner;
   apiUrl: string;
   connectionId?: string;
   fetch?: FetchLike;
+}
+
+export interface SkillGuardAgentSigner {
+  publicKey: string;
+  signMessage(message: Uint8Array): Promise<Uint8Array> | Uint8Array;
 }
 
 export interface SkillGuardAction {
@@ -21,7 +27,7 @@ interface ActionResponse {
 
 export function createSkillGuardClient({
   agentId,
-  agentSecret,
+  agentSigner,
   apiUrl,
   connectionId,
   fetch: fetchImpl = globalThis.fetch,
@@ -32,7 +38,7 @@ export function createSkillGuardClient({
     const response = await fetchImpl(new URL(path, baseUrl), {
       ...init,
       headers: {
-        ...authHeaders(agentId, agentSecret),
+        "x-skillguard-agent": agentId,
         ...init?.headers,
       },
     });
@@ -54,9 +60,19 @@ export function createSkillGuardClient({
       if (!connectionId) {
         throw new Error("connection_id_required");
       }
+      if (!agentSigner) {
+        throw new Error("agent_signer_required");
+      }
+
+      const agentProof = await buildAgentProof({
+        agentId,
+        connectionId,
+        manifest,
+        signer: agentSigner,
+      });
 
       const body = await request<ActionResponse>("actions", {
-        body: JSON.stringify({ connectionId, manifest }),
+        body: JSON.stringify({ agentProof, connectionId, manifest }),
         headers: { "content-type": "application/json" },
         method: "POST",
       });
@@ -65,11 +81,32 @@ export function createSkillGuardClient({
   };
 }
 
-function authHeaders(agentId: string, agentSecret?: string): Record<string, string> {
+async function buildAgentProof({
+  agentId,
+  connectionId,
+  manifest,
+  signer,
+}: {
+  agentId: string;
+  connectionId: string;
+  manifest: ActionManifest;
+  signer: SkillGuardAgentSigner;
+}): Promise<AgentActionProof> {
+  const signedAt = Date.now();
+  const message = buildAgentActionMessage({
+    agentId,
+    connectionId,
+    manifest,
+    signedAt,
+  });
+  const signature = await signer.signMessage(new TextEncoder().encode(message));
   return {
-    ...(agentSecret ? { authorization: `Bearer ${agentSecret}` } : {}),
-    "x-skillguard-agent": agentId,
+    agentId,
+    message,
+    signatureBase64: Buffer.from(signature).toString("base64"),
+    signedAt,
+    type: "ed25519-action",
   };
 }
 
-export type { ActionManifest, DecisionStatus };
+export type { ActionManifest, AgentActionProof, DecisionStatus };

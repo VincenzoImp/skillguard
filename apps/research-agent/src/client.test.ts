@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ActionManifest } from "@skillguard/protocol";
 import { safeRiskReportManifest } from "@skillguard/protocol";
-import { createSkillGuardClient } from "./client.js";
+import { createSkillGuardClient, publicKeyForKeyPair, smokeAgentKeyPair } from "./client.js";
 
 describe("research agent client", () => {
   it("can import the research agent connection when an automation flow explicitly asks for it", async () => {
@@ -16,6 +16,7 @@ describe("research agent client", () => {
     };
 
     const client = createSkillGuardClient({
+      agentKeyPair: smokeAgentKeyPair(),
       apiUrl: "http://localhost:8787",
       connectionId: "conn-agent-research-SmokeWallet111",
       fetch,
@@ -30,6 +31,7 @@ describe("research agent client", () => {
     expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
       agentId: "agent-research",
       name: "Research Agent",
+      publicKey: publicKeyForKeyPair(smokeAgentKeyPair()),
     });
     expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({
       agentId: "agent-research",
@@ -55,6 +57,7 @@ describe("research agent client", () => {
     };
 
     const client = createSkillGuardClient({
+      agentKeyPair: smokeAgentKeyPair(),
       apiUrl: "http://localhost:8787",
       connectionId: "conn-agent-research-Wallet111",
       fetch,
@@ -68,6 +71,13 @@ describe("research agent client", () => {
       "http://localhost:8787/actions",
       `http://localhost:8787/actions/${safeRiskReportManifest.actionId}/evaluate`,
     ]);
+    expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
+      agentProof: {
+        agentId: "agent-research",
+        type: "ed25519-action",
+      },
+      connectionId: "conn-agent-research-Wallet111",
+    });
   });
 
   it("revokes the connection before the revoked research path submits", async () => {
@@ -78,6 +88,7 @@ describe("research agent client", () => {
     };
 
     const client = createSkillGuardClient({
+      agentKeyPair: smokeAgentKeyPair(),
       apiUrl: "http://localhost:8787",
       connectionId: "conn-agent-research-Wallet111",
       fetch,

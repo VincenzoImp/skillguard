@@ -29,8 +29,10 @@ The hosted API is the public integration surface for agents and third-party
 apps. A fresh mobile wallet has no agents and no inbox items. The user first
 imports an agent with a pairing link or agent ID, signs a wallet-owner challenge,
 and only then can that connected agent submit manifests for that wallet through
-the API or SDK. The current MVP uses live API refresh in the mobile app; native
-push notifications are intentionally left as a post-MVP hardening step.
+the API or SDK. Wallet feeds are read through a short-lived wallet session token
+created from a Solana sign-message proof. The current MVP uses live API refresh
+in the mobile app; native push notifications are intentionally left as a
+post-MVP hardening step.
 
 ## Architecture
 
@@ -98,7 +100,7 @@ real requests in a third terminal. For the standard demo, paste this pairing lin
 into the app's Agent ID field, review the limits, and sign the import challenge:
 
 ```text
-skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye
+skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye&publicKey=9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
 ```
 
 Manual import values:
@@ -112,7 +114,17 @@ Max spend per action: 1
 Daily cap: 5
 Allowed protocols: helius,birdeye
 Allowed mints: SOL,USDC
+Agent public key: 9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
 ```
+
+Generate a new agent identity and pairing link for another agent:
+
+```bash
+node scripts/generate-agent-key.mjs agent-mybot "My Agent"
+```
+
+Keep `SKILLGUARD_AGENT_PRIVATE_KEY_B58` in your password manager or agent
+runtime secret store. Only the public key belongs in the pairing link.
 
 Manual commands:
 
@@ -168,18 +180,29 @@ profile uses an external keystore through Gradle signing injection.
 
 ```ts
 import { createSkillGuardClient } from "@skillguard/sdk";
+import bs58 from "bs58";
+import nacl from "tweetnacl";
+
+const agentKeyPair = nacl.sign.keyPair.fromSecretKey(
+  bs58.decode(process.env.SKILLGUARD_AGENT_PRIVATE_KEY_B58!)
+);
 
 const client = createSkillGuardClient({
   apiUrl,
   agentId,
-  agentSecret,
+  agentSigner: {
+    publicKey: bs58.encode(agentKeyPair.publicKey),
+    signMessage: (message) => nacl.sign.detached(message, agentKeyPair.secretKey),
+  },
   connectionId: `conn-${agentId}-${userWallet}`,
 });
 const action = await client.submitAction(manifest);
 const decision = await client.onDecision(action.actionId);
 ```
 
-Agents never receive the user's private key. They submit a manifest to SkillGuard and wait for a decision.
+Agents never receive the user's private key. They register an immutable public
+key, sign each action request with their own key, submit a manifest to
+SkillGuard, and wait for a decision.
 
 ## Solana Program
 
@@ -210,10 +233,13 @@ The program stores compact public facts:
 SkillGuard enforces policy only for actions that go through SkillGuard.
 
 New agent connections require a wallet-owner sign-message proof, so requests can
-only appear for agents the wallet owner actively imported. The MVP does not
-claim universal wallet protection, does not custody funds, and does not give
-agents private keys. Token-moving actions still require user wallet signing
-unless a future limited delegation module is added.
+only appear for agents the wallet owner actively imported. Agents must sign each
+action manifest with the public key registered in the pairing flow. Policy
+edits, revocation, manual approval/rejection, and wallet feed reads also require
+wallet-owner proof or a short-lived wallet session. The MVP does not claim
+universal wallet protection, does not custody funds, and does not give agents
+private keys. Token-moving actions still require user wallet signing unless a
+future limited delegation module is added.
 
 ## Public Site
 

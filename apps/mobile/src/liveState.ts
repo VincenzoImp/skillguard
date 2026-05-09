@@ -38,6 +38,7 @@ export interface ConnectedAgent {
 }
 
 export interface MobileAction {
+  connectionId: string;
   id: string;
   agentId: string;
   title: string;
@@ -73,6 +74,7 @@ export interface ApiAgentRecord {
   agentId: string;
   description: string;
   name: string;
+  publicKey?: string;
 }
 
 export interface ApiActionRecord {
@@ -190,6 +192,7 @@ function toMobileAction(action: ApiActionRecord): MobileAction {
   return {
     agentId: manifest.agentId,
     checks: checksForAction(action),
+    connectionId: action.connectionId,
     decisionReason: decisionReason(action),
     id: action.actionId,
     manifestHash: policyResult?.manifestHash ?? action.actionId,

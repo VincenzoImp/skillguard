@@ -36,7 +36,15 @@ interface AgentsResponse {
     agentId: string;
     description: string;
     name: string;
+    publicKey?: string;
   }>;
+}
+
+interface WalletSessionResponse {
+  session: {
+    expiresAt: number;
+    token: string;
+  };
 }
 
 interface ActionResponse {
@@ -51,6 +59,7 @@ export interface SkillGuardAgentInput {
   agentId: string;
   description: string;
   name: string;
+  publicKey?: string;
 }
 
 export interface SkillGuardPolicyInput {
@@ -133,6 +142,86 @@ export function buildConnectionOwnerMessage({
   ].join("\n");
 }
 
+export function buildPolicyUpdateOwnerMessage({
+  connectionId,
+  policyPatch,
+  signedAt,
+  userWallet,
+}: {
+  connectionId: string;
+  policyPatch: Partial<AgentPolicy>;
+  signedAt: number;
+  userWallet: string;
+}): string {
+  return [
+    "SkillGuard policy update",
+    `wallet:${userWallet}`,
+    `connection:${connectionId}`,
+    `policyPatch:${canonicalJson(policyPatch)}`,
+    `signedAt:${signedAt}`,
+  ].join("\n");
+}
+
+export function buildConnectionRevokeOwnerMessage({
+  connectionId,
+  signedAt,
+  userWallet,
+}: {
+  connectionId: string;
+  signedAt: number;
+  userWallet: string;
+}): string {
+  return [
+    "SkillGuard connection revoke",
+    `wallet:${userWallet}`,
+    `connection:${connectionId}`,
+    `signedAt:${signedAt}`,
+  ].join("\n");
+}
+
+export function buildActionDecisionOwnerMessage({
+  actionId,
+  connectionId,
+  receiptAddress,
+  signature,
+  signedAt,
+  status,
+  userWallet,
+}: {
+  actionId: string;
+  connectionId: string;
+  receiptAddress: string | null;
+  signature: string | null;
+  signedAt: number;
+  status: "approved" | "blocked" | "expired" | "rejected";
+  userWallet: string;
+}): string {
+  return [
+    "SkillGuard action decision",
+    `wallet:${userWallet}`,
+    `connection:${connectionId}`,
+    `action:${actionId}`,
+    `status:${status}`,
+    `receiptAddress:${receiptAddress ?? ""}`,
+    `signature:${signature ?? ""}`,
+    `signedAt:${signedAt}`,
+  ].join("\n");
+}
+
+export function buildWalletSessionOwnerMessage({
+  signedAt,
+  userWallet,
+}: {
+  signedAt: number;
+  userWallet: string;
+}): string {
+  return [
+    "SkillGuard wallet session",
+    `wallet:${userWallet}`,
+    `signedAt:${signedAt}`,
+  ].join("\n");
+}
+
 export function createSkillGuardApiClient(
   apiUrl = DEFAULT_SKILLGUARD_API_URL,
   fetchImpl: FetchLike = globalThis.fetch
@@ -163,11 +252,13 @@ export function createSkillGuardApiClient(
       userWallet,
     });
 
-    await request<AgentResponse>("agents", {
-      body: JSON.stringify(agent),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    });
+    if (agent.publicKey) {
+      await request<AgentResponse>("agents", {
+        body: JSON.stringify(agent),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      });
+    }
 
     const body = await request<ConnectionResponse>("connections", {
       body: JSON.stringify({
@@ -186,13 +277,26 @@ export function createSkillGuardApiClient(
   return {
     async approveAction(
       actionId: string,
+      connectionId: string,
       signature: string,
-      receiptAddress: string
+      receiptAddress: string,
+      userWallet: string,
+      signOwnerMessage: SignOwnerMessage
     ): Promise<ApiActionRecord> {
+      const decisionProof = await buildActionDecisionOwnerProof({
+        actionId,
+        connectionId,
+        receiptAddress,
+        signature,
+        signOwnerMessage,
+        status: "approved",
+        userWallet,
+      });
       const body = await request<ActionResponse>(
         `actions/${encodeURIComponent(actionId)}/decision`,
         {
           body: JSON.stringify({
+            decisionProof,
             receiptAddress,
             signature,
             status: "approved",
@@ -206,12 +310,35 @@ export function createSkillGuardApiClient(
 
     connectAgent,
 
-    async loadWalletState(userWallet: string): Promise<SkillGuardMobileState> {
+    async createWalletSession(
+      userWallet: string,
+      signOwnerMessage: SignOwnerMessage
+    ): Promise<WalletSessionResponse["session"]> {
+      const ownerProof = await buildWalletSessionOwnerProof({
+        signOwnerMessage,
+        userWallet,
+      });
+      const body = await request<WalletSessionResponse>("wallet-sessions", {
+        body: JSON.stringify({ ownerProof, wallet: userWallet }),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      });
+      return body.session;
+    },
+
+    async loadWalletState(
+      userWallet: string,
+      walletSessionToken: string
+    ): Promise<SkillGuardMobileState> {
+      const walletHeaders = { "x-skillguard-wallet-session": walletSessionToken };
       const [connectionsBody, actionsBody, agentsBody] = await Promise.all([
         request<ConnectionsResponse>(
-          `connections?wallet=${encodeURIComponent(userWallet)}`
+          `connections?wallet=${encodeURIComponent(userWallet)}`,
+          { headers: walletHeaders }
         ),
-        request<ActionsResponse>(`actions?wallet=${encodeURIComponent(userWallet)}`),
+        request<ActionsResponse>(`actions?wallet=${encodeURIComponent(userWallet)}`, {
+          headers: walletHeaders,
+        }),
         request<AgentsResponse>("agents"),
       ]);
       return toMobileState({
@@ -221,11 +348,25 @@ export function createSkillGuardApiClient(
       });
     },
 
-    async rejectAction(actionId: string): Promise<ApiActionRecord> {
+    async rejectAction(
+      actionId: string,
+      connectionId: string,
+      userWallet: string,
+      signOwnerMessage: SignOwnerMessage
+    ): Promise<ApiActionRecord> {
+      const decisionProof = await buildActionDecisionOwnerProof({
+        actionId,
+        connectionId,
+        receiptAddress: null,
+        signature: null,
+        signOwnerMessage,
+        status: "rejected",
+        userWallet,
+      });
       const body = await request<ActionResponse>(
         `actions/${encodeURIComponent(actionId)}/decision`,
         {
-          body: JSON.stringify({ status: "rejected" }),
+          body: JSON.stringify({ decisionProof, status: "rejected" }),
           headers: { "content-type": "application/json" },
           method: "POST",
         }
@@ -233,10 +374,23 @@ export function createSkillGuardApiClient(
       return body.action;
     },
 
-    async revokeConnection(connectionId: string): Promise<ApiConnectionRecord> {
+    async revokeConnection(
+      connectionId: string,
+      userWallet: string,
+      signOwnerMessage: SignOwnerMessage
+    ): Promise<ApiConnectionRecord> {
+      const ownerProof = await buildConnectionRevokeOwnerProof({
+        connectionId,
+        signOwnerMessage,
+        userWallet,
+      });
       const body = await request<ConnectionResponse>(
-        `connections/${encodeURIComponent(connectionId)}`,
-        { method: "DELETE" }
+        `connections/${encodeURIComponent(connectionId)}/revoke`,
+        {
+          body: JSON.stringify({ ownerProof }),
+          headers: { "content-type": "application/json" },
+          method: "POST",
+        }
       );
       return body.connection;
     },
@@ -244,18 +398,139 @@ export function createSkillGuardApiClient(
     async updatePolicyMode(
       connectionId: string,
       _currentPolicy: AgentPolicy,
-      mode: ApprovalMode
+      mode: ApprovalMode,
+      userWallet: string,
+      signOwnerMessage: SignOwnerMessage
     ): Promise<ApiConnectionRecord> {
+      const policyPatch = { mode };
+      const ownerProof = await buildPolicyUpdateOwnerProof({
+        connectionId,
+        policyPatch,
+        signOwnerMessage,
+        userWallet,
+      });
       const body = await request<ConnectionResponse>(
         `connections/${encodeURIComponent(connectionId)}/policy`,
         {
-          body: JSON.stringify({ mode }),
+          body: JSON.stringify({ ownerProof, policyPatch }),
           headers: { "content-type": "application/json" },
           method: "PATCH",
         }
       );
       return body.connection;
     },
+  };
+}
+
+async function buildPolicyUpdateOwnerProof({
+  connectionId,
+  policyPatch,
+  signOwnerMessage,
+  userWallet,
+}: {
+  connectionId: string;
+  policyPatch: Partial<AgentPolicy>;
+  signOwnerMessage: SignOwnerMessage;
+  userWallet: string;
+}): Promise<ConnectionOwnerProof> {
+  const signedAt = Date.now();
+  const message = buildPolicyUpdateOwnerMessage({
+    connectionId,
+    policyPatch,
+    signedAt,
+    userWallet,
+  });
+  const signature = await signOwnerMessage(new TextEncoder().encode(message));
+  return {
+    message,
+    signatureBase64: Buffer.from(signature).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
+  };
+}
+
+async function buildConnectionRevokeOwnerProof({
+  connectionId,
+  signOwnerMessage,
+  userWallet,
+}: {
+  connectionId: string;
+  signOwnerMessage: SignOwnerMessage;
+  userWallet: string;
+}): Promise<ConnectionOwnerProof> {
+  const signedAt = Date.now();
+  const message = buildConnectionRevokeOwnerMessage({
+    connectionId,
+    signedAt,
+    userWallet,
+  });
+  const signature = await signOwnerMessage(new TextEncoder().encode(message));
+  return {
+    message,
+    signatureBase64: Buffer.from(signature).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
+  };
+}
+
+async function buildWalletSessionOwnerProof({
+  signOwnerMessage,
+  userWallet,
+}: {
+  signOwnerMessage: SignOwnerMessage;
+  userWallet: string;
+}): Promise<ConnectionOwnerProof> {
+  const signedAt = Date.now();
+  const message = buildWalletSessionOwnerMessage({
+    signedAt,
+    userWallet,
+  });
+  const signature = await signOwnerMessage(new TextEncoder().encode(message));
+  return {
+    message,
+    signatureBase64: Buffer.from(signature).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
+  };
+}
+
+async function buildActionDecisionOwnerProof({
+  actionId,
+  connectionId,
+  receiptAddress,
+  signature,
+  signOwnerMessage,
+  status,
+  userWallet,
+}: {
+  actionId: string;
+  connectionId: string;
+  receiptAddress: string | null;
+  signature: string | null;
+  signOwnerMessage: SignOwnerMessage;
+  status: "approved" | "blocked" | "expired" | "rejected";
+  userWallet: string;
+}): Promise<ConnectionOwnerProof> {
+  const signedAt = Date.now();
+  const message = buildActionDecisionOwnerMessage({
+    actionId,
+    connectionId,
+    receiptAddress,
+    signature,
+    signedAt,
+    status,
+    userWallet,
+  });
+  const proofSignature = await signOwnerMessage(new TextEncoder().encode(message));
+  return {
+    message,
+    signatureBase64: Buffer.from(proofSignature).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
   };
 }
 
@@ -288,4 +563,23 @@ async function buildConnectionOwnerProof({
     type: "solana-sign-message",
     wallet: userWallet,
   };
+}
+
+function canonicalJson(value: unknown): string {
+  return JSON.stringify(sortKeys(value));
+}
+
+function sortKeys(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortKeys);
+  }
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    Object.keys(record)
+      .sort()
+      .map((key) => [key, sortKeys(record[key])])
+  );
 }

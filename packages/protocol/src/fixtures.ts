@@ -1,10 +1,12 @@
 import type { ActionManifest, AgentPolicy } from "./types.js";
 
+export const fixtureWallet = "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9";
+
 export const safeRiskReportManifest: ActionManifest = {
   schemaVersion: "skillguard.action.v1",
   actionId: "action-safe-risk-report",
   agentId: "agent-research",
-  userWallet: "FixtureWallet111111111111111111111111111111",
+  userWallet: fixtureWallet,
   network: "solana-devnet",
   kind: "wallet_risk_report",
   title: "Generate wallet risk report",
@@ -18,7 +20,7 @@ export const safeRiskReportManifest: ActionManifest = {
       reason: "Read-only report",
     },
   ],
-  accountsTouched: ["FixtureWallet111111111111111111111111111111"],
+  accountsTouched: [fixtureWallet],
   riskSignals: [
     {
       level: "low",
@@ -63,7 +65,7 @@ export const expiredManifest: ActionManifest = {
 export const askEveryTimePolicy: AgentPolicy = {
   policyId: "policy-ask-every-time",
   agentId: "agent-research",
-  userWallet: "FixtureWallet111111111111111111111111111111",
+  userWallet: fixtureWallet,
   mode: "ask_every_time",
   active: true,
   revoked: false,

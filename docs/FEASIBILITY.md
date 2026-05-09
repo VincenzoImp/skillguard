@@ -36,8 +36,10 @@ Implemented and tested locally:
 - canonical manifest hashing
 - deterministic policy evaluation for safe, unsafe, expired, blocked, and revoked paths
 - API endpoints for agents, connections, pending actions, policy evaluation, decisions, and revocation
-- research agent CLI that submits safe, unsafe, and revoked requests
-- reusable TypeScript SDK for agent developers
+- wallet-owner proofs for pairing, policy edits, revocation, decisions, and read-session creation
+- agent public-key registration plus signed action submissions
+- research agent CLI that submits signed safe, unsafe, and revoked requests
+- reusable TypeScript SDK for signed agent manifests
 - Anchor program for user profiles, agent connections, policies, revocation, decision receipts, and execution signature hashes
 - mobile approval demo screens for wallet connect, agents, permission editor, inbox, action detail, and receipt timeline
 - Android package metadata and a reproducible local APK build script

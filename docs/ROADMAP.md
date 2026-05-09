@@ -132,19 +132,19 @@ Goal: host pending agent requests and prepare receipt transactions.
 
 Endpoints:
 
-- `POST /api/agents/register`
-- `POST /api/agents/connect-link`
+- `POST /api/agents`
+- `POST /api/wallet-sessions`
 - `GET /api/agents/:agentId`
-- `POST /api/connections`
-- `PATCH /api/connections/:connectionId/policy`
-- `POST /api/connections/:connectionId/revoke`
-- `POST /api/actions`
-- `GET /api/actions/pending?wallet=...`
+- `POST /api/connections` with wallet-owner proof
+- `GET /api/connections?wallet=...` with wallet-session token
+- `PATCH /api/connections/:connectionId/policy` with wallet-owner proof
+- `POST /api/connections/:connectionId/revoke` with wallet-owner proof
+- `POST /api/actions` with agent proof
+- `GET /api/actions?wallet=...` with wallet-session token
+- `GET /api/actions/pending?wallet=...` with wallet-session token
 - `GET /api/actions/:actionId`
 - `POST /api/actions/:actionId/evaluate`
-- `POST /api/actions/:actionId/receipt/approval-tx`
-- `POST /api/actions/:actionId/receipt/rejection-tx`
-- `POST /api/actions/:actionId/execution-signature`
+- `POST /api/actions/:actionId/decision` with wallet-owner proof
 
 Behavior:
 

@@ -17,6 +17,7 @@ interface AgentPairingInput {
   allowedProtocols?: string;
   description: string;
   name: string;
+  publicKey?: string;
 }
 
 export function buildAgentPolicyInput(
@@ -78,6 +79,7 @@ export function parseAgentPairingInput(value: string): AgentPairingInput | null 
     allowedProtocols: url.searchParams.get("protocols")?.trim() || undefined,
     description,
     name,
+    publicKey: url.searchParams.get("publicKey")?.trim() || undefined,
   };
 }
 

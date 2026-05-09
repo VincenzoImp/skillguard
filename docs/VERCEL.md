@@ -75,13 +75,15 @@ node scripts/hosted-smoke.mjs
 
 The smoke uses a generated wallet and run id, submits a safe request, rejects it,
 submits an unsafe overspend request, submits after revocation, and verifies the
-wallet action history from the hosted API.
+wallet action history from the hosted API. Generated `SmokeWallet...` flows are
+the only wallet reads that bypass signed wallet sessions.
 
 After deployment, configure clients:
 
 ```bash
 export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
 npm --prefix apps/research-agent run submit:safe
 
 EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \

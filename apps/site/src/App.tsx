@@ -430,7 +430,7 @@ function DeveloperSection() {
           <pre className="mt-4 overflow-x-auto rounded-lg border border-border-subtle bg-bg-950 p-4 font-mono text-sm leading-6 text-text-secondary">
             <code>{`import { createSkillGuardClient } from "@skillguard/sdk";
 
-const client = createSkillGuardClient({ apiUrl, agentId, agentSecret });
+const client = createSkillGuardClient({ apiUrl, agentId, agentSigner, connectionId });
 const action = await client.submitAction(manifest);
 const decision = await client.onDecision(action.actionId);`}</code>
           </pre>

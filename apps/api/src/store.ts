@@ -4,6 +4,7 @@ export interface AgentRecord {
   agentId: string;
   name: string;
   description: string;
+  publicKey: string;
 }
 
 export interface ConnectionRecord {
@@ -23,10 +24,18 @@ export interface ActionRecord {
   decisionStatus: DecisionStatus | null;
 }
 
+export interface WalletSessionRecord {
+  expiresAt: number;
+  sessionId: string;
+  tokenHash: string;
+  userWallet: string;
+}
+
 export interface StoreSnapshot {
   agents: AgentRecord[];
   connections: ConnectionRecord[];
   actions: ActionRecord[];
+  walletSessions?: WalletSessionRecord[];
 }
 
 export interface SmokeRunDeletionResult {
@@ -39,6 +48,7 @@ export class SkillGuardStore {
   private readonly agents = new Map<string, AgentRecord>();
   private readonly connections = new Map<string, ConnectionRecord>();
   private readonly actions = new Map<string, ActionRecord>();
+  private readonly walletSessions = new Map<string, WalletSessionRecord>();
 
   constructor(snapshot: StoreSnapshot) {
     for (const agent of snapshot.agents) {
@@ -52,6 +62,10 @@ export class SkillGuardStore {
     for (const action of snapshot.actions) {
       this.actions.set(action.actionId, action);
     }
+
+    for (const session of snapshot.walletSessions ?? []) {
+      this.walletSessions.set(session.sessionId, session);
+    }
   }
 
   toSnapshot(): StoreSnapshot {
@@ -59,6 +73,7 @@ export class SkillGuardStore {
       actions: [...this.actions.values()],
       agents: [...this.agents.values()],
       connections: [...this.connections.values()],
+      walletSessions: [...this.walletSessions.values()],
     };
   }
 
@@ -166,6 +181,32 @@ export class SkillGuardStore {
     return action;
   }
 
+  createWalletSession(session: WalletSessionRecord): WalletSessionRecord {
+    this.walletSessions.set(session.sessionId, session);
+    return session;
+  }
+
+  hasActiveWalletSession(userWallet: string, tokenHash: string, now = Date.now()): boolean {
+    this.deleteExpiredWalletSessions(now);
+    return [...this.walletSessions.values()].some(
+      (session) =>
+        session.userWallet === userWallet &&
+        session.tokenHash === tokenHash &&
+        session.expiresAt >= now,
+    );
+  }
+
+  deleteExpiredWalletSessions(now = Date.now()): number {
+    let deleted = 0;
+    for (const [sessionId, session] of this.walletSessions) {
+      if (session.expiresAt < now) {
+        this.walletSessions.delete(sessionId);
+        deleted += 1;
+      }
+    }
+    return deleted;
+  }
+
   deleteSmokeRunArtifacts(runId: string, wallet: string): SmokeRunDeletionResult {
     const deletedConnectionAgentIds = new Set<string>();
     let actions = 0;
@@ -193,6 +234,12 @@ export class SkillGuardStore {
     for (const agentId of deletedConnectionAgentIds) {
       if (!referencedAgentIds.has(agentId) && this.agents.delete(agentId)) {
         agents += 1;
+      }
+    }
+
+    for (const [sessionId, session] of this.walletSessions) {
+      if (session.userWallet === wallet) {
+        this.walletSessions.delete(sessionId);
       }
     }
 

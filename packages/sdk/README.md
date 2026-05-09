@@ -1,21 +1,30 @@
 # SkillGuard SDK
 
-TypeScript SDK for agent developers.
-
-Example target API:
+TypeScript client for agents that submit SkillGuard action manifests.
 
 ```ts
-const skillguard = new SkillGuardClient({ apiKey });
+import { createSkillGuardClient } from "@skillguard/sdk";
+import bs58 from "bs58";
+import nacl from "tweetnacl";
 
-await skillguard.requestApproval({
-  agentId: "research-agent",
-  userWallet: "7xK...",
-  action: {
-    type: "wallet_risk_report",
-    summary: "Generate a wallet risk snapshot",
-    protocols: ["skillguard"],
-    estimatedSpend: { mint: "SOL", amount: "0.005" },
+const keyPair = nacl.sign.keyPair.fromSecretKey(
+  bs58.decode(process.env.SKILLGUARD_AGENT_PRIVATE_KEY_B58!)
+);
+
+const client = createSkillGuardClient({
+  agentId: "agent-research",
+  agentSigner: {
+    publicKey: bs58.encode(keyPair.publicKey),
+    signMessage: (message) => nacl.sign.detached(message, keyPair.secretKey),
   },
-  callbackUrl: "https://agent.example.com/callback",
+  apiUrl: "https://skillguard-sol.vercel.app/api",
+  connectionId: `conn-agent-research-${userWallet}`,
 });
+
+const action = await client.submitAction(manifest);
+const decision = await client.onDecision(action.actionId);
 ```
+
+The wallet owner must import the agent first. `submitAction` signs the manifest
+with the registered agent key; SkillGuard rejects unsigned or mismatched agent
+requests before they can appear in the mobile inbox.

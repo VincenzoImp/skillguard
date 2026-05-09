@@ -12,6 +12,7 @@ export function createEmptySnapshot(): StoreSnapshot {
     actions: [],
     agents: [],
     connections: [],
+    walletSessions: [],
   };
 }
 
@@ -26,6 +27,7 @@ export function createSeededSnapshot(): StoreSnapshot {
         agentId: "agent-research",
         name: "Research Agent",
         description: "Solana research agent that requests wallet-safe actions.",
+        publicKey: "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
       },
     ],
     connections: [
@@ -52,6 +54,7 @@ export function createSeededSnapshot(): StoreSnapshot {
         decisionStatus: null,
       },
     ],
+    walletSessions: [],
   };
 }
 

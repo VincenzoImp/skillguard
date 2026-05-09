@@ -51,7 +51,7 @@ conservative policy: ask every time, 1 USDC max spend per action, 5 USDC daily
 cap, `helius,birdeye`, and `SOL,USDC`.
 
 ```text
-skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye
+skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye&publicKey=9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
 ```
 
 ## Manual Commands
@@ -83,9 +83,10 @@ npm --prefix apps/research-agent run submit:revoked
 ## Scene 1: Connect Wallet
 
 Open SkillGuard mobile and connect a devnet wallet through Mobile Wallet Adapter.
-Show the wallet address, devnet badge, live API badge, and empty agent state.
-Paste the `agent-research` pairing link, review the policy, sign the import
-challenge, and show the agent connection that was created by the wallet owner.
+Sign the wallet-session message, then show the wallet address, devnet badge,
+live API badge, and empty agent state. Paste the `agent-research` pairing link,
+review the policy, sign the import challenge, and show the agent connection that
+was created by the wallet owner.
 
 ## Scene 2: Unsafe Request
 
@@ -137,5 +138,7 @@ The APK is meant to be installable by anyone. A newly connected wallet starts
 with no agents, no permissions, and no inbox items. The user imports or creates
 an agent, sets the policy, and can revoke or edit that policy later. Agents use
 the hosted API or SDK to submit wallet action manifests; the mobile app is the
-user-controlled approval center. The MVP uses live API refresh, not native push
+user-controlled approval center. Wallet feeds are loaded through a short-lived
+signed wallet session, so arbitrary callers cannot read another wallet's inbox
+through the public API. The MVP uses live API refresh, not native push
 notifications.

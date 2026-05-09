@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildConnectionOwnerMessage,
   buildDefaultPolicy,
+  buildWalletSessionOwnerMessage,
   connectionIdForWallet,
   createSkillGuardApiClient,
 } from "./liveApi";
@@ -49,6 +50,7 @@ describe("mobile live API client", () => {
         agentId: "agent-payments",
         description: "Payment automation agent.",
         name: "Payments Agent",
+        publicKey: "AgentPublicKey111",
       },
       {
         allowedMints: ["USDC"],
@@ -81,6 +83,7 @@ describe("mobile live API client", () => {
       agentId: "agent-payments",
       description: "Payment automation agent.",
       name: "Payments Agent",
+      publicKey: "AgentPublicKey111",
     });
     expect(connectionRequest.ownerProof).toMatchObject({
       signatureBase64: "AQIDBA==",
@@ -105,7 +108,9 @@ describe("mobile live API client", () => {
 
   it("loads connections and wallet actions without using seeded local state", async () => {
     const policy = buildDefaultPolicy(userWallet, "agent-research");
-    const fetchMock = vi.fn(async (url: string) => {
+    const requests: Array<{ headers?: HeadersInit; url: string }> = [];
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      requests.push({ headers: init?.headers, url });
       if (url.includes("/connections?")) {
         return response({
           connections: [
@@ -179,7 +184,7 @@ describe("mobile live API client", () => {
     });
     const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
 
-    const state = await client.loadWalletState(userWallet);
+    const state = await client.loadWalletState(userWallet, "sgw_live_session_token");
 
     expect(state.agent?.status).toBe("active");
     expect(state.agent?.name).toBe("Research Agent");
@@ -192,9 +197,49 @@ describe("mobile live API client", () => {
       spend: "0 USDC",
       status: "pending",
     });
+    expect(requests[0]?.headers).toMatchObject({
+      "x-skillguard-wallet-session": "sgw_live_session_token",
+    });
+    expect(requests[1]?.headers).toMatchObject({
+      "x-skillguard-wallet-session": "sgw_live_session_token",
+    });
   });
 
-  it("records approved decisions only with transaction signature and receipt address", async () => {
+  it("creates a wallet session with an owner signature", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      response({
+        session: {
+          expiresAt: 1_800_043_200,
+          token: "sgw_session_token",
+        },
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+      }, 201)
+    );
+    const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
+    const signOwnerMessage = vi.fn(async () => new Uint8Array([9, 10, 11, 12]));
+
+    const session = await client.createWalletSession(userWallet, signOwnerMessage);
+    const requestBody = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as {
+      ownerProof: { message: string; signatureBase64: string; type: string; wallet: string };
+      wallet: string;
+    };
+    const signedAt = Number(requestBody.ownerProof.message.split("signedAt:").at(-1));
+
+    expect(session.token).toBe("sgw_session_token");
+    expect(requestBody).toMatchObject({
+      ownerProof: {
+        signatureBase64: "CQoLDA==",
+        type: "solana-sign-message",
+        wallet: userWallet,
+      },
+      wallet: userWallet,
+    });
+    expect(requestBody.ownerProof.message).toBe(
+      buildWalletSessionOwnerMessage({ signedAt, userWallet })
+    );
+  });
+
+  it("records approved decisions only with wallet proof, transaction signature, and receipt address", async () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
       response({
         action: {
@@ -207,14 +252,28 @@ describe("mobile live API client", () => {
       })
     );
     const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
+    const signOwnerMessage = vi.fn(async () => new Uint8Array([1, 2, 3, 4]));
 
-    await client.approveAction("action-live", "5hRsignature", "Receipt111");
+    await client.approveAction(
+      "action-live",
+      connectionIdForWallet(userWallet, "agent-research"),
+      "5hRsignature",
+      "Receipt111",
+      userWallet,
+      signOwnerMessage
+    );
 
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
+      decisionProof: {
+        signatureBase64: "AQIDBA==",
+        type: "solana-sign-message",
+        wallet: userWallet,
+      },
       receiptAddress: "Receipt111",
       signature: "5hRsignature",
       status: "approved",
     });
+    expect(signOwnerMessage).toHaveBeenCalledOnce();
   });
 
   it("rejects, revokes, and updates policy mode through remote API calls", async () => {
@@ -229,31 +288,49 @@ describe("mobile live API client", () => {
     });
     const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
     const policy: AgentPolicy = buildDefaultPolicy(userWallet, "agent-research");
+    const signOwnerMessage = vi.fn(async () => new Uint8Array([5, 6, 7, 8]));
 
-    await client.rejectAction("action-live");
-    await client.revokeConnection(connectionIdForWallet(userWallet, "agent-research"));
+    await client.rejectAction(
+      "action-live",
+      connectionIdForWallet(userWallet, "agent-research"),
+      userWallet,
+      signOwnerMessage
+    );
+    await client.revokeConnection(
+      connectionIdForWallet(userWallet, "agent-research"),
+      userWallet,
+      signOwnerMessage
+    );
     await client.updatePolicyMode(
       connectionIdForWallet(userWallet, "agent-research"),
       policy,
-      "block"
+      "block",
+      userWallet,
+      signOwnerMessage
     );
 
-    expect(calls).toEqual([
+    expect(calls).toMatchObject([
       {
         body: { status: "rejected" },
         method: "POST",
         url: "https://api.skillguard.test/actions/action-live/decision",
       },
       {
-        body: null,
-        method: "DELETE",
+        body: {
+          ownerProof: {
+            signatureBase64: "BQYHCA==",
+            type: "solana-sign-message",
+            wallet: userWallet,
+          },
+        },
+        method: "POST",
         url: `https://api.skillguard.test/connections/${connectionIdForWallet(
           userWallet,
           "agent-research"
-        )}`,
+        )}/revoke`,
       },
       {
-        body: { mode: "block" },
+        body: { policyPatch: { mode: "block" } },
         method: "PATCH",
         url: `https://api.skillguard.test/connections/${connectionIdForWallet(
           userWallet,
@@ -261,5 +338,10 @@ describe("mobile live API client", () => {
         )}/policy`,
       },
     ]);
+    expect((calls[0]?.body as { decisionProof?: unknown }).decisionProof).toMatchObject({
+      signatureBase64: "BQYHCA==",
+      type: "solana-sign-message",
+      wallet: userWallet,
+    });
   });
 });

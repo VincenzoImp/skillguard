@@ -21,7 +21,12 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   {
     method: "POST",
     path: "/api/agents",
-    description: "Register or upsert an agent identity.",
+    description: "Register or upsert an immutable agent public key.",
+  },
+  {
+    method: "POST",
+    path: "/api/wallet-sessions",
+    description: "Create a short-lived wallet read session with ownerProof.",
   },
   {
     method: "GET",
@@ -36,17 +41,17 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   {
     method: "PATCH",
     path: "/api/connections/:connectionId/policy",
-    description: "Edit policy limits and approval mode.",
+    description: "Edit policy limits and approval mode with ownerProof.",
   },
   {
     method: "POST",
     path: "/api/connections/:connectionId/revoke",
-    description: "Revoke an agent connection.",
+    description: "Revoke an agent connection with ownerProof.",
   },
   {
     method: "POST",
     path: "/api/actions",
-    description: "Submit an ActionManifest for policy evaluation.",
+    description: "Submit a signed ActionManifest for policy evaluation.",
   },
   {
     method: "GET",
@@ -61,7 +66,7 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   {
     method: "POST",
     path: "/api/actions/:actionId/decision",
-    description: "Record approval, rejection, blocked, or expired decision.",
+    description: "Record approval, rejection, blocked, or expired decision with ownerProof.",
   },
 ];
 

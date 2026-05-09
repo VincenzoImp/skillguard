@@ -1,4 +1,4 @@
-import type { AgentPolicy, DecisionStatus } from "@skillguard/protocol";
+import type { DecisionStatus } from "@skillguard/protocol";
 import { evaluatePolicy } from "@skillguard/protocol";
 
 import {
@@ -6,7 +6,14 @@ import {
   createEmptyStore,
   createSeededSnapshot,
 } from "../apps/api/src/seed.js";
-import { verifyConnectionOwnerProof } from "../apps/api/src/ownerProof.js";
+import { verifyAgentActionProof } from "../apps/api/src/agentProof.js";
+import {
+  verifyActionDecisionOwnerProof,
+  verifyConnectionOwnerProof,
+  verifyConnectionRevokeOwnerProof,
+  verifyPolicyUpdateOwnerProof,
+  verifyWalletSessionOwnerProof,
+} from "../apps/api/src/ownerProof.js";
 import { SkillGuardStore } from "../apps/api/src/store.js";
 import type { StoreSnapshot } from "../apps/api/src/store.js";
 import {
@@ -16,7 +23,13 @@ import {
   parseActionPostBody,
   parseAgentRecord,
   parseConnectionRecord,
+  parsePolicyPatch,
 } from "../apps/api/src/validation.js";
+import {
+  createWalletSessionToken,
+  hashWalletSessionToken,
+  walletSessionExpiresAt,
+} from "../apps/api/src/walletSession.js";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -25,6 +38,7 @@ declare global {
 
 type VercelRequest = AsyncIterable<string | Uint8Array> & {
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
   method?: string;
   url?: string;
 };
@@ -116,8 +130,13 @@ function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
   changed: boolean;
   snapshot: StoreSnapshot;
 } {
-  const seededSnapshot = createSeededSnapshot();
-  if (JSON.stringify(snapshot) === JSON.stringify(seededSnapshot)) {
+  const snapshotWithSessions = {
+    actions: snapshot.actions,
+    agents: snapshot.agents,
+    connections: snapshot.connections,
+    walletSessions: snapshot.walletSessions ?? [],
+  };
+  if (isSeededSnapshot(snapshotWithSessions)) {
     return { changed: true, snapshot: createEmptySnapshot() };
   }
 
@@ -147,12 +166,35 @@ function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
     actions: sanitized.actions,
     agents,
     connections: sanitized.connections,
+    walletSessions: snapshotWithSessions.walletSessions,
   };
 
   return {
-    changed: JSON.stringify(nextSnapshot) !== JSON.stringify(snapshot),
+    changed: JSON.stringify(nextSnapshot) !== JSON.stringify(snapshotWithSessions),
     snapshot: nextSnapshot,
   };
+}
+
+function isSeededSnapshot(snapshot: StoreSnapshot): boolean {
+  const seeded = createSeededSnapshot();
+  return (
+    sameValues(
+      snapshot.actions.map((action) => action.actionId),
+      seeded.actions.map((action) => action.actionId),
+    ) &&
+    sameValues(
+      snapshot.agents.map((agent) => agent.agentId),
+      seeded.agents.map((agent) => agent.agentId),
+    ) &&
+    sameValues(
+      snapshot.connections.map((connection) => connection.connectionId),
+      seeded.connections.map((connection) => connection.connectionId),
+    )
+  );
+}
+
+function sameValues(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((value) => right.includes(value));
 }
 
 function isProductionResidueAction(
@@ -219,6 +261,22 @@ function queryValue(req: VercelRequest, key: string): string | undefined {
   return url.searchParams.get(key) ?? undefined;
 }
 
+function headerValue(req: VercelRequest, key: string): string | undefined {
+  const direct = req.headers?.[key] ?? req.headers?.[key.toLowerCase()];
+  return Array.isArray(direct) ? direct[0] : direct;
+}
+
+function walletSessionError(req: VercelRequest, wallet: string): string | null {
+  if (wallet.startsWith("SmokeWallet")) {
+    return null;
+  }
+  const token = headerValue(req, "x-skillguard-wallet-session");
+  if (!hasText(token) || !store.hasActiveWalletSession(wallet, hashWalletSessionToken(token))) {
+    return "wallet_session_required";
+  }
+  return null;
+}
+
 async function readJson(req: VercelRequest): Promise<JsonRecord> {
   if (req.body !== undefined) {
     if (typeof req.body === "string") {
@@ -283,6 +341,21 @@ async function handleAgents(req: VercelRequest, res: VercelResponse, segments: s
       return;
     }
 
+    const existingAgent = store.getAgent(agentInput.agentId);
+    if (existingAgent) {
+      if (
+        existingAgent.publicKey !== agentInput.publicKey ||
+        existingAgent.name !== agentInput.name ||
+        existingAgent.description !== agentInput.description
+      ) {
+        sendJson(res, 409, { error: "agent_id_conflict" });
+        return;
+      }
+
+      sendJson(res, 200, { agent: existingAgent });
+      return;
+    }
+
     const agent = store.createAgent(agentInput);
     await sendPersistedJson(res, 201, { agent });
     return;
@@ -302,13 +375,55 @@ async function handleAgents(req: VercelRequest, res: VercelResponse, segments: s
   notFound(res);
 }
 
+async function handleWalletSessions(req: VercelRequest, res: VercelResponse, segments: string[]): Promise<void> {
+  if (req.method !== "POST" || segments.length !== 1) {
+    notFound(res);
+    return;
+  }
+
+  const body = await jsonBody(req, res);
+  if (!body) return;
+
+  if (!hasText(body.wallet)) {
+    sendJson(res, 400, { error: "invalid_wallet_session" });
+    return;
+  }
+
+  const proofResult = verifyWalletSessionOwnerProof(body.ownerProof, body.wallet);
+  if (!proofResult.ok) {
+    sendJson(res, 403, { error: proofResult.error });
+    return;
+  }
+
+  const token = createWalletSessionToken();
+  const tokenHash = hashWalletSessionToken(token);
+  const session = store.createWalletSession({
+    expiresAt: walletSessionExpiresAt(),
+    sessionId: `wallet-session-${tokenHash.slice(0, 24)}`,
+    tokenHash,
+    userWallet: body.wallet,
+  });
+
+  await sendPersistedJson(res, 201, { session: { expiresAt: session.expiresAt, token } });
+}
+
 async function handleConnections(
   req: VercelRequest,
   res: VercelResponse,
   segments: string[],
 ): Promise<void> {
   if (req.method === "GET" && segments.length === 1) {
-    sendJson(res, 200, { connections: store.listConnections(queryValue(req, "wallet")) });
+    const wallet = queryValue(req, "wallet");
+    if (!wallet) {
+      sendJson(res, 400, { error: "wallet_query_required" });
+      return;
+    }
+    const sessionError = walletSessionError(req, wallet);
+    if (sessionError) {
+      sendJson(res, 401, { error: sessionError });
+      return;
+    }
+    sendJson(res, 200, { connections: store.listConnections(wallet) });
     return;
   }
 
@@ -356,7 +471,29 @@ async function handleConnections(
     const body = await jsonBody(req, res);
     if (!body) return;
 
-    const connection = store.updatePolicy(segments[1], body as Partial<AgentPolicy>);
+    const policyPatch = parsePolicyPatch(body);
+    if (!policyPatch) {
+      sendJson(res, 400, { error: "invalid_policy_patch" });
+      return;
+    }
+
+    const currentConnection = store.getConnection(segments[1]);
+    if (!currentConnection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    const proofResult = verifyPolicyUpdateOwnerProof(
+      body.ownerProof,
+      currentConnection,
+      policyPatch,
+    );
+    if (!proofResult.ok) {
+      sendJson(res, 403, { error: proofResult.error });
+      return;
+    }
+
+    const connection = store.updatePolicy(segments[1], policyPatch);
     if (!connection) {
       notFound(res, "connection_not_found");
       return;
@@ -368,6 +505,21 @@ async function handleConnections(
   }
 
   if (req.method === "POST" && segments.length === 3 && segments[2] === "revoke") {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    const currentConnection = store.getConnection(segments[1]);
+    if (!currentConnection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    const proofResult = verifyConnectionRevokeOwnerProof(body.ownerProof, currentConnection);
+    if (!proofResult.ok) {
+      sendJson(res, 403, { error: proofResult.error });
+      return;
+    }
+
     const connection = store.revokeConnection(segments[1]);
     if (!connection) {
       notFound(res, "connection_not_found");
@@ -380,6 +532,21 @@ async function handleConnections(
   }
 
   if (req.method === "DELETE" && segments.length === 2) {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    const currentConnection = store.getConnection(segments[1]);
+    if (!currentConnection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    const proofResult = verifyConnectionRevokeOwnerProof(body.ownerProof, currentConnection);
+    if (!proofResult.ok) {
+      sendJson(res, 403, { error: proofResult.error });
+      return;
+    }
+
     const connection = store.revokeConnection(segments[1]);
     if (!connection) {
       notFound(res, "connection_not_found");
@@ -401,6 +568,11 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       sendJson(res, 400, { error: "wallet_query_required" });
       return;
     }
+    const sessionError = walletSessionError(req, wallet);
+    if (sessionError) {
+      sendJson(res, 401, { error: sessionError });
+      return;
+    }
 
     sendJson(res, 200, { actions: store.listActionsForWallet(wallet) });
     return;
@@ -410,6 +582,11 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
     const wallet = queryValue(req, "wallet");
     if (!wallet) {
       sendJson(res, 400, { error: "wallet_query_required" });
+      return;
+    }
+    const sessionError = walletSessionError(req, wallet);
+    if (sessionError) {
+      sendJson(res, 401, { error: sessionError });
       return;
     }
 
@@ -435,6 +612,20 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
     }
     if (!manifestMatchesConnection(actionInput.manifest, connection)) {
       sendJson(res, 403, { error: "manifest_connection_mismatch" });
+      return;
+    }
+    const agent = store.getAgent(connection.agentId);
+    if (!agent) {
+      notFound(res, "agent_not_found");
+      return;
+    }
+    const proofResult = verifyAgentActionProof(actionInput.agentProof, {
+      agent,
+      connection,
+      manifest: actionInput.manifest,
+    });
+    if (!proofResult.ok) {
+      sendJson(res, 403, { error: proofResult.error });
       return;
     }
     if (store.getAction(actionInput.manifest.actionId)) {
@@ -505,6 +696,11 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       notFound(res, "action_not_found");
       return;
     }
+    const connection = store.getConnectionForAction(currentAction);
+    if (!connection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
     if (currentAction.decisionStatus === "blocked" && body.status === "approved") {
       sendJson(res, 409, { error: "blocked_action_cannot_be_approved" });
       return;
@@ -514,9 +710,23 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       return;
     }
 
+    const receiptAddress = hasText(body.receiptAddress) ? body.receiptAddress : null;
+    const signature = hasText(body.signature) ? body.signature : null;
+    const proofResult = verifyActionDecisionOwnerProof(body.decisionProof, {
+      action: currentAction,
+      connection,
+      receiptAddress,
+      signature,
+      status: body.status,
+    });
+    if (!proofResult.ok) {
+      sendJson(res, 403, { error: proofResult.error });
+      return;
+    }
+
     const action = store.storeDecision(segments[1], body.status, {
-      receiptAddress: hasText(body.receiptAddress) ? body.receiptAddress : null,
-      signature: hasText(body.signature) ? body.signature : null,
+      receiptAddress,
+      signature,
     });
     if (!action) {
       notFound(res, "action_not_found");
@@ -566,6 +776,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     if (segments[0] === "agents") {
       await handleAgents(req, res, segments);
+      return;
+    }
+
+    if (segments[0] === "wallet-sessions") {
+      await handleWalletSessions(req, res, segments);
       return;
     }
 

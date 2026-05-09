@@ -18,14 +18,16 @@ The current mobile slice uses live SkillGuard API state for the product screens:
 - connect an MWA-compatible wallet on devnet
 - show the connected wallet address
 - start fresh wallets with zero connected agents
+- create a short-lived wallet session through Solana sign-message before
+  reading wallet-specific connections or actions
 - import an agent by pairing link or ID, sign a wallet-owner challenge, and
   configure approval mode, spend limits, protocol allowlist, and mint allowlist
 - edit the remote policy mode
 - review pending, blocked, approved, and rejected live agent requests
 - approve a pending request through a devnet SkillGuard `record_decision` transaction
 - post approval metadata back to the API with transaction signature and receipt address
-- reject a pending request through the API without wallet signing
-- revoke the connected agent through the API and block future requests
+- reject a pending request through the API with wallet-owner proof
+- revoke the connected agent through the API with wallet-owner proof and block future requests
 - show decision receipts, manifest hashes, and Explorer links when signatures exist
 
 ## Commands

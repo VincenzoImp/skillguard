@@ -737,7 +737,7 @@ revoked action is blocked
 - [x] Export:
 
 ```ts
-createSkillGuardClient({ apiUrl, agentId, agentSecret, connectionId })
+createSkillGuardClient({ apiUrl, agentId, agentSigner, connectionId })
 client.submitAction(manifest)
 client.onDecision(actionId)
 ```

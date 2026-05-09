@@ -1,15 +1,21 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import type { AgentPolicy } from "@skillguard/protocol";
+import type { ActionManifest, AgentPolicy } from "@skillguard/protocol";
+import { buildAgentActionMessage } from "@skillguard/protocol";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 
 import handler from "../../../api/[...path].ts";
-import { buildConnectionOwnerMessage } from "./ownerProof.js";
+import {
+  buildConnectionOwnerMessage,
+  buildConnectionRevokeOwnerMessage,
+  buildWalletSessionOwnerMessage,
+} from "./ownerProof.js";
 import { createSeededStore } from "./seed.js";
 import type { StoreSnapshot } from "./store.js";
 
 type TestRequest = AsyncIterable<string | Uint8Array> & {
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
   method?: string;
   url?: string;
 };
@@ -36,6 +42,7 @@ async function callHandler(
   path: string,
   body?: unknown,
   onEnd?: () => void,
+  headers?: Record<string, string>,
 ) {
   const req = {
     async *[Symbol.asyncIterator]() {
@@ -44,6 +51,7 @@ async function callHandler(
       }
     },
     body,
+    headers,
     method,
     url: `https://skillguard.test${path}`,
   } satisfies TestRequest;
@@ -95,6 +103,101 @@ function ownerProofFor({
     signedAt,
     type: "solana-sign-message",
     wallet: userWallet,
+  };
+}
+
+function ownerProofForMessage(message: string, keyPair: nacl.SignKeyPair, userWallet: string) {
+  return {
+    message,
+    signatureBase64: Buffer.from(
+      nacl.sign.detached(new TextEncoder().encode(message), keyPair.secretKey),
+    ).toString("base64"),
+    signedAt: Number(message.match(/^signedAt:(\d+)$/m)?.[1] ?? Date.now()),
+    type: "solana-sign-message",
+    wallet: userWallet,
+  };
+}
+
+function revokeProofFor({
+  connectionId,
+  keyPair,
+  wallet,
+}: {
+  connectionId: string;
+  keyPair: nacl.SignKeyPair;
+  wallet: string;
+}) {
+  const signedAt = Date.now();
+  return ownerProofForMessage(
+    buildConnectionRevokeOwnerMessage({
+      connectionId,
+      signedAt,
+      userWallet: wallet,
+    }),
+    keyPair,
+    wallet,
+  );
+}
+
+function walletSessionProofFor({
+  keyPair,
+  wallet,
+}: {
+  keyPair: nacl.SignKeyPair;
+  wallet: string;
+}) {
+  const signedAt = Date.now();
+  return ownerProofForMessage(
+    buildWalletSessionOwnerMessage({ signedAt, userWallet: wallet }),
+    keyPair,
+    wallet,
+  );
+}
+
+async function createWalletSessionViaHandler({
+  keyPair,
+  wallet,
+}: {
+  keyPair: nacl.SignKeyPair;
+  wallet: string;
+}): Promise<string> {
+  const response = await callHandler("POST", "/api/wallet-sessions", {
+    ownerProof: walletSessionProofFor({ keyPair, wallet }),
+    wallet,
+  });
+  expect(response.status).toBe(201);
+  const session = response.body.session as { token: string };
+  expect(session.token).toMatch(/^sgw_/);
+  return session.token;
+}
+
+function agentProofFor({
+  agentId = "agent-research",
+  connectionId,
+  keyPair = testKeyPair(32),
+  manifest,
+  signedAt = Date.now(),
+}: {
+  agentId?: string;
+  connectionId: string;
+  keyPair?: nacl.SignKeyPair;
+  manifest: ActionManifest;
+  signedAt?: number;
+}) {
+  const message = buildAgentActionMessage({
+    agentId,
+    connectionId,
+    manifest,
+    signedAt,
+  });
+  return {
+    agentId,
+    message,
+    signatureBase64: Buffer.from(
+      nacl.sign.detached(new TextEncoder().encode(message), keyPair.secretKey),
+    ).toString("base64"),
+    signedAt,
+    type: "ed25519-action",
   };
 }
 
@@ -172,13 +275,10 @@ describe("Vercel API handler", () => {
       throw new Error(`Unexpected Redis command ${command[0]}`);
     };
 
-    const response = await callHandler(
-      "GET",
-      "/api/connections?wallet=DemoWallet111111111111111111111111111111111",
-    );
+    const response = await callHandler("GET", "/api/agents");
 
     expect(response).toEqual({
-      body: { connections: [] },
+      body: { agents: [] },
       status: 200,
     });
   });
@@ -222,11 +322,13 @@ describe("Vercel API handler", () => {
                 agentId: "agent-research",
                 description: "Legacy Solana research agent.",
                 name: "Research Agent",
+                publicKey: walletFor(testKeyPair(32)),
               },
               {
                 agentId: "agent-live",
                 description: "User-created agent.",
                 name: "Live Agent",
+                publicKey: walletFor(testKeyPair(33)),
               },
             ],
             connections: [
@@ -288,6 +390,7 @@ describe("Vercel API handler", () => {
             agentId: "agent-live",
             description: "User-created agent.",
             name: "Live Agent",
+            publicKey: walletFor(testKeyPair(33)),
           },
         ],
       },
@@ -312,29 +415,34 @@ describe("Vercel API handler", () => {
   test("cleanup endpoint removes only smoke run artifacts", async () => {
     const wallet = "SmokeWalletCleanup111";
     const runId = "smoke-cleanup-1";
+    const manifest: ActionManifest = {
+      actionId: `action-demo-safe-${runId}`,
+      accountsTouched: [wallet],
+      agentId: "agent-research",
+      createdAt: 1_800_000_000,
+      expiresAt: 4_100_000_000,
+      kind: "wallet_risk_report",
+      network: "solana-devnet",
+      protocols: ["helius"],
+      rawTransactionRef: null,
+      riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+      schemaVersion: "skillguard.action.v1",
+      spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+      summary: "Smoke request.",
+      title: "Smoke request",
+      userWallet: wallet,
+    };
     await createConnectionViaHandler({
       connectionId: `conn-agent-research-${wallet}`,
       wallet,
     });
     const actionResponse = await callHandler("POST", "/api/actions", {
+      agentProof: agentProofFor({
+        connectionId: `conn-agent-research-${wallet}`,
+        manifest,
+      }),
       connectionId: `conn-agent-research-${wallet}`,
-      manifest: {
-        actionId: `action-demo-safe-${runId}`,
-        accountsTouched: [wallet],
-        agentId: "agent-research",
-        createdAt: 1_800_000_000,
-        expiresAt: 4_100_000_000,
-        kind: "wallet_risk_report",
-        network: "solana-devnet",
-        protocols: ["helius"],
-        rawTransactionRef: null,
-        riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
-        schemaVersion: "skillguard.action.v1",
-        spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
-        summary: "Smoke request.",
-        title: "Smoke request",
-        userWallet: wallet,
-      },
+      manifest,
     });
     expect(actionResponse.status).toBe(201);
 
@@ -373,6 +481,34 @@ describe("Vercel API handler", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("invalid_connection");
+  });
+
+  test("requires wallet session tokens for production wallet feeds", async () => {
+    const keyPair = testKeyPair(31);
+    const wallet = walletFor(keyPair);
+    await createConnectionViaHandler({
+      connectionId: `conn-agent-research-${wallet}`,
+      keyPair,
+      wallet,
+    });
+
+    const blocked = await callHandler("GET", `/api/connections?wallet=${wallet}`);
+    expect(blocked).toEqual({
+      body: { error: "wallet_session_required" },
+      status: 401,
+    });
+
+    const token = await createWalletSessionViaHandler({ keyPair, wallet });
+    const allowed = await callHandler(
+      "GET",
+      `/api/connections?wallet=${wallet}`,
+      undefined,
+      undefined,
+      { "x-skillguard-wallet-session": token },
+    );
+
+    expect(allowed.status).toBe(200);
+    expect((allowed.body.connections as Array<{ userWallet: string }>)[0]?.userWallet).toBe(wallet);
   });
 
   test("rejects action manifests that do not match the connection wallet", async () => {
@@ -415,7 +551,13 @@ describe("Vercel API handler", () => {
       keyPair: testKeyPair(12),
       wallet,
     });
-    await callHandler("POST", "/api/connections/conn-live/revoke");
+    await callHandler("POST", "/api/connections/conn-live/revoke", {
+      ownerProof: revokeProofFor({
+        connectionId: "conn-live",
+        keyPair: testKeyPair(12),
+        wallet,
+      }),
+    });
 
     const response = await callHandler("POST", "/api/connections", {
       agentId: "agent-research",
@@ -499,6 +641,7 @@ describe("Vercel API handler", () => {
       agentId: "agent-research",
       description: "Solana research agent that requests wallet-safe actions.",
       name: "Research Agent",
+      publicKey: walletFor(testKeyPair(32)),
     });
     expect(agentResponse.status).toBe(201);
 
@@ -541,6 +684,7 @@ describe("Vercel API handler", () => {
             agentId: "agent-research",
             description: "Solana research agent that requests wallet-safe actions.",
             name: "Research Agent",
+            publicKey: walletFor(testKeyPair(32)),
           },
         ],
       },
@@ -570,6 +714,7 @@ describe("Vercel API handler", () => {
       agentId: "agent-research",
       description: "Solana research agent that requests wallet-safe actions.",
       name: "Research Agent",
+      publicKey: walletFor(testKeyPair(32)),
     });
     const connectionResponse = await callHandler("POST", "/api/connections", {
       agentId: "agent-research",
@@ -592,25 +737,30 @@ describe("Vercel API handler", () => {
     });
     expect(connectionResponse.status).toBe(201);
 
+    const manifest: ActionManifest = {
+      actionId: `action-research-safe-${runId}`,
+      accountsTouched: [wallet],
+      agentId: "agent-research",
+      createdAt: 1_800_000_000,
+      expiresAt: 4_100_000_000,
+      kind: "wallet_risk_report",
+      network: "solana-devnet",
+      protocols: ["helius"],
+      rawTransactionRef: null,
+      riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+      schemaVersion: "skillguard.action.v1",
+      spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+      summary: "Smoke request.",
+      title: "Smoke request",
+      userWallet: wallet,
+    };
     const actionResponse = await callHandler("POST", "/api/actions", {
+      agentProof: agentProofFor({
+        connectionId: `conn-agent-research-${wallet}`,
+        manifest,
+      }),
       connectionId: `conn-agent-research-${wallet}`,
-      manifest: {
-        actionId: `action-research-safe-${runId}`,
-        accountsTouched: [wallet],
-        agentId: "agent-research",
-        createdAt: 1_800_000_000,
-        expiresAt: 4_100_000_000,
-        kind: "wallet_risk_report",
-        network: "solana-devnet",
-        protocols: ["helius"],
-        rawTransactionRef: null,
-        riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
-        schemaVersion: "skillguard.action.v1",
-        spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
-        summary: "Smoke request.",
-        title: "Smoke request",
-        userWallet: wallet,
-      },
+      manifest,
     });
     expect(actionResponse.status).toBe(201);
 
@@ -629,6 +779,8 @@ describe("Vercel API handler", () => {
 
   test("persists durable mutations before sending production responses", async () => {
     const events: string[] = [];
+    const keyPair = testKeyPair(17);
+    const wallet = walletFor(keyPair);
     process.env.KV_REST_API_TOKEN = "test-token";
     process.env.KV_REST_API_URL = "https://redis.test";
     globalThis.fetch = async (_input, init) => {
@@ -639,7 +791,7 @@ describe("Vercel API handler", () => {
           JSON.stringify(
             snapshotForConnection({
               connectionId: "conn-live",
-              wallet: "Wallet111111111111111111111111111111111111",
+              wallet,
             })
           )
         );
@@ -654,7 +806,13 @@ describe("Vercel API handler", () => {
     const response = await callHandler(
       "POST",
       "/api/connections/conn-live/revoke",
-      undefined,
+      {
+        ownerProof: revokeProofFor({
+          connectionId: "conn-live",
+          keyPair,
+          wallet,
+        }),
+      },
       () => events.push("response-end"),
     );
 
@@ -664,10 +822,12 @@ describe("Vercel API handler", () => {
 });
 
 async function createConnectionViaHandler({
+  agentKeyPair = testKeyPair(32),
   connectionId,
   keyPair = testKeyPair(31),
   wallet,
 }: {
+  agentKeyPair?: nacl.SignKeyPair;
   connectionId: string;
   keyPair?: nacl.SignKeyPair;
   wallet: string;
@@ -676,6 +836,7 @@ async function createConnectionViaHandler({
     agentId: "agent-research",
     description: "Live test agent.",
     name: "Research Agent",
+    publicKey: walletFor(agentKeyPair),
   });
 
   const policy: AgentPolicy = {
@@ -723,6 +884,7 @@ function snapshotForConnection({
         agentId: "agent-research",
         description: "Live test agent.",
         name: "Research Agent",
+        publicKey: walletFor(testKeyPair(32)),
       },
     ],
     connections: [

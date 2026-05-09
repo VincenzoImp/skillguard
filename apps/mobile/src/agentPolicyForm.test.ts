@@ -50,13 +50,14 @@ describe("agent policy form helpers", () => {
   it("parses a SkillGuard pairing link into import form values", () => {
     expect(
       parseAgentPairingInput(
-        "skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Wallet%20risk%20checks&protocols=helius,birdeye"
+        "skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Wallet%20risk%20checks&protocols=helius,birdeye&publicKey=AgentPubkey111"
       )
     ).toEqual({
       agentId: "agent-research",
       allowedProtocols: "helius,birdeye",
       description: "Wallet risk checks",
       name: "Research Agent",
+      publicKey: "AgentPubkey111",
     });
   });
 

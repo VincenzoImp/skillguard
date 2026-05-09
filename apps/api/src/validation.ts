@@ -15,7 +15,12 @@ export function isDecisionStatus(value: unknown): value is DecisionStatus {
 
 export function parseAgentRecord(value: unknown): AgentRecord | null {
   if (!isRecord(value)) return null;
-  if (!hasText(value.agentId) || !hasText(value.description) || !hasText(value.name)) {
+  if (
+    !hasText(value.agentId) ||
+    !hasText(value.description) ||
+    !hasText(value.name) ||
+    !hasText(value.publicKey)
+  ) {
     return null;
   }
 
@@ -23,6 +28,7 @@ export function parseAgentRecord(value: unknown): AgentRecord | null {
     agentId: value.agentId,
     description: value.description,
     name: value.name,
+    publicKey: value.publicKey,
   };
 }
 
@@ -47,6 +53,7 @@ export function parseConnectionRecord(value: unknown): ConnectionRecord | null {
 }
 
 export function parseActionPostBody(value: unknown): {
+  agentProof: unknown;
   connectionId: string;
   manifest: ActionManifest;
 } | null {
@@ -56,9 +63,61 @@ export function parseActionPostBody(value: unknown): {
   }
 
   return {
+    agentProof: value.agentProof,
     connectionId: value.connectionId,
     manifest: value.manifest,
   };
+}
+
+export function parsePolicyPatch(value: unknown): Partial<AgentPolicy> | null {
+  if (!isRecord(value)) return null;
+  const patch = isRecord(value.policyPatch) ? value.policyPatch : value;
+  const next: Partial<AgentPolicy> = {};
+
+  for (const key of Object.keys(patch)) {
+    if (
+      key !== "allowedMints" &&
+      key !== "allowedNetworks" &&
+      key !== "allowedProtocols" &&
+      key !== "dailySpendCapAtomic" &&
+      key !== "expiresAt" &&
+      key !== "maxSpendAtomic" &&
+      key !== "mode"
+    ) {
+      return null;
+    }
+  }
+
+  if ("allowedMints" in patch) {
+    if (!Array.isArray(patch.allowedMints) || !patch.allowedMints.every(isMint)) return null;
+    next.allowedMints = patch.allowedMints;
+  }
+  if ("allowedNetworks" in patch) {
+    if (!Array.isArray(patch.allowedNetworks) || !patch.allowedNetworks.every(isNetwork)) return null;
+    next.allowedNetworks = patch.allowedNetworks;
+  }
+  if ("allowedProtocols" in patch) {
+    if (!isStringArray(patch.allowedProtocols)) return null;
+    next.allowedProtocols = patch.allowedProtocols;
+  }
+  if ("dailySpendCapAtomic" in patch) {
+    if (!isAtomicString(patch.dailySpendCapAtomic)) return null;
+    next.dailySpendCapAtomic = patch.dailySpendCapAtomic;
+  }
+  if ("expiresAt" in patch) {
+    if (typeof patch.expiresAt !== "number" || !Number.isSafeInteger(patch.expiresAt)) return null;
+    next.expiresAt = patch.expiresAt;
+  }
+  if ("maxSpendAtomic" in patch) {
+    if (!isAtomicString(patch.maxSpendAtomic)) return null;
+    next.maxSpendAtomic = patch.maxSpendAtomic;
+  }
+  if ("mode" in patch) {
+    if (!isApprovalMode(patch.mode)) return null;
+    next.mode = patch.mode;
+  }
+
+  return Object.keys(next).length > 0 ? next : null;
 }
 
 export function manifestMatchesConnection(

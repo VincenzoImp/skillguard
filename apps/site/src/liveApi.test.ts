@@ -12,6 +12,7 @@ describe("liveApi", () => {
       "GET /api/health",
       "GET /api/agents",
       "POST /api/agents",
+      "POST /api/wallet-sessions",
       "GET /api/connections?wallet=<wallet>",
       "POST /api/connections",
       "PATCH /api/connections/:connectionId/policy",

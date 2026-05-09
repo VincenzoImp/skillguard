@@ -11,7 +11,9 @@
     "test": "vitest run --exclude \"dist/**\""
   },
   "dependencies": {
-    "@skillguard/protocol": "file:../../packages/protocol"
+    "@skillguard/protocol": "file:../../packages/protocol",
+    "bs58": "^6.0.0",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@types/node": "^25.6.2",
