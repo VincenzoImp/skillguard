@@ -67,6 +67,16 @@ Expected hosted response after KV/Upstash is configured:
 {"ok":true,"service":"skillguard-api","storage":"upstash"}
 ```
 
+Run the hosted smoke after each production deploy:
+
+```bash
+node scripts/hosted-smoke.mjs
+```
+
+The smoke uses a generated wallet and run id, submits a safe request, rejects it,
+submits an unsafe overspend request, submits after revocation, and verifies the
+wallet action history from the hosted API.
+
 After deployment, configure clients:
 
 ```bash

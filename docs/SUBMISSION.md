@@ -26,7 +26,7 @@ scripts/precommit-check.sh
 scripts/submission-check.sh
 ```
 
-The submission checker verifies the README proof strings, local APK artifacts, release APK signature, origin remote, and clean working tree. It does not record the video, submit forms, or back up owner secrets.
+The submission checker verifies the README proof strings, local APK artifacts, release APK signature, origin remote, and clean working tree. It does not record the video or submit forms.
 
 During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-check.sh` only to validate the checker before committing its own changes. The final run should use the default clean-tree mode.
 
@@ -34,10 +34,13 @@ During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-
 
 These require an account, credential, or human review:
 
-1. Back up the final Android upload keystore and signing env in the owner's password manager.
-2. Record the under-3-minute demo using `docs/DEMO.md`.
-3. Add the public site URL to the hackathon submission.
-4. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
+1. Record the under-3-minute demo using `docs/DEMO.md`.
+2. Add the public site URL to the hackathon submission.
+3. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
+
+Completed owner-held secret step:
+
+- The final Android upload keystore and signing env are backed up in the owner's password manager.
 
 ## Video Arc
 

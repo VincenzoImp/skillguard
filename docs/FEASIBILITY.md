@@ -45,9 +45,12 @@ Implemented and tested locally:
 
 Still pending for the hackathon submission:
 
-- password-manager backup of the final upload keystore and signing env
 - final demo screenshots and demo video
 - final hackathon submission form entry using the public site URL
+
+Completed owner-held operational step:
+
+- password-manager backup of the final upload keystore and signing env
 
 Local APK build proof:
 

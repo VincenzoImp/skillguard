@@ -41,8 +41,8 @@ export const roadmapItems: RoadmapItem[] = [
   {
     step: "6",
     title: "Password manager backup",
-    status: "external",
-    note: "The keystore and signing env must be imported into the owner's password manager.",
+    status: "done",
+    note: "The owner confirmed the final upload keystore and signing env are stored in the password manager.",
   },
   {
     step: "7",

@@ -204,6 +204,190 @@ describe("SkillGuard API", () => {
     ).toMatch(/^[a-f0-9]{64}$/);
   });
 
+  test("connection creation rejects missing fields instead of creating malformed records", async () => {
+    const app = createTestApp();
+
+    const response = await app.request("/connections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-research",
+        userWallet: "DemoWallet111111111111111111111111111111111",
+      }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("invalid_connection");
+  });
+
+  test("action creation rejects manifests that do not match the connection wallet", async () => {
+    const app = createTestApp();
+
+    const response = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        connectionId: "conn-demo",
+        manifest: {
+          actionId: "action-wallet-mismatch",
+          accountsTouched: ["AttackerWallet111111111111111111111111111111"],
+          agentId: "agent-research",
+          createdAt: 1_800_000_000,
+          expiresAt: 4_100_000_000,
+          kind: "wallet_risk_report",
+          network: "solana-devnet",
+          protocols: ["helius", "birdeye"],
+          rawTransactionRef: null,
+          riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+          schemaVersion: "skillguard.action.v1",
+          spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+          summary: "Mismatched wallet request.",
+          title: "Mismatched wallet request",
+          userWallet: "AttackerWallet111111111111111111111111111111",
+        },
+      }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("manifest_connection_mismatch");
+    expect(
+      await json<{ actions: unknown[] }>(
+        await app.request("/actions?wallet=AttackerWallet111111111111111111111111111111"),
+      ),
+    ).toEqual({ actions: [] });
+  });
+
+  test("action creation rejects duplicate action ids instead of overwriting history", async () => {
+    const app = createTestApp();
+
+    const response = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        connectionId: "conn-demo",
+        manifest: {
+          actionId: "action-safe-risk-report",
+          accountsTouched: ["DemoWallet111111111111111111111111111111111"],
+          agentId: "agent-research",
+          createdAt: 1_800_000_000,
+          expiresAt: 4_100_000_000,
+          kind: "wallet_risk_report",
+          network: "solana-devnet",
+          protocols: ["helius", "birdeye"],
+          rawTransactionRef: null,
+          riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+          schemaVersion: "skillguard.action.v1",
+          spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+          summary: "Duplicate safe request.",
+          title: "Duplicate safe request",
+          userWallet: "DemoWallet111111111111111111111111111111111",
+        },
+      }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("action_already_exists");
+  });
+
+  test("final decisions cannot be overwritten", async () => {
+    const app = createTestApp();
+
+    const rejectResponse = await app.request("/actions/action-safe-risk-report/decision", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: "rejected" }),
+    });
+    expect(rejectResponse.status).toBe(200);
+
+    const approveResponse = await app.request("/actions/action-safe-risk-report/decision", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
+        signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
+        status: "approved",
+      }),
+    });
+    const body = await json<{ error: string }>(approveResponse);
+
+    expect(approveResponse.status).toBe(409);
+    expect(body.error).toBe("decision_already_final");
+  });
+
+  test("connection upsert does not reactivate a revoked agent", async () => {
+    const app = createTestApp();
+
+    const revokeResponse = await app.request("/connections/conn-demo/revoke", { method: "POST" });
+    expect(revokeResponse.status).toBe(200);
+
+    const reconnectResponse = await app.request("/connections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-research",
+        connectionId: "conn-demo",
+        policy: {
+          active: true,
+          agentId: "agent-research",
+          allowedMints: ["SOL", "USDC"],
+          allowedNetworks: ["solana-devnet"],
+          allowedProtocols: ["helius", "birdeye"],
+          dailySpendCapAtomic: "5000000",
+          expiresAt: 4_100_000_000,
+          maxSpendAtomic: "1000000",
+          mode: "ask_every_time",
+          policyId: "policy-ask-every-time",
+          revoked: false,
+          userWallet: "DemoWallet111111111111111111111111111111111",
+        },
+        userWallet: "DemoWallet111111111111111111111111111111111",
+      }),
+    });
+    const reconnectBody = await json<{
+      connection: { policy: { active: boolean; revoked: boolean } };
+    }>(reconnectResponse);
+
+    expect(reconnectResponse.status).toBe(200);
+    expect(reconnectBody.connection.policy).toMatchObject({
+      active: false,
+      revoked: true,
+    });
+  });
+
+  test("connection id reuse is rejected when it targets a different wallet", async () => {
+    const app = createTestApp();
+    const response = await app.request("/connections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-research",
+        connectionId: "conn-demo",
+        policy: {
+          active: true,
+          agentId: "agent-research",
+          allowedMints: ["SOL", "USDC"],
+          allowedNetworks: ["solana-devnet"],
+          allowedProtocols: ["helius", "birdeye"],
+          dailySpendCapAtomic: "5000000",
+          expiresAt: 4_100_000_000,
+          maxSpendAtomic: "1000000",
+          mode: "ask_every_time",
+          policyId: "policy-conflicting-wallet",
+          revoked: false,
+          userWallet: "DifferentWallet111111111111111111111111111111",
+        },
+        userWallet: "DifferentWallet111111111111111111111111111111",
+      }),
+    });
+    const body = await json<{ error: string }>(response);
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("connection_id_conflict");
+  });
+
   test("revoking a connection blocks unresolved actions and removes approval ability", async () => {
     const app = createTestApp();
 

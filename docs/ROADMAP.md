@@ -313,12 +313,13 @@ Ready locally:
   standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
   release signed APK proof artifact: build/mobile/skillguard-release-signed.apk
   final owner-controlled upload keystore generated outside git
+  password manager backup of the final upload keystore and signing env completed by owner
   GitHub Pages deployment workflow: .github/workflows/deploy-site.yml
   public hosted site: https://vincenzoimp.github.io/skillguard/
   local demo orchestration
+  hosted API smoke command: node scripts/hosted-smoke.mjs
 
 Not yet submission-ready:
-  password manager backup of the final upload keystore and signing env
   final video and screenshots
 ```
 

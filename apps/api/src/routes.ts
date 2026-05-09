@@ -1,21 +1,19 @@
-import type { ActionManifest, AgentPolicy, DecisionStatus } from "@skillguard/protocol";
+import type { AgentPolicy, DecisionStatus } from "@skillguard/protocol";
 import { evaluatePolicy } from "@skillguard/protocol";
 import { Hono } from "hono";
 
 import type { SkillGuardStore } from "./store.js";
+import {
+  hasText,
+  isDecisionStatus,
+  manifestMatchesConnection,
+  parseActionPostBody,
+  parseAgentRecord,
+  parseConnectionRecord,
+} from "./validation.js";
 
 function notFound(message: string) {
   return { error: message };
-}
-
-function isDecisionStatus(value: unknown): value is DecisionStatus {
-  return (
-    value === "approved" || value === "rejected" || value === "blocked" || value === "expired"
-  );
-}
-
-function hasText(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
 }
 
 function decisionStatusForPolicy(result: ReturnType<typeof evaluatePolicy>): DecisionStatus | null {
@@ -52,22 +50,12 @@ export function createApp(store: SkillGuardStore): Hono {
   app.get("/agents", (c) => c.json({ agents: store.listAgents() }));
 
   app.post("/agents", async (c) => {
-    const body = (await c.req.json()) as {
-      agentId?: unknown;
-      description?: unknown;
-      name?: unknown;
-    };
-
-    if (!hasText(body.agentId) || !hasText(body.description) || !hasText(body.name)) {
+    const agent = parseAgentRecord(await c.req.json());
+    if (!agent) {
       return c.json({ error: "invalid_agent" }, 400);
     }
 
-    const agent = store.createAgent({
-      agentId: body.agentId,
-      description: body.description,
-      name: body.name,
-    });
-    return c.json({ agent }, 201);
+    return c.json({ agent: store.createAgent(agent) }, 201);
   });
 
   app.get("/agents/:agentId", (c) => {
@@ -80,18 +68,28 @@ export function createApp(store: SkillGuardStore): Hono {
   });
 
   app.post("/connections", async (c) => {
-    const body = (await c.req.json()) as {
-      connectionId: string;
-      agentId: string;
-      userWallet: string;
-      policy: AgentPolicy;
-    };
+    const connectionInput = parseConnectionRecord(await c.req.json());
+    if (!connectionInput) {
+      return c.json({ error: "invalid_connection" }, 400);
+    }
 
-    if (!store.getAgent(body.agentId)) {
+    if (!store.getAgent(connectionInput.agentId)) {
       return c.json(notFound("agent_not_found"), 404);
     }
 
-    const connection = store.createConnection(body);
+    const existingConnection = store.getConnection(connectionInput.connectionId);
+    if (existingConnection) {
+      if (
+        existingConnection.agentId !== connectionInput.agentId ||
+        existingConnection.userWallet !== connectionInput.userWallet
+      ) {
+        return c.json({ error: "connection_id_conflict" }, 409);
+      }
+
+      return c.json({ connection: existingConnection }, 200);
+    }
+
+    const connection = store.createConnection(connectionInput);
     return c.json({ connection }, 201);
   });
 
@@ -132,14 +130,20 @@ export function createApp(store: SkillGuardStore): Hono {
   });
 
   app.post("/actions", async (c) => {
-    const body = (await c.req.json()) as {
-      connectionId: string;
-      manifest: ActionManifest;
-    };
+    const body = parseActionPostBody(await c.req.json());
+    if (!body) {
+      return c.json({ error: "invalid_action" }, 400);
+    }
 
     const connection = store.getConnection(body.connectionId);
     if (!connection) {
       return c.json(notFound("connection_not_found"), 404);
+    }
+    if (!manifestMatchesConnection(body.manifest, connection)) {
+      return c.json({ error: "manifest_connection_mismatch" }, 403);
+    }
+    if (store.getAction(body.manifest.actionId)) {
+      return c.json({ error: "action_already_exists" }, 409);
     }
 
     const policyResult = evaluatePolicy(body.manifest, connection.policy);
@@ -217,6 +221,9 @@ export function createApp(store: SkillGuardStore): Hono {
     }
     if (currentAction.decisionStatus === "blocked" && body.status === "approved") {
       return c.json({ error: "blocked_action_cannot_be_approved" }, 409);
+    }
+    if (currentAction.decisionStatus !== null) {
+      return c.json({ error: "decision_already_final" }, 409);
     }
 
     const action = store.storeDecision(c.req.param("actionId"), body.status, {

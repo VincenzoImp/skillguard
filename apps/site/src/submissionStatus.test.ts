@@ -11,8 +11,11 @@ describe("submissionStatus", () => {
   });
 
   it("keeps account-owned and human-owned submission steps external", () => {
-    expect(statusFor("Password manager backup")).toBe("external");
     expect(statusFor("Demo video")).toBe("external");
+  });
+
+  it("marks the owner keystore backup as completed after password-manager storage", () => {
+    expect(statusFor("Password manager backup")).toBe("done");
   });
 });
 

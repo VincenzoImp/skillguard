@@ -1,9 +1,17 @@
-import type { ActionManifest, AgentPolicy, DecisionStatus } from "@skillguard/protocol";
+import type { AgentPolicy, DecisionStatus } from "@skillguard/protocol";
 import { evaluatePolicy } from "@skillguard/protocol";
 
 import { createSeededStore } from "../apps/api/src/seed.js";
 import { SkillGuardStore } from "../apps/api/src/store.js";
 import type { StoreSnapshot } from "../apps/api/src/store.js";
+import {
+  hasText,
+  isDecisionStatus,
+  manifestMatchesConnection,
+  parseActionPostBody,
+  parseAgentRecord,
+  parseConnectionRecord,
+} from "../apps/api/src/validation.js";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -93,16 +101,6 @@ async function persistStore(): Promise<void> {
   await redisCommand<string>(["SET", STORE_KEY, JSON.stringify(store.toSnapshot())]);
 }
 
-function hasText(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function isDecisionStatus(value: unknown): value is DecisionStatus {
-  return (
-    value === "approved" || value === "rejected" || value === "blocked" || value === "expired"
-  );
-}
-
 function decisionStatusForPolicy(result: ReturnType<typeof evaluatePolicy>): DecisionStatus | null {
   if (result.status === "fail") return "blocked";
   if (result.status === "pass") return "approved";
@@ -113,6 +111,15 @@ function sendJson(res: VercelResponse, status: number, payload: unknown): void {
   res.statusCode = status;
   res.setHeader("content-type", "application/json; charset=utf-8");
   res.end(JSON.stringify(payload));
+}
+
+async function sendPersistedJson(
+  res: VercelResponse,
+  status: number,
+  payload: unknown,
+): Promise<void> {
+  await persistStore();
+  sendJson(res, status, payload);
 }
 
 function notFound(res: VercelResponse, message = "not_found"): void {
@@ -189,17 +196,14 @@ async function handleAgents(req: VercelRequest, res: VercelResponse, segments: s
     const body = await jsonBody(req, res);
     if (!body) return;
 
-    if (!hasText(body.agentId) || !hasText(body.description) || !hasText(body.name)) {
+    const agentInput = parseAgentRecord(body);
+    if (!agentInput) {
       sendJson(res, 400, { error: "invalid_agent" });
       return;
     }
 
-    const agent = store.createAgent({
-      agentId: body.agentId,
-      description: body.description,
-      name: body.name,
-    });
-    sendJson(res, 201, { agent });
+    const agent = store.createAgent(agentInput);
+    await sendPersistedJson(res, 201, { agent });
     return;
   }
 
@@ -231,19 +235,33 @@ async function handleConnections(
     const body = await jsonBody(req, res);
     if (!body) return;
 
-    const agentId = hasText(body.agentId) ? body.agentId : "";
-    if (!store.getAgent(agentId)) {
+    const connectionInput = parseConnectionRecord(body);
+    if (!connectionInput) {
+      sendJson(res, 400, { error: "invalid_connection" });
+      return;
+    }
+
+    if (!store.getAgent(connectionInput.agentId)) {
       notFound(res, "agent_not_found");
       return;
     }
 
-    const connection = store.createConnection({
-      agentId,
-      connectionId: String(body.connectionId),
-      policy: body.policy as AgentPolicy,
-      userWallet: String(body.userWallet),
-    });
-    sendJson(res, 201, { connection });
+    const existingConnection = store.getConnection(connectionInput.connectionId);
+    if (existingConnection) {
+      if (
+        existingConnection.agentId !== connectionInput.agentId ||
+        existingConnection.userWallet !== connectionInput.userWallet
+      ) {
+        sendJson(res, 409, { error: "connection_id_conflict" });
+        return;
+      }
+
+      sendJson(res, 200, { connection: existingConnection });
+      return;
+    }
+
+    const connection = store.createConnection(connectionInput);
+    await sendPersistedJson(res, 201, { connection });
     return;
   }
 
@@ -258,7 +276,7 @@ async function handleConnections(
     }
 
     reevaluateOpenActionsForConnection(connection.connectionId);
-    sendJson(res, 200, { connection });
+    await sendPersistedJson(res, 200, { connection });
     return;
   }
 
@@ -270,7 +288,7 @@ async function handleConnections(
     }
 
     reevaluateOpenActionsForConnection(connection.connectionId);
-    sendJson(res, 200, { connection });
+    await sendPersistedJson(res, 200, { connection });
     return;
   }
 
@@ -282,7 +300,7 @@ async function handleConnections(
     }
 
     reevaluateOpenActionsForConnection(connection.connectionId);
-    sendJson(res, 200, { connection });
+    await sendPersistedJson(res, 200, { connection });
     return;
   }
 
@@ -316,14 +334,28 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
     const body = await jsonBody(req, res);
     if (!body) return;
 
-    const connectionId = String(body.connectionId);
+    const actionInput = parseActionPostBody(body);
+    if (!actionInput) {
+      sendJson(res, 400, { error: "invalid_action" });
+      return;
+    }
+
+    const connectionId = actionInput.connectionId;
     const connection = store.getConnection(connectionId);
     if (!connection) {
       notFound(res, "connection_not_found");
       return;
     }
+    if (!manifestMatchesConnection(actionInput.manifest, connection)) {
+      sendJson(res, 403, { error: "manifest_connection_mismatch" });
+      return;
+    }
+    if (store.getAction(actionInput.manifest.actionId)) {
+      sendJson(res, 409, { error: "action_already_exists" });
+      return;
+    }
 
-    const manifest = body.manifest as ActionManifest;
+    const manifest = actionInput.manifest;
     const policyResult = evaluatePolicy(manifest, connection.policy);
     const action = store.createAction({
       actionId: manifest.actionId,
@@ -333,7 +365,7 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       policyResult,
     });
 
-    sendJson(res, 201, { action });
+    await sendPersistedJson(res, 201, { action });
     return;
   }
 
@@ -363,7 +395,7 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
 
     const result = evaluatePolicy(action.manifest, connection.policy);
     store.storeEvaluation(action.actionId, result);
-    sendJson(res, 200, { result });
+    await sendPersistedJson(res, 200, { result });
     return;
   }
 
@@ -390,6 +422,10 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       sendJson(res, 409, { error: "blocked_action_cannot_be_approved" });
       return;
     }
+    if (currentAction.decisionStatus !== null) {
+      sendJson(res, 409, { error: "decision_already_final" });
+      return;
+    }
 
     const action = store.storeDecision(segments[1], body.status, {
       receiptAddress: hasText(body.receiptAddress) ? body.receiptAddress : null,
@@ -400,7 +436,7 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       return;
     }
 
-    sendJson(res, 200, { action });
+    await sendPersistedJson(res, 200, { action });
     return;
   }
 
@@ -408,12 +444,8 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const shouldPersist = req.method !== "GET";
-  let storeLoaded = false;
-
   try {
     await loadStore();
-    storeLoaded = true;
     const segments = normalizePath(req);
 
     if (req.method === "GET" && segments.length === 1 && segments[0] === "health") {
@@ -444,11 +476,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   } catch (error) {
     console.error(error);
     sendJson(res, 500, { error: "internal_error" });
-  } finally {
-    if (shouldPersist && storeLoaded) {
-      await persistStore().catch((error: unknown) => {
-        console.error(error);
-      });
-    }
   }
 }

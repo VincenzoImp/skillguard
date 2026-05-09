@@ -277,7 +277,6 @@ demo orchestration all run behind the precommit gate.
 
 Submission blockers still to close:
 
-- backup of the final upload keystore and signing env in the owner's password manager
 - demo video and final screenshots
 
 Verified submission proofs:
@@ -290,6 +289,8 @@ Verified submission proofs:
 - Release signed Android APK proof artifact: `build/mobile/skillguard-release-signed.apk`
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Final owner-controlled upload keystore generated outside git and used for the current release APK.
+- Password manager backup of the final upload keystore and signing env is complete.
 - GitHub Pages deployment workflow: `.github/workflows/deploy-site.yml`
 - Vercel deploy: connected Git integration for `https://skillguard-sol.vercel.app/`
 - Hosted API durable storage expects Vercel KV or Upstash Redis env vars documented in `docs/VERCEL.md`.
+- Hosted API smoke: `node scripts/hosted-smoke.mjs`

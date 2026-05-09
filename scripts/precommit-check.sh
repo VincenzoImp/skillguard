@@ -35,6 +35,11 @@ for script in scripts/*.sh .githooks/pre-commit; do
   fi
 done
 
+if compgen -G "scripts/*.test.mjs" >/dev/null; then
+  echo "==> Testing repository scripts"
+  node --test scripts/*.test.mjs
+fi
+
 echo "==> Building project site"
 npm --prefix apps/site run build
 
