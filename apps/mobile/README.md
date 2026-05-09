@@ -51,6 +51,8 @@ The product flows are:
 - revoke the connected agent through the API with wallet-owner proof and block future requests
 - keep expired open manifests out of the actionable inbox and out of decision
   history unless the API recorded an explicit expired decision
+- hide blocked cleanup outcomes produced by revoking already-expired pending
+  requests, while still showing real non-expired policy blocks
 - tap a native notification to refresh the live inbox and select the referenced
   action
 - show decision receipts, manifest hashes, and Explorer links when signatures exist

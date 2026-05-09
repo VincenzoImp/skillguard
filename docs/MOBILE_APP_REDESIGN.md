@@ -42,6 +42,8 @@ one user job instead of making the user scroll through every control.
 - Expired open manifests are shown as expired decisions, not as actionable
   pending requests, and are not counted as user history unless the API recorded
   an explicit expired decision.
+- Revocation cleanup can cause old expired requests to evaluate as blocked;
+  those stale cleanup outcomes are not counted as user decision history.
 - Permission controls are scoped to the specific active agent shown on each
   policy card.
 - QR pairing only fills agent identity fields; pairing still requires a

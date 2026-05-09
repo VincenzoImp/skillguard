@@ -155,6 +155,25 @@ describe("mobile app navigation model", () => {
       totalActions: 3,
     });
   });
+
+  it("does not count stale expired blocked cleanup outcomes as history or blocked", () => {
+    expect(
+      buildDashboardSummary({
+        ...baseState,
+        actions: [
+          {
+            ...action("stale-blocked-a", "blocked"),
+            isStaleExpiredOutcome: true,
+          },
+          action("approved-a", "approved"),
+        ],
+      })
+    ).toMatchObject({
+      blockedActions: 0,
+      historyActions: 1,
+      totalActions: 2,
+    });
+  });
 });
 
 function action(id: string, status: "approved" | "blocked" | "expired" | "pending") {

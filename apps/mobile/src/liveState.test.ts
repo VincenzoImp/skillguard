@@ -272,6 +272,80 @@ describe("mobile live state mapping", () => {
     ]);
   });
 
+  it("hides stale expired blocked outcomes created during revocation cleanup", () => {
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-stale-blocked",
+          connectionId: "conn-live",
+          decisionStatus: "blocked",
+          manifest: {
+            ...manifest,
+            actionId: "action-stale-blocked",
+            expiresAt: 1_800_000_010,
+          },
+          policyResult: {
+            manifestHash: "hash-stale-blocked",
+            reasons: ["manifest_expired", "policy_revoked"],
+            riskLevel: "high",
+            status: "fail",
+          },
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy: { ...policy, active: false, revoked: true },
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.actions[0].isStaleExpiredOutcome).toBe(true);
+    expect(getPendingActions(state)).toHaveLength(0);
+    expect(getBlockedActions(state)).toEqual([]);
+    expect(getHistoryActions(state)).toEqual([]);
+  });
+
+  it("keeps non-expired revoked blocks visible as real policy outcomes", () => {
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-revoked-blocked",
+          connectionId: "conn-live",
+          decisionStatus: "blocked",
+          manifest: {
+            ...manifest,
+            actionId: "action-revoked-blocked",
+          },
+          policyResult: {
+            manifestHash: "hash-revoked-blocked",
+            reasons: ["policy_revoked"],
+            riskLevel: "high",
+            status: "fail",
+          },
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy: { ...policy, active: false, revoked: true },
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.actions[0].isStaleExpiredOutcome).toBe(false);
+    expect(getBlockedActions(state).map((action) => action.id)).toEqual([
+      "action-revoked-blocked",
+    ]);
+    expect(getHistoryActions(state).map((action) => action.id)).toEqual([
+      "action-revoked-blocked",
+    ]);
+  });
+
   it("keeps empty live state explicit when no agent request exists yet", () => {
     const state = toMobileState({ actions: [], connections: [] });
 

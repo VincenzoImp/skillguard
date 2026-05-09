@@ -50,6 +50,7 @@ export interface MobileAction {
   manifest: ActionManifest;
   manifestHash: string;
   isOpenExpired?: boolean;
+  isStaleExpiredOutcome?: boolean;
   spend: string;
   checks: PolicyCheck[];
   policyResultSummary: string;
@@ -149,7 +150,9 @@ export function getPendingActions(state: SkillGuardMobileState): MobileAction[] 
 }
 
 export function getBlockedActions(state: SkillGuardMobileState): MobileAction[] {
-  return state.actions.filter((action) => action.status === "blocked");
+  return state.actions.filter(
+    (action) => action.status === "blocked" && !action.isStaleExpiredOutcome
+  );
 }
 
 export function getHistoryActions(state: SkillGuardMobileState): MobileAction[] {
@@ -157,7 +160,11 @@ export function getHistoryActions(state: SkillGuardMobileState): MobileAction[] 
 }
 
 export function isHistoryAction(action: MobileAction): boolean {
-  return action.status !== "pending" && !action.isOpenExpired;
+  return (
+    action.status !== "pending" &&
+    !action.isOpenExpired &&
+    !action.isStaleExpiredOutcome
+  );
 }
 
 export function selectAction(
@@ -217,6 +224,11 @@ function toMobileAction(action: ApiActionRecord, now: number): MobileAction {
   const status = action.decisionStatus ?? statusForOpenAction(action.manifest, now);
   const isOpenExpired = action.decisionStatus === null && status === "expired";
   const policyResult = action.policyResult;
+  const isStaleExpiredOutcome =
+    action.decisionStatus === "blocked" &&
+    (policyResult?.reasons.includes("manifest_expired") ?? false) &&
+    !action.decisionReceiptAddress &&
+    !action.decisionSignature;
   const manifest = action.manifest;
   const risk = riskTone(policyResult?.riskLevel ?? highestManifestRisk(manifest));
 
@@ -227,6 +239,7 @@ function toMobileAction(action: ApiActionRecord, now: number): MobileAction {
     decisionReason: decisionReason(action, status),
     id: action.actionId,
     isOpenExpired,
+    isStaleExpiredOutcome,
     manifest,
     manifestHash: policyResult?.manifestHash ?? action.actionId,
     network: labelNetwork(manifest.network),
