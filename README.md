@@ -45,9 +45,9 @@ Core workspaces:
 
 - `packages/protocol`: shared manifest types, canonical hashing, fixtures, policy engine
 - `packages/sdk`: TypeScript client for agent developers
-- `apps/api`: local API for agents, connections, policy evaluation, and decisions
-- `apps/demo-agent`: deterministic safe, unsafe, and revoked action flows
-- `apps/mobile`: Android approval app using the SkillGuard design system
+- `apps/api`: API for agents, connections, policy evaluation, wallet decisions, and connection revocation
+- `apps/demo-agent`: deterministic safe, unsafe, and revoked action flows for a real connected wallet address
+- `apps/mobile`: Android approval app using live API state and the SkillGuard design system
 - `apps/site`: public project site and canonical visual reference
 - `programs/skillguard`: Anchor program for user profiles, agent policies, revocation, and receipts
 
@@ -57,10 +57,10 @@ The judge demo is a 3-minute vertical slice:
 
 1. User opens the Android app and connects a devnet wallet.
 2. User sees `Research Agent` and its permission policy.
-3. Demo agent submits an unsafe request; SkillGuard flags `spend_exceeds_max`.
-4. Demo agent submits a safe request; user approves it from mobile.
-5. The decision is recorded as a SkillGuard receipt.
-6. User revokes the agent; future requests are blocked.
+3. Demo agent submits requests for that wallet address through the API.
+4. Unsafe requests are blocked before wallet signing.
+5. Safe requests can be approved from mobile and recorded as devnet receipts.
+6. User can reject requests, revoke the agent, and edit the policy mode; future requests are re-evaluated.
 
 See [docs/DEMO.md](docs/DEMO.md) for exact commands and spoken lines.
 
@@ -72,21 +72,36 @@ cp .env.example .env
 scripts/dev-demo.sh
 ```
 
-The script starts the API and project site, then runs the unsafe, safe, and revoked demo-agent paths. If port `5173` is already used, run:
+The script starts the API and project site. It prints the Android command and waits
+for a real connected wallet address before any agent request is submitted. If port
+`5173` is already used, run:
 
 ```bash
 SKILLGUARD_SITE_PORT=5174 scripts/dev-demo.sh
 ```
 
 In a second terminal, run the mobile app when the script prints the Android command.
+On Android emulator, the app reaches the host API through `http://10.0.2.2:8787`.
+
+After connecting the wallet, copy the full wallet address from the app and submit
+real requests in a third terminal:
 
 Manual commands:
 
 ```bash
 npm --prefix apps/api run dev
+
+export SKILLGUARD_API_URL=http://localhost:8787
+export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
 npm --prefix apps/demo-agent run submit:unsafe
 npm --prefix apps/demo-agent run submit:safe
 npm --prefix apps/demo-agent run submit:revoked
+```
+
+For a hosted API, build/run the mobile app with:
+
+```bash
+EXPO_PUBLIC_SKILLGUARD_API_URL=https://<your-skillguard-api-host> npm --prefix apps/mobile run android
 ```
 
 Build a local debug-signed Android APK:
@@ -255,7 +270,9 @@ For local Solana and Android commands on the verified macOS/Homebrew setup:
 
 ## Status
 
-Core MVP scaffolding is implemented locally: shared protocol, API, Anchor receipt program, mobile approval demo, demo agent, TypeScript SDK, and local demo orchestration all run behind the precommit gate.
+Core MVP is implemented locally: shared protocol, API, Anchor receipt program,
+mobile approval app with live API state, demo agent, TypeScript SDK, and local
+demo orchestration all run behind the precommit gate.
 
 Submission blockers still to close:
 

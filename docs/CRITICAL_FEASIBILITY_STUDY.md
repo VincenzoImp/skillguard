@@ -69,10 +69,10 @@ Commands run locally on 2026-05-08:
 | `programs/skillguard anchor test` | 12 tests passed under Node `22.22.2` | Anchor program compiles, starts the local validator, and covers profiles, agent connections, policy create/update, revocation, receipts, execution signatures, invalid decision codes, and negative cases. |
 | `programs/skillguard npm audit --omit=dev` | 0 vulnerabilities | Runtime dependency audit is clean; reported Anchor template audit findings are limited to dev/test dependencies. |
 | `apps/mobile npm run typecheck` | passed | The Expo wallet connection and SkillGuard `record_decision` transaction path compile under TypeScript. |
-| `apps/mobile npm test` | 10 tests passed | Local mobile tests cover demo state plus SkillGuard PDA derivation and `record_decision` instruction serialization. |
+| `apps/mobile npm test` | 11 tests passed | Local mobile tests cover live API client calls, API-to-mobile state mapping, SkillGuard PDA derivation, and `record_decision` instruction serialization. |
 | `apps/mobile npm run doctor` | 18/18 checks passed | The mobile dependency graph is Expo SDK 55-compatible after pinning React, React Native, random values, and quick base64 versions. |
 | `apps/mobile npm audit --omit=dev` | 4 moderate findings | Current findings are PostCSS issues through Expo/Metro. `npm audit fix --force` proposes an Expo major downgrade, so this is tracked as an upstream tooling dependency risk rather than applied blindly. |
-| `apps/demo-agent npm test` | 5 tests passed | Demo agent manifest generation and API client request flow are covered. |
+| `apps/demo-agent npm test` | 6 tests passed | Demo agent manifest generation, connected-wallet targeting, connection creation, and API client request flow are covered. |
 | `apps/demo-agent npm run build` | passed | Demo agent CLI compiles under TypeScript NodeNext. |
 | `apps/demo-agent submit:*` against local API | passed | Safe returns `requires_approval`, unsafe returns `fail` with `spend_exceeds_max`, and revoked returns `fail` with revocation reasons. |
 | `packages/sdk npm test` | 2 tests passed | SDK submit and decision-read flows are covered with injected fetch. |
@@ -124,14 +124,14 @@ Mobile spike update on 2026-05-08:
 - Added a wallet connection screen that shows SkillGuard branding, devnet state, wallet address, approval preview, and a SkillGuard `record_decision` approval transaction.
 - Added runtime polyfills for random values and Buffer.
 - `expo-doctor` initially caught incompatible React Native, React, and random-values versions; the dependency graph was corrected to Expo SDK 55-compatible versions.
-- Added mobile product screens for connected agent, policy editor, inbox, action detail, and decision receipts using tested local demo state.
+- Added mobile product screens for connected agent, policy editor, inbox, action detail, and decision receipts backed by live SkillGuard API state.
 - Manual Android wallet verification passed on May 9, 2026 with the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
 - The app authorized devnet wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` and submitted finalized devnet signature `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`, which created profile `7DrEwjK8YhEDz1K46qtvFFrYzjkvJKVvyptsubS1jQr9`, connection `BEhjLvVgmCUHC3aa7T3yaAhxQ15BWEL9pFCbDdkkDQfr`, and receipt `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`.
 
 Demo agent update on 2026-05-08:
 
 - Added `apps/demo-agent` CLI scripts for `submit:safe`, `submit:unsafe`, and `submit:revoked`.
-- The CLI posts ActionManifest payloads to the API and immediately requests policy evaluation.
+- The CLI requires `SKILLGUARD_USER_WALLET`, creates or updates the matching Research Agent connection, posts ActionManifest payloads to the API, and immediately requests policy evaluation.
 - The revoked demo path revokes the demo connection first, then submits an action that should evaluate as blocked by policy revocation.
 - Local tests cover manifest generation and HTTP request order.
 - A local API smoke test confirmed the three CLI paths return the expected policy statuses.

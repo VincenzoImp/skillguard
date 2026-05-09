@@ -44,19 +44,41 @@ sleep 3
 
 echo "==> Mobile app"
 echo "Open a second terminal and run:"
-echo "  . scripts/dev-env.sh && npm --prefix apps/mobile run android"
+echo "  . scripts/dev-env.sh && EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 npm --prefix apps/mobile run android"
 
-echo "==> Demo agent: unsafe request"
-env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_RUN_ID="${RUN_PREFIX}-unsafe" \
+wallet_placeholder="<connected-mobile-wallet-address>"
+wallet_value="${SKILLGUARD_USER_WALLET:-$wallet_placeholder}"
+
+cat <<EOF
+==> Agent request commands
+Connect the wallet in the Android app, copy the full wallet address, then run
+the commands below in a third terminal while this script keeps API and site alive.
+Run them one-by-one during the demo; do not revoke before approving the safe
+request, because revocation intentionally blocks all still-pending actions.
+
+  export SKILLGUARD_API_URL="$API_URL"
+  export SKILLGUARD_USER_WALLET="$wallet_value"
   npm --prefix apps/demo-agent run submit:unsafe
-
-echo "==> Demo agent: safe request"
-env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_RUN_ID="${RUN_PREFIX}-safe" \
   npm --prefix apps/demo-agent run submit:safe
-
-echo "==> Demo agent: revoked request"
-env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_RUN_ID="${RUN_PREFIX}-revoked" \
   npm --prefix apps/demo-agent run submit:revoked
+
+The mobile app can refresh after each command. Unsafe and revoked requests are
+blocked by policy; the safe request can be approved and recorded on devnet.
+EOF
+
+if [ "${SKILLGUARD_AUTORUN_AGENT:-0}" = "1" ] && [ -n "${SKILLGUARD_USER_WALLET:-}" ]; then
+  echo "==> Demo agent wallet: ${SKILLGUARD_USER_WALLET}"
+
+  echo "==> Demo agent: unsafe request"
+  env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_USER_WALLET="$SKILLGUARD_USER_WALLET" \
+    SKILLGUARD_RUN_ID="${RUN_PREFIX}-unsafe" npm --prefix apps/demo-agent run submit:unsafe
+
+  echo "==> Demo agent: safe request"
+  env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_USER_WALLET="$SKILLGUARD_USER_WALLET" \
+    SKILLGUARD_RUN_ID="${RUN_PREFIX}-safe" npm --prefix apps/demo-agent run submit:safe
+
+  echo "==> Autoran unsafe and safe requests only. Run submit:revoked after approving or rejecting the safe request."
+fi
 
 echo "==> Demo services are running. Press Ctrl-C to stop API and site."
 wait

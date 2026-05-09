@@ -13,16 +13,17 @@ Android-first Expo app for wallet connection, agent permissions, action approval
 
 ## Current Screens
 
-The current mobile slice combines the wallet connection spike with the first product demo screens:
+The current mobile slice uses live SkillGuard API state for the product screens:
 
 - connect an MWA-compatible wallet on devnet
 - show the connected wallet address
-- show the connected Research Agent
-- edit the demo policy mode
-- review pending and blocked agent requests
+- create or load the connected Research Agent for that wallet
+- edit the remote policy mode
+- review pending, blocked, approved, and rejected live agent requests
 - approve a pending request through a devnet SkillGuard `record_decision` transaction
-- reject a pending request without wallet signing
-- revoke the connected agent and block future requests
+- post approval metadata back to the API with transaction signature and receipt address
+- reject a pending request through the API without wallet signing
+- revoke the connected agent through the API and block future requests
 - show decision receipts, manifest hashes, and Explorer links when signatures exist
 
 ## Commands
@@ -35,6 +36,18 @@ npm test
 npm run typecheck
 npm run doctor
 npm run android
+```
+
+For Android emulator against a local API, use:
+
+```bash
+EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 npm run android
+```
+
+For a hosted API, replace the value with the public endpoint:
+
+```bash
+EXPO_PUBLIC_SKILLGUARD_API_URL=https://<your-skillguard-api-host> npm run android
 ```
 
 Build an installable Android APK for local demo review:

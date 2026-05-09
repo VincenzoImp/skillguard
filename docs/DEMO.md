@@ -9,13 +9,23 @@ Target length: under 3 minutes.
 scripts/dev-demo.sh
 ```
 
+`scripts/dev-demo.sh` starts the local API and site, then waits. It does not
+submit fake wallet actions. Connect a wallet in the Android app first, copy the
+full wallet address, then submit agent requests with that exact address.
+
 ## Manual Commands
 
 ```bash
-cd apps/api && npm run dev
-cd apps/demo-agent && npm run submit:unsafe
-cd apps/demo-agent && npm run submit:safe
-cd apps/demo-agent && npm run submit:revoked
+npm --prefix apps/api run dev
+
+EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 \
+  npm --prefix apps/mobile run android
+
+export SKILLGUARD_API_URL=http://localhost:8787
+export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+npm --prefix apps/demo-agent run submit:unsafe
+npm --prefix apps/demo-agent run submit:safe
+npm --prefix apps/demo-agent run submit:revoked
 ```
 
 ## Spoken Lines
@@ -32,17 +42,20 @@ cd apps/demo-agent && npm run submit:revoked
 ## Scene 1: Connect Wallet
 
 Open SkillGuard mobile and connect a devnet wallet through Mobile Wallet Adapter.
-Show the wallet address, devnet badge, connected Research Agent, and policy mode.
+Show the wallet address, devnet badge, live API badge, connected Research Agent,
+and policy mode.
 
 ## Scene 2: Unsafe Request
 
 Run:
 
 ```bash
-cd apps/demo-agent && npm run submit:unsafe
+SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
+  npm --prefix apps/demo-agent run submit:unsafe
 ```
 
-Show the unsafe request in the inbox and the `spend_exceeds_max` policy reason.
+Refresh the mobile inbox. Show the unsafe request and the `spend_exceeds_max`
+policy reason. The wallet is not asked to sign blocked actions.
 Say: "This one is blocked because it exceeds my limit."
 
 ## Scene 3: Safe Request
@@ -50,18 +63,20 @@ Say: "This one is blocked because it exceeds my limit."
 Run:
 
 ```bash
-cd apps/demo-agent && npm run submit:safe
+SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
+  npm --prefix apps/demo-agent run submit:safe
 ```
 
-Open the safe request in mobile, show zero spend, approve it through the wallet,
-and open the devnet SkillGuard receipt transaction.
+Refresh mobile, open the safe request, show zero spend, approve it through the
+wallet, and open the devnet SkillGuard receipt transaction.
 
 ## Scene 4: Revoke Agent
 
 Revoke Research Agent in mobile, then run:
 
 ```bash
-cd apps/demo-agent && npm run submit:revoked
+SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
+  npm --prefix apps/demo-agent run submit:revoked
 ```
 
 Show that the future request is blocked because the policy is inactive/revoked.

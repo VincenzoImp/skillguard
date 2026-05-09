@@ -676,8 +676,8 @@ Receipt
 
 Implementation note:
 
-- Product screens are wired to a local, tested mobile demo state until API integration lands.
-- The mobile state covers pending, blocked, approved, rejected, policy-mode changes, and revocation.
+- Product screens are wired to live SkillGuard API state for the connected wallet.
+- Mobile tests cover API loading, decision posting, policy updates, revocation, pending, blocked, approved, and rejected states.
 - `npm test` is now part of the root precommit gate for mobile when test files exist.
 
 Acceptance:

@@ -15,14 +15,26 @@ npm run dev
 
 - `GET /health`
 - `GET /agents`
+- `POST /agents`
 - `GET /agents/:agentId`
 - `POST /connections`
+- `GET /connections?wallet=...`
 - `PATCH /connections/:connectionId/policy`
 - `POST /connections/:connectionId/revoke`
+- `DELETE /connections/:connectionId`
 - `POST /actions`
+- `GET /actions?wallet=...`
 - `GET /actions/pending?wallet=...`
 - `GET /actions/:actionId`
 - `POST /actions/:actionId/evaluate`
 - `POST /actions/:actionId/decision`
 
-The MVP uses an in-memory seeded store. It includes `Research Agent`, demo connection `conn-demo`, safe action `action-safe-risk-report`, and unsafe action `action-unsafe-overspend`.
+The local MVP uses an in-memory store. It still includes deterministic fixtures for
+API tests and smoke checks, but the mobile app does not read seeded inbox state:
+it queries by the connected wallet address and shows only actions submitted for
+that wallet.
+
+Approved decisions must include both:
+
+- `signature`: devnet transaction signature returned by Mobile Wallet Adapter
+- `receiptAddress`: SkillGuard `ActionReceipt` PDA recorded by the mobile app
