@@ -16,6 +16,7 @@ interface ActionResponse {
   action: {
     actionId: string;
     decisionStatus: string | null;
+    policyResult?: PolicyResult | null;
   };
 }
 
@@ -39,6 +40,22 @@ export interface SubmittedAction {
   action: ActionResponse["action"];
   result: PolicyResult;
 }
+
+export interface WaitForDecisionOptions {
+  now?: () => number;
+  pollMs: number;
+  sleep?: (ms: number) => Promise<void>;
+  timeoutMs: number;
+}
+
+export type WaitForDecisionResult =
+  | {
+      action: ActionResponse["action"];
+      status: "approved" | "blocked" | "expired" | "rejected" | "revoked";
+    }
+  | { action?: undefined; status: "timeout" };
+
+type TerminalDecisionStatus = Exclude<WaitForDecisionResult["status"], "timeout">;
 
 export function createSkillGuardClient({
   agentKeyPair,
@@ -110,7 +127,51 @@ export function createSkillGuardClient({
         result: evaluationBody.result,
       };
     },
+
+    async waitForDecision(
+      actionId: string,
+      {
+        now = Date.now,
+        pollMs,
+        sleep = defaultSleep,
+        timeoutMs,
+      }: WaitForDecisionOptions
+    ): Promise<WaitForDecisionResult> {
+      const startedAt = now();
+      while (now() - startedAt < timeoutMs) {
+        const body = await request<ActionResponse>(`actions/${actionId}`);
+        const status = normalizeDecisionStatus(body.action);
+        if (status) {
+          return { action: body.action, status };
+        }
+        await sleep(pollMs);
+      }
+      return { status: "timeout" };
+    },
   };
+}
+
+function normalizeDecisionStatus(
+  action: ActionResponse["action"]
+): TerminalDecisionStatus | null {
+  if (action.decisionStatus === "blocked") {
+    if (action.policyResult?.reasons.includes("policy_revoked")) {
+      return "revoked";
+    }
+    return "blocked";
+  }
+  if (
+    action.decisionStatus === "approved" ||
+    action.decisionStatus === "expired" ||
+    action.decisionStatus === "rejected"
+  ) {
+    return action.decisionStatus;
+  }
+  return null;
+}
+
+function defaultSleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function keyPairFromBase58(value: string): nacl.SignKeyPair {

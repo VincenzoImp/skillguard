@@ -1,8 +1,5 @@
 import type { ActionManifest } from "@skillguard/protocol";
-import {
-  safeRiskReportManifest,
-  unsafeOverspendManifest,
-} from "@skillguard/protocol";
+import { safeRiskReportManifest } from "@skillguard/protocol";
 
 export type ResearchActionKind = "safe" | "unsafe" | "revoked";
 
@@ -15,10 +12,28 @@ export function createResearchManifest(
 
   if (kind === "unsafe") {
     return {
-      ...unsafeOverspendManifest,
+      ...safeRiskReportManifest,
       actionId: `action-research-unsafe-${normalizedRunId}`,
       accountsTouched: [userWallet],
-      title: "Swap 2 USDC through Jupiter",
+      kind: "swap_preview",
+      protocols: ["helius"],
+      riskSignals: [
+        {
+          code: "overspend",
+          level: "high",
+          message: "Requested subscription spend is above the configured max spend.",
+        },
+      ],
+      spend: [
+        {
+          amountAtomic: "50000000",
+          human: "0.05 SOL",
+          mint: "SOL",
+          reason: "Monthly risk alert subscription",
+        },
+      ],
+      summary: "Monthly subscription to push real-time alerts via Helius webhooks.",
+      title: "Subscribe to real-time risk alerts",
       userWallet,
     };
   }
@@ -39,7 +54,17 @@ export function createResearchManifest(
     ...safeRiskReportManifest,
     actionId: `action-research-safe-${normalizedRunId}`,
     accountsTouched: [userWallet],
-    title: "Generate wallet risk receipt",
+    protocols: ["helius"],
+    spend: [
+      {
+        amountAtomic: "0",
+        human: "0 SOL",
+        mint: "SOL",
+        reason: "Read-only scan",
+      },
+    ],
+    summary: "Read-only check via Helius for suspicious SPL token approvals and dust attacks.",
+    title: "Scan wallet for risky token approvals",
     userWallet,
   };
 }

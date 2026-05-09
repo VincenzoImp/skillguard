@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "agent:loop": "tsx src/loopEntry.ts",
     "submit:revoked": "tsx src/index.ts revoked",
     "submit:safe": "tsx src/index.ts safe",
     "submit:unsafe": "tsx src/index.ts unsafe",

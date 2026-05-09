@@ -99,6 +99,70 @@ describe("research agent client", () => {
       "POST http://localhost:8787/connections/conn-agent-research-Wallet111/revoke",
     ]);
   });
+
+  it("waits until an action reaches a terminal decision", async () => {
+    const calls: string[] = [];
+    const statuses = [null, "approved"];
+    const fetch = async (url: string | URL, init?: RequestInit) => {
+      calls.push(`${init?.method ?? "GET"} ${url.toString()}`);
+      return jsonResponse({
+        action: {
+          actionId: "action-loop-1",
+          decisionStatus: statuses.shift(),
+        },
+      });
+    };
+
+    const client = createSkillGuardClient({
+      agentKeyPair: smokeAgentKeyPair(),
+      apiUrl: "http://localhost:8787",
+      connectionId: "conn-agent-research-Wallet111",
+      fetch,
+    });
+
+    const result = await client.waitForDecision("action-loop-1", {
+      pollMs: 1,
+      sleep: async () => undefined,
+      timeoutMs: 100,
+    });
+
+    expect(result.status).toBe("approved");
+    expect(result.action?.actionId).toBe("action-loop-1");
+    expect(calls).toEqual([
+      "GET http://localhost:8787/actions/action-loop-1",
+      "GET http://localhost:8787/actions/action-loop-1",
+    ]);
+  });
+
+  it("returns timeout when an action never reaches a terminal decision", async () => {
+    const client = createSkillGuardClient({
+      agentKeyPair: smokeAgentKeyPair(),
+      apiUrl: "http://localhost:8787",
+      connectionId: "conn-agent-research-Wallet111",
+      fetch: async () =>
+        jsonResponse({
+          action: {
+            actionId: "action-loop-timeout",
+            decisionStatus: null,
+          },
+        }),
+    });
+
+    const result = await client.waitForDecision("action-loop-timeout", {
+      now: (() => {
+        let current = 0;
+        return () => {
+          current += 60;
+          return current;
+        };
+      })(),
+      pollMs: 1,
+      sleep: async () => undefined,
+      timeoutMs: 100,
+    });
+
+    expect(result.status).toBe("timeout");
+  });
 });
 
 function jsonResponse(payload: unknown): Response {

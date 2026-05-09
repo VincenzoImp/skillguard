@@ -2,9 +2,8 @@ import { createResearchManifest, type ResearchActionKind } from "./actions.js";
 import {
   connectionIdForWallet,
   createSkillGuardClient,
-  keyPairFromBase58,
-  smokeAgentKeyPair,
 } from "./client.js";
+import { agentKeyPairForWallet } from "./agentIdentity.js";
 
 const DEFAULT_API_URL = "http://localhost:8787";
 
@@ -49,19 +48,6 @@ async function main() {
       2
     )
   );
-}
-
-function agentKeyPairForWallet(userWallet: string) {
-  const encoded =
-    process.env.SKILLGUARD_AGENT_PRIVATE_KEY_B58 ?? process.env.SKILLGUARD_AGENT_PRIVATE_KEY;
-  if (encoded) {
-    return keyPairFromBase58(encoded);
-  }
-  if (userWallet.startsWith("SmokeWallet")) {
-    return smokeAgentKeyPair();
-  }
-
-  throw new Error("Set SKILLGUARD_AGENT_PRIVATE_KEY_B58 before submitting real wallet actions.");
 }
 
 function parseKind(value: string | undefined): ResearchActionKind {
