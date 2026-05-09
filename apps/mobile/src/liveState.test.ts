@@ -87,9 +87,11 @@ describe("mobile live state mapping", () => {
     });
 
     expect(state.agent?.status).toBe("active");
+    expect(state.agent?.policy.spendLimit).toBe("0.001 SOL");
     expect(state.agents.map((agent) => agent.id)).toEqual(["agent-research"]);
     expect(state.selectedActionId).toBe("action-live");
     expect(getSelectedAction(state)?.id).toBe("action-live");
+    expect(getSelectedAction(state)?.manifest).toEqual(manifest);
     expect(getPendingActions(state)).toHaveLength(1);
     expect(getBlockedActions(state)).toHaveLength(0);
     expect(state.actions[0].checks.map((check) => check.label)).toContain(

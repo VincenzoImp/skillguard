@@ -11,7 +11,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Transaction } from "@solana/web3.js";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import type { AppTabId } from "../appNavigation";
 import {
@@ -19,6 +18,7 @@ import {
   buildTabItems,
   recommendedInitialTab,
 } from "../appNavigation";
+import { buildApprovalTransaction } from "../buildApprovalTransaction";
 import { StatusBadge } from "../components/StatusBadge";
 import { buildAgentPolicyInput, parseAgentPairingInput } from "../agentPolicyForm";
 import { createSkillGuardApiClient } from "../liveApi";
@@ -34,6 +34,7 @@ import {
   skillGuardBytes32,
 } from "../skillguardProgram";
 import { colors, labelForPolicyMode } from "../theme";
+import { RESEARCH_TREASURY_ADDRESS } from "../treasury";
 import { ActionDetailScreen } from "./ActionDetailScreen";
 import { AgentsScreen } from "./AgentsScreen";
 import { InboxScreen } from "./InboxScreen";
@@ -55,11 +56,11 @@ export function WalletConnectScreen() {
   const [agentPublicKeyInput, setAgentPublicKeyInput] = useState("");
   const [agentPolicyMode, setAgentPolicyMode] =
     useState<PolicyMode>("ask_every_time");
-  const [allowedMintsInput, setAllowedMintsInput] = useState("SOL,USDC");
+  const [allowedMintsInput, setAllowedMintsInput] = useState("SOL");
   const [allowedProtocolsInput, setAllowedProtocolsInput] =
     useState("helius,birdeye");
-  const [dailySpendInput, setDailySpendInput] = useState("5");
-  const [maxSpendInput, setMaxSpendInput] = useState("1");
+  const [dailySpendInput, setDailySpendInput] = useState("0.05");
+  const [maxSpendInput, setMaxSpendInput] = useState("0.01");
   const { account, connect, disconnect, signAndSendTransaction, signMessage, connection } =
     useMobileWallet();
   const apiClient = useMemo(() => createSkillGuardApiClient(), []);
@@ -219,11 +220,11 @@ export function WalletConnectScreen() {
 
       const latestBlockhash = await connection.getLatestBlockhash("confirmed");
       const minContextSlot = await connection.getSlot("confirmed");
-      const transaction = new Transaction({
-        feePayer: activeAccount.publicKey,
-        recentBlockhash: latestBlockhash.blockhash,
-      }).add(
-        ...buildSkillGuardApprovalInstructions({
+      const transaction = buildApprovalTransaction({
+        blockhash: latestBlockhash.blockhash,
+        manifest: actionToApprove.manifest,
+        owner: activeAccount.publicKey,
+        receiptInstructions: buildSkillGuardApprovalInstructions({
           actionId: actionToApprove.id,
           agentId: actionToApprove.agentId,
           includeConnectAgent: agentConnectionInfo === null,
@@ -231,8 +232,9 @@ export function WalletConnectScreen() {
           manifestHash: actionToApprove.manifestHash,
           owner: activeAccount.publicKey,
           policyResult: actionToApprove.policyResultSummary,
-        })
-      );
+        }),
+        treasuryAddress: RESEARCH_TREASURY_ADDRESS,
+      });
 
       const txSignature = await signAndSendTransaction(transaction, minContextSlot);
       await apiClient.approveAction(
@@ -317,8 +319,8 @@ export function WalletConnectScreen() {
       const policyInput = buildAgentPolicyInput({
         allowedMints: allowedMintsInput,
         allowedProtocols: allowedProtocolsInput,
-        dailySpendUsdc: dailySpendInput,
-        maxSpendUsdc: maxSpendInput,
+        dailySpendSol: dailySpendInput,
+        maxSpendSol: maxSpendInput,
         mode: agentPolicyMode,
       });
       await apiClient.connectAgent(
@@ -788,24 +790,24 @@ function PairingPage({
       />
       <View style={styles.policyGrid}>
         <View style={styles.policyField}>
-          <Text style={styles.fieldLabel}>Max spend per action</Text>
+          <Text style={styles.fieldLabel}>Max spend per action (SOL)</Text>
           <TextInput
             editable={!isBusy}
             keyboardType="decimal-pad"
             onChangeText={onMaxSpendChange}
-            placeholder="1"
+            placeholder="0.01"
             placeholderTextColor={colors.textMuted}
             style={styles.input}
             value={maxSpendInput}
           />
         </View>
         <View style={styles.policyField}>
-          <Text style={styles.fieldLabel}>Daily cap</Text>
+          <Text style={styles.fieldLabel}>Daily cap (SOL)</Text>
           <TextInput
             editable={!isBusy}
             keyboardType="decimal-pad"
             onChangeText={onDailySpendChange}
-            placeholder="5"
+            placeholder="0.05"
             placeholderTextColor={colors.textMuted}
             style={styles.input}
             value={dailySpendInput}
@@ -829,7 +831,7 @@ function PairingPage({
         autoCorrect={false}
         editable={!isBusy}
         onChangeText={onAllowedMintsChange}
-        placeholder="SOL,USDC"
+        placeholder="SOL"
         placeholderTextColor={colors.textMuted}
         style={styles.input}
         value={allowedMintsInput}

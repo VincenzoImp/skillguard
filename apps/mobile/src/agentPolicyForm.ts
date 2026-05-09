@@ -4,8 +4,8 @@ import type { SkillGuardPolicyInput } from "./liveApi";
 interface AgentPolicyFormValues {
   allowedMints: string;
   allowedProtocols: string;
-  dailySpendUsdc: string;
-  maxSpendUsdc: string;
+  dailySpendSol: string;
+  maxSpendSol: string;
   mode: ApprovalMode;
 }
 
@@ -27,8 +27,8 @@ export function buildAgentPolicyInput(
     allowedMints: parseMintList(values.allowedMints),
     allowedNetworks: ["solana-devnet"],
     allowedProtocols: parseCsvList(values.allowedProtocols),
-    dailySpendCapAtomic: parseUsdcToAtomic(values.dailySpendUsdc),
-    maxSpendAtomic: parseUsdcToAtomic(values.maxSpendUsdc),
+    dailySpendCapAtomic: parseSolToLamports(values.dailySpendSol),
+    maxSpendAtomic: parseSolToLamports(values.maxSpendSol),
     mode: values.mode,
   };
 }
@@ -83,26 +83,26 @@ export function parseAgentPairingInput(value: string): AgentPairingInput | null 
   };
 }
 
-export function parseUsdcToAtomic(value: string): string {
+export function parseSolToLamports(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
-    throw new Error("USDC amount is required");
+    throw new Error("SOL amount is required");
   }
   if (trimmed.startsWith("-")) {
-    throw new Error("USDC amount must be positive");
+    throw new Error("SOL amount must be positive");
   }
   if (!/^\d+(\.\d+)?$/.test(trimmed)) {
-    throw new Error("USDC amount must be a valid number");
+    throw new Error("SOL amount must be a valid number");
   }
 
   const [whole, fraction = ""] = trimmed.split(".");
-  if (fraction.length > 6) {
-    throw new Error("USDC amount supports at most six decimals");
+  if (fraction.length > 9) {
+    throw new Error("SOL amount supports at most nine decimals");
   }
 
-  const atomic = BigInt(whole) * 1_000_000n + BigInt(fraction.padEnd(6, "0"));
+  const atomic = BigInt(whole) * 1_000_000_000n + BigInt(fraction.padEnd(9, "0"));
   if (atomic <= 0n) {
-    throw new Error("USDC amount must be positive");
+    throw new Error("SOL amount must be positive");
   }
   return atomic.toString();
 }

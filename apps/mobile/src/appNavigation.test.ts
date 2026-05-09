@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ActionManifest } from "@skillguard/protocol";
 
 import {
   buildDashboardSummary,
@@ -138,11 +139,30 @@ describe("mobile app navigation model", () => {
 });
 
 function action(id: string, status: "approved" | "blocked" | "pending") {
+  const manifest: ActionManifest = {
+    accountsTouched: ["Wallet111"],
+    actionId: id,
+    agentId: "agent-research",
+    createdAt: 1_800_000_000,
+    expiresAt: 4_100_000_000,
+    kind: "wallet_risk_report",
+    network: "solana-devnet",
+    protocols: ["helius"],
+    rawTransactionRef: null,
+    riskSignals: [],
+    schemaVersion: "skillguard.action.v1",
+    spend: [{ amountAtomic: "0", human: "0 SOL", mint: "SOL", reason: "Read-only" }],
+    summary: "Wallet action",
+    title: "Review wallet action",
+    userWallet: "Wallet111",
+  };
+
   return {
     agentId: "agent-research",
     checks: [],
     connectionId: "conn-agent",
     id,
+    manifest,
     manifestHash: `hash-${id}`,
     network: "Solana devnet",
     policyResultSummary: "requires_approval:medium:manual",

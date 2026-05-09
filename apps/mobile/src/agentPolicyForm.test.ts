@@ -4,21 +4,21 @@ import {
   buildAgentPolicyInput,
   parseAgentPairingInput,
   parseCsvList,
-  parseUsdcToAtomic,
+  parseSolToLamports,
 } from "./agentPolicyForm";
 
 describe("agent policy form helpers", () => {
-  it("converts USDC form values into atomic units", () => {
-    expect(parseUsdcToAtomic("1")).toBe("1000000");
-    expect(parseUsdcToAtomic("1.25")).toBe("1250000");
-    expect(parseUsdcToAtomic("0.000001")).toBe("1");
+  it("converts SOL form values into lamports", () => {
+    expect(parseSolToLamports("1")).toBe("1000000000");
+    expect(parseSolToLamports("0.01")).toBe("10000000");
+    expect(parseSolToLamports("0.000000001")).toBe("1");
   });
 
-  it("rejects invalid USDC form values", () => {
-    expect(() => parseUsdcToAtomic("")).toThrow(/required/);
-    expect(() => parseUsdcToAtomic("-1")).toThrow(/positive/);
-    expect(() => parseUsdcToAtomic("1.0000001")).toThrow(/six decimals/);
-    expect(() => parseUsdcToAtomic("abc")).toThrow(/valid number/);
+  it("rejects invalid SOL form values", () => {
+    expect(() => parseSolToLamports("")).toThrow(/required/);
+    expect(() => parseSolToLamports("-1")).toThrow(/positive/);
+    expect(() => parseSolToLamports("1.0000000001")).toThrow(/nine decimals/);
+    expect(() => parseSolToLamports("abc")).toThrow(/valid number/);
   });
 
   it("normalizes comma separated policy lists", () => {
@@ -33,16 +33,16 @@ describe("agent policy form helpers", () => {
       buildAgentPolicyInput({
         allowedMints: "SOL, USDC",
         allowedProtocols: "helius, birdeye",
-        dailySpendUsdc: "5",
-        maxSpendUsdc: "1.5",
+        dailySpendSol: "0.05",
+        maxSpendSol: "0.01",
         mode: "allow_under_limits",
       })
     ).toEqual({
       allowedMints: ["SOL", "USDC"],
       allowedNetworks: ["solana-devnet"],
       allowedProtocols: ["helius", "birdeye"],
-      dailySpendCapAtomic: "5000000",
-      maxSpendAtomic: "1500000",
+      dailySpendCapAtomic: "50000000",
+      maxSpendAtomic: "10000000",
       mode: "allow_under_limits",
     });
   });

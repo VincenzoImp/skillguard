@@ -47,6 +47,7 @@ export interface MobileAction {
   risk: RiskTone;
   network: string;
   requestedAt: string;
+  manifest: ActionManifest;
   manifestHash: string;
   spend: string;
   checks: PolicyCheck[];
@@ -179,8 +180,16 @@ function toPolicyView(policy: ProtocolAgentPolicy): AgentPolicy {
     mode: policy.mode,
     network: policy.allowedNetworks.map(labelNetwork).join(", "),
     permissions: ["Request approvals", "Record approval receipts"],
-    spendLimit: `${Number(BigInt(policy.maxSpendAtomic)) / 1_000_000} USDC`,
+    spendLimit: `${formatLamports(policy.maxSpendAtomic)} SOL`,
   };
+}
+
+function formatLamports(value: string): string {
+  const lamports = BigInt(value);
+  const whole = lamports / 1_000_000_000n;
+  const fraction = lamports % 1_000_000_000n;
+  if (fraction === 0n) return whole.toString();
+  return `${whole}.${fraction.toString().padStart(9, "0").replace(/0+$/, "")}`;
 }
 
 function toMobileAction(action: ApiActionRecord): MobileAction {
@@ -195,6 +204,7 @@ function toMobileAction(action: ApiActionRecord): MobileAction {
     connectionId: action.connectionId,
     decisionReason: decisionReason(action),
     id: action.actionId,
+    manifest,
     manifestHash: policyResult?.manifestHash ?? action.actionId,
     network: labelNetwork(manifest.network),
     policyResultSummary: policyResult
