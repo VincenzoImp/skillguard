@@ -33,27 +33,26 @@ failure makes the smoke fail.
 Use this for the final recorded app demo:
 
 ```bash
-EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
-  npm --prefix apps/mobile run android
-
-export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
-export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
-export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
-npm --prefix apps/research-agent run agent:loop
+scripts/live-demo.sh <connected-mobile-wallet-address>
 ```
 
 The wallet address must be the exact address shown in the Android app after
-Mobile Wallet Adapter connection. The research agent never receives the private key.
-Before running those commands, import `agent-research` in the mobile app by
-opening `https://skillguard-sol.vercel.app/developers` and scanning the
-Research Agent pairing QR from the app's `Pair` tab. The QR only fills the
-agent identity; the wallet owner still reviews the policy and signs the import
-challenge. Keep the default conservative policy for the first pass: ask every
-time, `0.01 SOL` max spend per action, `0.05 SOL` daily cap, `helius,birdeye`,
-and `SOL`. To demonstrate auto-approval, switch only this agent to `Allow under
-limits`; only low-risk zero-spend requests can auto-approve.
+Mobile Wallet Adapter connection. `scripts/live-demo.sh` opens the styled live
+Research Agent pairing QR, waits until the app shows the imported agent, and
+only then starts the autonomous request loop. The research agent never receives
+the user's private key.
+
+The QR only fills the agent identity; the wallet owner still reviews the policy
+and signs the import challenge. Keep the default conservative policy for the
+first pass: ask every time, `0.01 SOL` max spend per action, `0.05 SOL` daily
+cap, `helius,birdeye`, and `SOL`. To demonstrate auto-approval, switch only this
+agent to `Allow under limits`; only low-risk zero-spend requests can auto-approve.
 
 If camera access is unavailable, use the manual fallback and paste:
+
+```text
+skillguard://pair?agentId=agent-research-live-230105&name=Research+Agent+Live&description=Solana+research+agent+that+requests+wallet-safe+actions.&protocols=helius%2Cbirdeye&publicKey=CWYnjAvQF85gAHtAWZETH2DcD1WQbRfTaf64Xvu1juZF
+```
 
 The APK registers an Expo push token after the wallet session is signed. On a
 physical Android build with notification permission enabled, pending agent
@@ -61,10 +60,6 @@ requests appear as native notifications. Tapping a notification opens the
 SkillGuard inbox with that action selected. If push delivery is unavailable for
 the local build or device, use the app's `Refresh` action; the live API feed is
 the source of truth.
-
-```text
-skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye&publicKey=9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
-```
 
 ## Manual Commands
 

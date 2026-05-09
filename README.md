@@ -89,6 +89,20 @@ The judge demo is a 3-minute vertical slice:
 
 See [docs/DEMO.md](docs/DEMO.md) for exact commands and spoken lines.
 
+## Run The Hosted Live Demo
+
+Use this path for the phone demo against the Vercel API:
+
+```bash
+scripts/live-demo.sh <connected-mobile-wallet-address>
+```
+
+The script opens the styled Research Agent pairing QR, waits until the mobile
+app shows the imported agent, then starts the real autonomous agent loop:
+free scan, `0.001 SOL` paid report, and blocked `0.05 SOL` upgrade. It reads the
+live agent signing key from `~/.skillguard/agent-research-live-230105.env`;
+that file stays outside the repository.
+
 ## Run The Local Demo
 
 ```bash
