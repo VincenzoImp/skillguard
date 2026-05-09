@@ -19,17 +19,17 @@ Android-first Expo app for wallet connection, agent permissions, action approval
 The current mobile slice uses live SkillGuard API state through a five-page
 mobile shell:
 
-- `Home`: wallet session status, live API state, pending/agent/blocked/action
+- `Home`: wallet session status, live API state, pending/agent/blocked/history
   counters, refresh, connect, and disconnect actions
-- `Inbox`: pending, blocked, approved, rejected, and expired action manifests
-  with the selected action detail and approve/reject controls
-- `Agents`: connected agent inventory, active/revoked state, revoke action, and
-  policy mode editing
+- `Inbox`: one selected pending action detail with approve/reject controls, plus
+  a compact list of other pending requests when more than one exists
+- `Agents`: active connected agent inventory, revoke action, and per-agent
+  policy mode editing; revoked connections are removed from the active view
 - `Pair`: default QR pairing scanner, manual pairing-link fallback, agent
   public key capture, approval mode, spend limits, protocol allowlist, and mint
   allowlist
-- `Activity`: decision receipts, manifest hashes, and Explorer links when
-  signatures exist
+- `Activity`: approved, rejected, blocked, and expired decision receipts,
+  manifest hashes, and Explorer links when signatures exist
 
 The product flows are:
 
@@ -43,12 +43,13 @@ The product flows are:
 - import an agent by scanning a pairing QR, or by pasting a pairing link/ID as
   fallback, sign a wallet-owner challenge, and configure approval mode, spend
   limits, protocol allowlist, and mint allowlist
-- edit the remote policy mode
-- review pending, blocked, approved, and rejected live agent requests
+- edit the remote policy mode for each active agent
+- review pending live agent requests without duplicating the selected request
 - approve a pending request through a devnet SkillGuard `record_decision` transaction
 - post approval metadata back to the API with transaction signature and receipt address
 - reject a pending request through the API with wallet-owner proof
 - revoke the connected agent through the API with wallet-owner proof and block future requests
+- see expired open manifests as expired history items, not actionable pending requests
 - tap a native notification to refresh the live inbox and select the referenced
   action
 - show decision receipts, manifest hashes, and Explorer links when signatures exist

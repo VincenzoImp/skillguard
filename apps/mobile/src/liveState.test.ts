@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getBlockedActions,
+  getHistoryActions,
   getPendingActions,
   getSelectedAction,
   selectAction,
@@ -99,7 +100,7 @@ describe("mobile live state mapping", () => {
     );
   });
 
-  it("keeps every connected agent visible and chooses the first active agent as primary", () => {
+  it("keeps only active agents visible and chooses the first active agent as primary", () => {
     const state = toMobileState({
       actions: [],
       connections: [
@@ -129,7 +130,6 @@ describe("mobile live state mapping", () => {
     });
 
     expect(state.agents.map((agent) => [agent.id, agent.status])).toEqual([
-      ["agent-revoked", "revoked"],
       ["agent-payments", "active"],
     ]);
     expect(state.agent?.id).toBe("agent-payments");
@@ -163,7 +163,7 @@ describe("mobile live state mapping", () => {
     expect(state.agent?.description).toBe("Payment automation approvals.");
   });
 
-  it("shows revoked agents and blocks failed policy results", () => {
+  it("hides revoked agents and keeps blocked failed policy results in history", () => {
     const state = toMobileState({
       actions: [
         {
@@ -200,9 +200,47 @@ describe("mobile live state mapping", () => {
       ],
     });
 
-    expect(state.agent?.status).toBe("revoked");
+    expect(state.agent).toBeNull();
+    expect(state.agents).toEqual([]);
     expect(getPendingActions(state)).toHaveLength(0);
+    expect(getHistoryActions(state)).toHaveLength(1);
     expect(getBlockedActions(state)[0].decisionReason).toBe("Spend exceeds policy limit.");
+  });
+
+  it("treats unrecorded expired manifests as expired instead of pending", () => {
+    const state = toMobileState(
+      {
+        actions: [
+          {
+            actionId: "action-expired",
+            connectionId: "conn-live",
+            decisionStatus: null,
+            manifest: {
+              ...manifest,
+              actionId: "action-expired",
+              expiresAt: 1_800_000_010,
+            },
+            policyResult: null,
+          },
+        ],
+        connections: [
+          {
+            agentId: "agent-research",
+            connectionId: "conn-live",
+            policy,
+            userWallet,
+          },
+        ],
+      },
+      { now: 1_800_000_011 }
+    );
+
+    expect(state.actions[0].status).toBe("expired");
+    expect(state.actions[0].decisionReason).toBe("Agent request expired.");
+    expect(getPendingActions(state)).toHaveLength(0);
+    expect(getHistoryActions(state).map((action) => action.id)).toEqual([
+      "action-expired",
+    ]);
   });
 
   it("keeps empty live state explicit when no agent request exists yet", () => {

@@ -64,6 +64,10 @@ export interface SkillGuardMobileState {
   actions: MobileAction[];
 }
 
+export interface ToMobileStateOptions {
+  now?: number;
+}
+
 export interface ApiConnectionRecord {
   connectionId: string;
   agentId: string;
@@ -95,25 +99,29 @@ export const emptyMobileState: SkillGuardMobileState = {
   selectedActionId: null,
 };
 
-export function toMobileState({
-  actions,
-  agents: apiAgents = [],
-  connections,
-}: {
-  actions: ApiActionRecord[];
-  agents?: ApiAgentRecord[];
-  connections: ApiConnectionRecord[];
-}): SkillGuardMobileState {
+export function toMobileState(
+  {
+    actions,
+    agents: apiAgents = [],
+    connections,
+  }: {
+    actions: ApiActionRecord[];
+    agents?: ApiAgentRecord[];
+    connections: ApiConnectionRecord[];
+  },
+  options: ToMobileStateOptions = {}
+): SkillGuardMobileState {
+  const now = options.now ?? currentUnixSeconds();
   const agentMetadata = new Map(apiAgents.map((agent) => [agent.agentId, agent]));
   const toAgent = (connection: ApiConnectionRecord) =>
     toConnectedAgent(connection, agentMetadata.get(connection.agentId));
-  const agents = connections.map(toAgent);
-  const primaryConnection =
-    connections.find((connection) => !connection.policy.revoked) ?? connections[0] ?? null;
+  const activeConnections = connections.filter(isActiveConnection);
+  const agents = activeConnections.map(toAgent);
+  const primaryConnection = activeConnections[0] ?? null;
   const mobileActions = actions
     .slice()
     .sort((left, right) => right.manifest.createdAt - left.manifest.createdAt)
-    .map(toMobileAction);
+    .map((action) => toMobileAction(action, now));
 
   return {
     actions: mobileActions,
@@ -143,6 +151,10 @@ export function getBlockedActions(state: SkillGuardMobileState): MobileAction[] 
   return state.actions.filter((action) => action.status === "blocked");
 }
 
+export function getHistoryActions(state: SkillGuardMobileState): MobileAction[] {
+  return state.actions.filter((action) => action.status !== "pending");
+}
+
 export function selectAction(
   state: SkillGuardMobileState,
   actionId: string
@@ -154,6 +166,10 @@ export function selectAction(
     ...state,
     selectedActionId: actionId,
   };
+}
+
+function isActiveConnection(connection: ApiConnectionRecord): boolean {
+  return connection.policy.active && !connection.policy.revoked;
 }
 
 function toConnectedAgent(
@@ -192,17 +208,17 @@ function formatLamports(value: string): string {
   return `${whole}.${fraction.toString().padStart(9, "0").replace(/0+$/, "")}`;
 }
 
-function toMobileAction(action: ApiActionRecord): MobileAction {
-  const status = action.decisionStatus ?? "pending";
+function toMobileAction(action: ApiActionRecord, now: number): MobileAction {
+  const status = action.decisionStatus ?? statusForOpenAction(action.manifest, now);
   const policyResult = action.policyResult;
   const manifest = action.manifest;
   const risk = riskTone(policyResult?.riskLevel ?? highestManifestRisk(manifest));
 
   return {
     agentId: manifest.agentId,
-    checks: checksForAction(action),
+    checks: checksForAction(action, status),
     connectionId: action.connectionId,
-    decisionReason: decisionReason(action),
+    decisionReason: decisionReason(action, status),
     id: action.actionId,
     manifest,
     manifestHash: policyResult?.manifestHash ?? action.actionId,
@@ -221,7 +237,11 @@ function toMobileAction(action: ApiActionRecord): MobileAction {
   };
 }
 
-function checksForAction(action: ApiActionRecord): PolicyCheck[] {
+function statusForOpenAction(manifest: ActionManifest, now: number): ActionStatus {
+  return manifest.expiresAt <= now ? "expired" : "pending";
+}
+
+function checksForAction(action: ApiActionRecord, status: ActionStatus): PolicyCheck[] {
   const checks: PolicyCheck[] = [];
   const result = action.policyResult;
 
@@ -240,6 +260,15 @@ function checksForAction(action: ApiActionRecord): PolicyCheck[] {
   }
 
   if (!result) {
+    if (status === "expired") {
+      checks.push({
+        detail: "The approval window closed before the wallet owner decided.",
+        label: "Manifest expired",
+        tone: "danger",
+      });
+      return checks;
+    }
+
     checks.push({
       detail: "The API has not returned a policy result for this request yet.",
       label: "Awaiting policy evaluation",
@@ -341,7 +370,10 @@ function policyReasonCheck(reason: string): PolicyCheck {
   };
 }
 
-function decisionReason(action: ApiActionRecord): string | undefined {
+function decisionReason(
+  action: ApiActionRecord,
+  status: ActionStatus
+): string | undefined {
   if (action.decisionStatus === "approved" && action.decisionSignature) {
     return "Approved by wallet owner.";
   }
@@ -361,6 +393,9 @@ function decisionReason(action: ApiActionRecord): string | undefined {
     return "Blocked by policy.";
   }
   if (action.decisionStatus === "expired") {
+    return "Agent request expired.";
+  }
+  if (status === "expired") {
     return "Agent request expired.";
   }
   return undefined;
@@ -389,4 +424,8 @@ function relativeCreatedAt(createdAt: number): string {
   if (deltaSeconds < 3600) return `${Math.floor(deltaSeconds / 60)} min ago`;
   if (deltaSeconds < 86_400) return `${Math.floor(deltaSeconds / 3600)} hr ago`;
   return `${Math.floor(deltaSeconds / 86_400)} days ago`;
+}
+
+function currentUnixSeconds(): number {
+  return Math.floor(Date.now() / 1000);
 }

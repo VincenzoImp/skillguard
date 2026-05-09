@@ -71,6 +71,7 @@ describe("mobile app navigation model", () => {
 
     expect(tabs.find((tab) => tab.id === "inbox")?.badge).toBe("1");
     expect(tabs.find((tab) => tab.id === "agents")?.badge).toBe("1");
+    expect(tabs.find((tab) => tab.id === "activity")?.badge).toBe("1");
     expect(tabs.find((tab) => tab.id === "home")?.isPrimary).toBe(true);
   });
 
@@ -132,6 +133,7 @@ describe("mobile app navigation model", () => {
     ).toEqual({
       activeAgents: 1,
       blockedActions: 1,
+      historyActions: 2,
       pendingActions: 1,
       totalActions: 3,
     });

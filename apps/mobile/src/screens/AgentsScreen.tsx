@@ -9,10 +9,15 @@ interface AgentsScreenProps {
 }
 
 export function AgentsScreen({ agents, onRevoke }: AgentsScreenProps) {
+  const activeAgents = agents.filter((agent) => agent.status === "active");
+
   return (
     <View style={styles.panel}>
       <Text style={styles.kicker}>Connected agents</Text>
-      {agents.map((agent) => (
+      {activeAgents.length === 0 ? (
+        <Text style={styles.body}>No active agent connections for this wallet.</Text>
+      ) : null}
+      {activeAgents.map((agent) => (
         <AgentRow agent={agent} key={agent.connectionId} onRevoke={onRevoke} />
       ))}
     </View>
@@ -26,8 +31,6 @@ function AgentRow({
   agent: ConnectedAgent;
   onRevoke: (connectionId: string) => void;
 }) {
-  const isRevoked = agent.status === "revoked";
-
   return (
     <View style={styles.agentCard}>
       <View style={styles.topRow}>
@@ -36,8 +39,8 @@ function AgentRow({
           <Text style={styles.body}>{agent.description}</Text>
         </View>
         <StatusBadge
-          label={isRevoked ? "Revoked" : "Active"}
-          tone={isRevoked ? "danger" : "safe"}
+          label="Active"
+          tone="safe"
         />
       </View>
       <View style={styles.metaGrid}>
@@ -50,17 +53,13 @@ function AgentRow({
       </View>
       <Pressable
         accessibilityRole="button"
-        disabled={isRevoked}
         onPress={() => onRevoke(agent.connectionId)}
         style={({ pressed }) => [
           styles.revokeButton,
-          isRevoked ? styles.disabledButton : null,
-          pressed && !isRevoked ? styles.pressed : null,
+          pressed ? styles.pressed : null,
         ]}
       >
-        <Text style={styles.revokeText}>
-          {isRevoked ? "Agent revoked" : "Revoke agent"}
-        </Text>
+        <Text style={styles.revokeText}>Revoke agent</Text>
       </Pressable>
     </View>
   );
@@ -85,7 +84,6 @@ const styles = StyleSheet.create({
   },
   body: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   copy: { flex: 1, gap: 5 },
-  disabledButton: { opacity: 0.45 },
   infoCell: { flex: 1, gap: 4 },
   infoLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
   infoValue: { color: colors.text, fontSize: 14, fontWeight: "700" },

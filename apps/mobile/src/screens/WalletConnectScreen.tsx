@@ -28,13 +28,14 @@ import { buildApprovalTransaction } from "../buildApprovalTransaction";
 import { StatusBadge } from "../components/StatusBadge";
 import { registerSkillGuardDevicePushToken } from "../expoPushNotifications";
 import { buildAgentPolicyInput, parseAgentPairingInput } from "../agentPolicyForm";
+import { buildInboxPresentation } from "../inboxPresentation";
 import { createSkillGuardApiClient } from "../liveApi";
 import {
   emptyMobileState,
   getSelectedAction,
   selectAction,
 } from "../liveState";
-import type { AgentPolicy, PolicyMode, SkillGuardMobileState } from "../liveState";
+import type { PolicyMode, SkillGuardMobileState } from "../liveState";
 import {
   buildSkillGuardApprovalInstructions,
   deriveSkillGuardAccounts,
@@ -92,7 +93,6 @@ export function WalletConnectScreen({
     if (!address) return "No wallet";
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   }, [address]);
-  const selectedAction = getSelectedAction(mobileState);
   const summary = buildDashboardSummary(mobileState);
   const tabs = buildTabItems(mobileState, Boolean(address));
 
@@ -441,8 +441,11 @@ export function WalletConnectScreen({
     }
   }
 
-  async function handlePolicyModeChange(mode: PolicyMode) {
-    if (!address || !mobileState.agent) {
+  async function handlePolicyModeChange(connectionId: string, mode: PolicyMode) {
+    const agent = mobileState.agents.find(
+      (item) => item.connectionId === connectionId && item.status === "active"
+    );
+    if (!address || !agent) {
       setStatus("Connect a wallet before editing permissions");
       return;
     }
@@ -450,8 +453,8 @@ export function WalletConnectScreen({
     setIsBusy(true);
     try {
       await apiClient.updatePolicyMode(
-        mobileState.agent.connectionId,
-        mobileState.agent.rawPolicy,
+        agent.connectionId,
+        agent.rawPolicy,
         mode,
         address,
         signMessage
@@ -553,7 +556,6 @@ export function WalletConnectScreen({
               onApprove={handleSignProbe}
               onReject={handleRejectSelected}
               onSelectAction={handleSelectAction}
-              selectedAction={selectedAction}
               selectedActionId={mobileState.selectedActionId}
             />
           ) : null}
@@ -564,7 +566,6 @@ export function WalletConnectScreen({
               onGoPairing={() => setActiveTab("pairing")}
               onModeChange={handlePolicyModeChange}
               onRevoke={revokeConnection}
-              policy={mobileState.agent?.policy ?? null}
             />
           ) : null}
           {activeTab === "pairing" ? (
@@ -681,7 +682,7 @@ function HomePage({
         <MetricCard label="Pending" value={summary.pendingActions.toString()} tone="warning" />
         <MetricCard label="Agents" value={summary.activeAgents.toString()} tone="safe" />
         <MetricCard label="Blocked" value={summary.blockedActions.toString()} tone="danger" />
-        <MetricCard label="Actions" value={summary.totalActions.toString()} tone="info" />
+        <MetricCard label="History" value={summary.historyActions.toString()} tone="info" />
       </View>
 
       <View style={styles.walletPanel}>
@@ -727,7 +728,6 @@ function InboxPage({
   onApprove,
   onReject,
   onSelectAction,
-  selectedAction,
   selectedActionId,
 }: {
   actions: SkillGuardMobileState["actions"];
@@ -735,29 +735,68 @@ function InboxPage({
   onApprove: () => void;
   onReject: () => void;
   onSelectAction: (actionId: string) => void;
-  selectedAction: SkillGuardMobileState["actions"][number] | null;
   selectedActionId: string | null;
 }) {
+  const inbox = buildInboxPresentation(actions, selectedActionId);
+
   return (
     <View style={styles.pageStack}>
-      <InboxScreen
-        actions={actions}
-        selectedActionId={selectedActionId}
-        onSelectAction={onSelectAction}
-      />
-      {selectedAction ? (
+      {inbox.selectedAction ? (
         <ActionDetailScreen
-          action={selectedAction}
+          action={inbox.selectedAction}
           isBusy={isBusy}
           onApprove={onApprove}
           onReject={onReject}
         />
       ) : (
-        <EmptyPanel
-          title="No action selected"
-          body="Live requests appear after a paired agent submits an action for this wallet."
+        <InboxScreen
+          actions={[]}
+          selectedActionId={null}
+          onSelectAction={onSelectAction}
         />
       )}
+      {inbox.queueActions.length > 0 ? (
+        <PendingQueue actions={inbox.queueActions} onSelectAction={onSelectAction} />
+      ) : null}
+      {inbox.selectedAction && inbox.pendingCount === 1 ? (
+        <Text style={styles.queueHint}>No other pending requests for this wallet.</Text>
+      ) : null}
+    </View>
+  );
+}
+
+function PendingQueue({
+  actions,
+  onSelectAction,
+}: {
+  actions: SkillGuardMobileState["actions"];
+  onSelectAction: (actionId: string) => void;
+}) {
+  return (
+    <View style={styles.queuePanel}>
+      <View>
+        <Text style={styles.panelLabel}>Pending queue</Text>
+        <Text style={styles.queueTitle}>Other requests</Text>
+      </View>
+      {actions.map((action) => (
+        <Pressable
+          accessibilityRole="button"
+          key={action.id}
+          onPress={() => onSelectAction(action.id)}
+          style={({ pressed }) => [
+            styles.queueRow,
+            pressed ? styles.pressedButton : null,
+          ]}
+        >
+          <View style={styles.queueCopy}>
+            <Text style={styles.queueActionTitle}>{action.title}</Text>
+            <Text style={styles.queueMeta}>
+              {action.spend} | {action.requestedAt}
+            </Text>
+          </View>
+          <Text style={styles.queueArrow}>Open</Text>
+        </Pressable>
+      ))}
     </View>
   );
 }
@@ -768,14 +807,12 @@ function AgentsPage({
   onGoPairing,
   onModeChange,
   onRevoke,
-  policy,
 }: {
   agents: SkillGuardMobileState["agents"];
   connected: boolean;
   onGoPairing: () => void;
-  onModeChange: (mode: PolicyMode) => void;
+  onModeChange: (connectionId: string, mode: PolicyMode) => void;
   onRevoke: (connectionId: string) => void;
-  policy: AgentPolicy | null;
 }) {
   if (!connected) {
     return (
@@ -801,9 +838,7 @@ function AgentsPage({
   return (
     <View style={styles.pageStack}>
       <AgentsScreen agents={agents} onRevoke={onRevoke} />
-      {policy ? (
-        <PermissionEditorScreen policy={policy} onModeChange={onModeChange} />
-      ) : null}
+      <PermissionEditorScreen agents={agents} onModeChange={onModeChange} />
     </View>
   );
 }
@@ -1420,6 +1455,39 @@ const styles = StyleSheet.create({
   },
   quickGrid: { flexDirection: "row", gap: 10 },
   quickLabel: { color: colors.text, fontSize: 17, fontWeight: "800" },
+  queueActionTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 20,
+  },
+  queueArrow: { color: colors.mint, fontSize: 12, fontWeight: "900" },
+  queueCopy: { flex: 1, gap: 4 },
+  queueHint: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  queueMeta: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
+  queuePanel: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+    padding: 18,
+  },
+  queueRow: {
+    alignItems: "center",
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    minHeight: 58,
+    paddingTop: 12,
+  },
+  queueTitle: { color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 5 },
   qrPairingBody: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   qrPairingPanel: {
     backgroundColor: "rgba(0,240,168,0.07)",

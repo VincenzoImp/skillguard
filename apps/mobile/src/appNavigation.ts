@@ -1,4 +1,8 @@
-import { getBlockedActions, getPendingActions } from "./liveState";
+import {
+  getBlockedActions,
+  getHistoryActions,
+  getPendingActions,
+} from "./liveState";
 import type { SkillGuardMobileState } from "./liveState";
 
 export type AppTabId = "home" | "inbox" | "agents" | "pairing" | "activity";
@@ -13,6 +17,7 @@ export interface AppTabItem {
 export interface DashboardSummary {
   activeAgents: number;
   blockedActions: number;
+  historyActions: number;
   pendingActions: number;
   totalActions: number;
 }
@@ -31,6 +36,7 @@ export function buildDashboardSummary(
   return {
     activeAgents: state.agents.filter((agent) => agent.status === "active").length,
     blockedActions: getBlockedActions(state).length,
+    historyActions: getHistoryActions(state).length,
     pendingActions: getPendingActions(state).length,
     totalActions: state.actions.length,
   };
@@ -42,8 +48,8 @@ export function buildTabItems(
 ): AppTabItem[] {
   const summary = buildDashboardSummary(state);
   const badges: Partial<Record<AppTabId, string>> = {
-    activity: summary.totalActions > 0 ? String(summary.totalActions) : undefined,
-    agents: state.agents.length > 0 ? String(state.agents.length) : undefined,
+    activity: summary.historyActions > 0 ? String(summary.historyActions) : undefined,
+    agents: summary.activeAgents > 0 ? String(summary.activeAgents) : undefined,
     inbox: summary.pendingActions > 0 ? String(summary.pendingActions) : undefined,
   };
 

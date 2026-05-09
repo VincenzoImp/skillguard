@@ -17,11 +17,14 @@ The app uses five persistent tabs:
 
 - `Home`: wallet session status, live API badges, counters, connect, disconnect,
   refresh, and primary shortcuts
-- `Inbox`: live action manifests and selected action detail
-- `Agents`: active/revoked agent inventory and policy mode editing
+- `Inbox`: pending action detail, with only other pending requests shown in a
+  compact queue so the selected request is not duplicated
+- `Agents`: active agent inventory, revoke action, and per-agent policy mode
+  editing; revoked connections disappear from the active inventory
 - `Pair`: default QR scanner, pairing-link fallback, public key, purpose,
   limits, protocols, and mints
-- `Activity`: completed decisions and Explorer links when signatures exist
+- `Activity`: completed, blocked, rejected, and expired decisions plus Explorer
+  links when signatures exist
 
 This keeps the wallet approval workflow dense but not crowded. Each tab maps to
 one user job instead of making the user scroll through every control.
@@ -34,6 +37,12 @@ one user job instead of making the user scroll through every control.
 - Approving or rejecting a request routes to `Activity` after the API state
   refreshes.
 - Importing or revoking an agent routes to `Agents`.
+- Pending requests are not counted in `Activity`; that badge only counts final
+  decisions.
+- Expired open manifests are shown as expired decisions, not as actionable
+  pending requests.
+- Permission controls are scoped to the specific active agent shown on each
+  policy card.
 - QR pairing only fills agent identity fields; pairing still requires a
   wallet-owner sign-message proof before the API creates a connection.
 - Wallet-specific reads require a wallet session token created by sign-message.
@@ -63,6 +72,9 @@ The mobile app keeps the SkillGuard dark security console direction:
 ## Verification
 
 The navigation model is covered by `apps/mobile/src/appNavigation.test.ts`.
+Inbox and permission presentation rules are covered by
+`apps/mobile/src/inboxPresentation.test.ts` and
+`apps/mobile/src/permissionPresentation.test.ts`.
 Mobile verification commands:
 
 ```bash

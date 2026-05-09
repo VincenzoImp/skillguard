@@ -1,52 +1,73 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { AgentPolicy, PolicyMode } from "../liveState";
+import type { ConnectedAgent, PolicyMode } from "../liveState";
+import { buildPermissionCards } from "../permissionPresentation";
 import { colors, labelForPolicyMode } from "../theme";
 
 interface PermissionEditorScreenProps {
-  policy: AgentPolicy;
-  onModeChange: (mode: PolicyMode) => void;
+  agents: ConnectedAgent[];
+  onModeChange: (connectionId: string, mode: PolicyMode) => void;
 }
 
 const modes: PolicyMode[] = ["ask_every_time", "allow_under_limits", "block"];
 
 export function PermissionEditorScreen({
+  agents,
   onModeChange,
-  policy,
 }: PermissionEditorScreenProps) {
+  const cards = buildPermissionCards(agents);
+
+  if (cards.length === 0) {
+    return (
+      <View style={styles.panel}>
+        <View>
+          <Text style={styles.kicker}>Permissions</Text>
+          <Text style={styles.title}>No active policies</Text>
+        </View>
+        <Text style={styles.subtitle}>
+          Import an agent to create wallet-scoped permissions.
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.panel}>
-      <View>
-        <Text style={styles.kicker}>Permissions</Text>
-        <Text style={styles.title}>Wallet policy</Text>
-      </View>
-      <View style={styles.segmented}>
-        {modes.map((mode) => {
-          const isActive = policy.mode === mode;
-          return (
-            <Pressable
-              accessibilityRole="button"
-              key={mode}
-              onPress={() => onModeChange(mode)}
-              style={[styles.segment, isActive ? styles.segmentActive : null]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  isActive ? styles.segmentTextActive : null,
-                ]}
-              >
-                {labelForPolicyMode(mode)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View style={styles.ruleList}>
-        <Rule label="Spend limit" value={policy.spendLimit} />
-        <Rule label="Network" value={policy.network} />
-        <Rule label="Protocols" value={policy.allowedProtocols.join(", ")} />
-        <Rule label="Allowed actions" value={policy.permissions.join(", ")} />
-      </View>
+    <View style={styles.stack}>
+      {cards.map((card) => (
+        <View key={card.connectionId} style={styles.panel}>
+          <View>
+            <Text style={styles.kicker}>Permissions</Text>
+            <Text style={styles.title}>{card.agentName}</Text>
+            <Text style={styles.subtitle}>{card.description}</Text>
+          </View>
+          <View style={styles.segmented}>
+            {modes.map((mode) => {
+              const isActive = card.mode === mode;
+              return (
+                <Pressable
+                  accessibilityRole="button"
+                  key={mode}
+                  onPress={() => onModeChange(card.connectionId, mode)}
+                  style={[styles.segment, isActive ? styles.segmentActive : null]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      isActive ? styles.segmentTextActive : null,
+                    ]}
+                  >
+                    {labelForPolicyMode(mode)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={styles.ruleList}>
+            {card.rules.map((rule) => (
+              <Rule key={rule.label} label={rule.label} value={rule.value} />
+            ))}
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
@@ -107,6 +128,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     padding: 4,
+  },
+  stack: { gap: 14 },
+  subtitle: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 7,
   },
   title: { color: colors.text, fontSize: 19, fontWeight: "800", marginTop: 5 },
 });
