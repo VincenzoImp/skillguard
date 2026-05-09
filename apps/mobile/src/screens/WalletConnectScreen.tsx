@@ -1,7 +1,8 @@
 import "../polyfills";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AppState,
   Image,
   Pressable,
   SafeAreaView,
@@ -31,6 +32,12 @@ import { registerSkillGuardDevicePushToken } from "../expoPushNotifications";
 import { buildAgentPolicyInput, parseAgentPairingInput } from "../agentPolicyForm";
 import { buildInboxPresentation } from "../inboxPresentation";
 import { createSkillGuardApiClient } from "../liveApi";
+import {
+  firstNewPendingAction,
+  LIVE_REFRESH_INTERVAL_MS,
+  liveRefreshStatus,
+  shouldOpenInboxForNewPending,
+} from "../liveRefresh";
 import {
   emptyMobileState,
   getSelectedAction,
@@ -95,6 +102,17 @@ export function WalletConnectScreen({
   }, [address]);
   const summary = buildDashboardSummary(mobileState);
   const tabs = buildTabItems(mobileState, Boolean(address));
+  const activeTabRef = useRef(activeTab);
+  const isBusyRef = useRef(isBusy);
+  const isPairingScannerOpenRef = useRef(isPairingScannerOpen);
+  const mobileStateRef = useRef(mobileState);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    isBusyRef.current = isBusy;
+    isPairingScannerOpenRef.current = isPairingScannerOpen;
+    mobileStateRef.current = mobileState;
+  }, [activeTab, isBusy, isPairingScannerOpen, mobileState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,6 +194,75 @@ export function WalletConnectScreen({
       cancelled = true;
     };
   }, [address, notificationActionId]);
+
+  useEffect(() => {
+    if (!address) {
+      return;
+    }
+    const userWallet = address;
+
+    let cancelled = false;
+    let inFlight = false;
+
+    async function refreshFromLiveFeed() {
+      if (inFlight || isBusyRef.current) {
+        return;
+      }
+
+      inFlight = true;
+      const previousState = mobileStateRef.current;
+      try {
+        const nextState = await refreshWalletState(userWallet);
+        if (cancelled) {
+          return;
+        }
+
+        const newPendingAction = firstNewPendingAction(previousState, nextState);
+        if (!newPendingAction) {
+          return;
+        }
+
+        const selectedState = selectAction(nextState, newPendingAction.id);
+        setMobileState(selectedState);
+        mobileStateRef.current = selectedState;
+        if (
+          shouldOpenInboxForNewPending({
+            activeTab: activeTabRef.current,
+            isBusy: isBusyRef.current,
+            isPairingScannerOpen: isPairingScannerOpenRef.current,
+          })
+        ) {
+          setActiveTab("inbox");
+        }
+        setStatus(liveRefreshStatus(newPendingAction));
+      } catch (error) {
+        if (!cancelled) {
+          setStatus(readError(error));
+        }
+      } finally {
+        inFlight = false;
+      }
+    }
+
+    const interval = setInterval(() => {
+      void refreshFromLiveFeed();
+    }, LIVE_REFRESH_INTERVAL_MS);
+    const appStateSubscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        void refreshFromLiveFeed();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      appStateSubscription.remove();
+    };
+  }, [
+    address,
+    pushRegistration,
+    walletSession,
+  ]);
 
   async function refreshWalletState(userWallet: string) {
     const sessionToken = await ensureWalletSession(userWallet);
@@ -533,6 +620,7 @@ export function WalletConnectScreen({
           addressLabel={shortAddress}
           isConnected={Boolean(account)}
         />
+        <LiveStatusBar status={status} />
         <ScrollView contentContainerStyle={styles.content}>
           {activeTab === "home" ? (
             <HomePage
@@ -603,6 +691,17 @@ export function WalletConnectScreen({
         <TabBar activeTab={activeTab} onChange={setActiveTab} tabs={tabs} />
       </View>
     </SafeAreaView>
+  );
+}
+
+function LiveStatusBar({ status }: { status: string }) {
+  return (
+    <View style={styles.liveStatusBar}>
+      <View style={styles.liveStatusDot} />
+      <Text numberOfLines={2} style={styles.liveStatusText}>
+        {status}
+      </Text>
+    </View>
   );
 }
 
@@ -1348,6 +1447,30 @@ const styles = StyleSheet.create({
   },
   heroTopRow: { flexDirection: "row", gap: 8 },
   icon: { height: 44, width: 44 },
+  liveStatusBar: {
+    alignItems: "center",
+    backgroundColor: colors.deep,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    gap: 9,
+    minHeight: 42,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+  },
+  liveStatusDot: {
+    backgroundColor: colors.mint,
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  liveStatusText: {
+    color: colors.textSecondary,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 16,
+  },
   input: {
     backgroundColor: colors.deep,
     borderColor: colors.border,
