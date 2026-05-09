@@ -1,0 +1,21 @@
+{
+  "name": "skillguard-vercel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix packages/protocol run build && npm --prefix apps/site run build",
+    "vercel:build": "npm --prefix packages/protocol ci && npm --prefix packages/protocol run build && npm --prefix apps/site ci && npm --prefix apps/site run build"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.7",
+    "@skillguard/protocol": "file:packages/protocol",
+    "hono": "^4.12.3"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

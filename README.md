@@ -249,6 +249,7 @@ assets/
 - [Demo](docs/DEMO.md)
 - [Submission Checklist](docs/SUBMISSION.md)
 - [Design System](docs/DESIGN_SYSTEM.md)
+- [Vercel Deployment](docs/VERCEL.md)
 - [Operating Protocol](docs/OPERATING_PROTOCOL.md)
 - [MVP Implementation Plan](docs/superpowers/plans/2026-05-08-skillguard-mvp.md)
 
