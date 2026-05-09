@@ -428,6 +428,64 @@ describe("Vercel API handler", () => {
     expect(response.body.error).toBe("connection_id_conflict");
   });
 
+  test("keeps a newly registered research agent until the wallet connection is created", async () => {
+    let stored: string | null = null;
+    process.env.KV_REST_API_TOKEN = "test-token";
+    process.env.KV_REST_API_URL = "https://redis.test";
+    globalThis.fetch = async (_input, init) => {
+      const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
+      if (command[0] === "GET") {
+        return jsonRedisResponse(stored);
+      }
+      if (command[0] === "SET") {
+        stored = String(command[2]);
+        return jsonRedisResponse("OK");
+      }
+      throw new Error(`Unexpected Redis command ${command[0]}`);
+    };
+
+    const agentResponse = await callHandler("POST", "/api/agents", {
+      agentId: "agent-research",
+      description: "Solana research agent that requests wallet-safe actions.",
+      name: "Research Agent",
+    });
+    expect(agentResponse.status).toBe(201);
+
+    const connectionResponse = await callHandler("POST", "/api/connections", {
+      agentId: "agent-research",
+      connectionId: "conn-agent-research-Wallet111",
+      policy: {
+        active: true,
+        agentId: "agent-research",
+        allowedMints: ["SOL", "USDC"],
+        allowedNetworks: ["solana-devnet"],
+        allowedProtocols: ["helius", "birdeye"],
+        dailySpendCapAtomic: "5000000",
+        expiresAt: 4_100_000_000,
+        maxSpendAtomic: "1000000",
+        mode: "ask_every_time",
+        policyId: "policy-agent-research-Wallet111",
+        revoked: false,
+        userWallet: "Wallet111",
+      },
+      userWallet: "Wallet111",
+    });
+
+    expect(connectionResponse.status).toBe(201);
+    expect(await callHandler("GET", "/api/agents")).toEqual({
+      body: {
+        agents: [
+          {
+            agentId: "agent-research",
+            description: "Solana research agent that requests wallet-safe actions.",
+            name: "Research Agent",
+          },
+        ],
+      },
+      status: 200,
+    });
+  });
+
   test("persists durable mutations before sending production responses", async () => {
     const events: string[] = [];
     process.env.KV_REST_API_TOKEN = "test-token";

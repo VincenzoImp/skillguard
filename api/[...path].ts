@@ -136,7 +136,11 @@ function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
     if (removedAgentIds.has(agent.agentId) && !referencedAgentIds.has(agent.agentId)) {
       return false;
     }
-    return !(agent.agentId === "agent-research" && !referencedAgentIds.has(agent.agentId));
+    return !(
+      agent.agentId === "agent-research" &&
+      agent.description.includes("Demo Solana") &&
+      !referencedAgentIds.has(agent.agentId)
+    );
   });
   const nextSnapshot = {
     actions: sanitized.actions,
