@@ -11,7 +11,7 @@ PROGRAM_ID="HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam"
 MWA_SIGNATURE="5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF"
 REPOSITORY_URL="https://github.com/VincenzoImp/skillguard.git"
 PUBLIC_SITE_URL="https://vincenzoimp.github.io/skillguard/"
-VERCEL_SITE_URL="https://skillguard-xi.vercel.app/"
+VERCEL_SITE_URL="https://skillguard-sol.vercel.app/"
 
 check_file() {
   local path="$1"
@@ -68,15 +68,13 @@ check_text "$PUBLIC_SITE_URL" docs/ROADMAP.md
 check_text "SKILLGUARD_ANDROID_BUILD_PROFILE=release" README.md
 check_text "build/mobile/skillguard-release-signed.apk" README.md
 check_text ".github/workflows/deploy-site.yml" README.md
-check_text ".github/workflows/deploy-vercel.yml" README.md
 check_text "KV_REST_API_URL" docs/VERCEL.md
+check_text "connected Git integration" README.md
 check_text "Final owner-controlled upload keystore generated outside git" README.md
 check_text "Target length: under 3 minutes." docs/DEMO.md
 check_text "password manager backup of the final upload keystore and signing env" docs/ROADMAP.md
 check_file ".github/workflows/deploy-site.yml" \
   "Restore the GitHub Pages deployment workflow."
-check_file ".github/workflows/deploy-vercel.yml" \
-  "Restore the Vercel deployment workflow."
 
 echo
 echo "==> Submission artifact checks"

@@ -4,19 +4,24 @@ import {
   ChevronRight,
   CircleDot,
   Code2,
+  Database,
   ExternalLink,
   FileCheck2,
+  Globe2,
   LockKeyhole,
   Radio,
+  Server,
   ShieldAlert,
   ShieldCheck,
   Smartphone,
+  Terminal,
   WalletCards,
   XCircle,
   type LucideIcon,
 } from "lucide-react";
 import iconMark from "../../../assets/brand/icon.png";
 import wordmark from "../../../assets/brand/wordmark.png";
+import { liveApiBaseUrl, liveApiCurlExamples, liveApiEndpoints, liveSiteUrl } from "./liveApi";
 import { roadmapItems, type RoadmapStatus } from "./submissionStatus";
 
 type Decision = "pending" | "approved" | "rejected" | "revoked";
@@ -29,6 +34,7 @@ const navItems = [
   ["Architecture", "#architecture"],
   ["Demo", "#demo"],
   ["Developers", "#developers"],
+  ["API", "#api"],
 ];
 
 const proofPoints = [
@@ -191,6 +197,7 @@ function App() {
         <DemoSection />
         <ArchitectureSection />
         <DeveloperSection />
+        <LiveApiSection />
         <SecuritySection />
         <BrandSystemSection />
         <RoadmapSection />
@@ -433,6 +440,76 @@ const decision = await client.onDecision(action.actionId);`}</code>
           <DeveloperTile title="Policy result" value="pass, requires_approval, or fail" />
           <DeveloperTile title="User channel" value="Android approval inbox" />
           <DeveloperTile title="Output" value="Decision and receipt hash" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LiveApiSection() {
+  return (
+    <section id="api" className="scroll-mt-28">
+      <SectionHeader
+        kicker="Live API"
+        title="The hosted project is a product site and an agent API."
+        text="Agents, the Android app, and local demo scripts can all target the same Vercel domain. The health response exposes whether the hosted API is using durable KV/Upstash storage or temporary memory."
+      />
+      <div className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
+          <div className="flex items-center gap-3">
+            <Globe2 className="h-5 w-5 text-brand-mint" />
+            <h3 className="text-lg font-semibold">Hosted surface</h3>
+          </div>
+          <div className="mt-5 divide-y divide-border-subtle border-y border-border-subtle">
+            <LiveApiFact icon={Server} label="Site" value={liveSiteUrl} />
+            <LiveApiFact icon={Database} label="API base" value={liveApiBaseUrl} />
+            <LiveApiFact icon={ShieldCheck} label="Durable mode" value='Health returns storage: "upstash"' />
+          </div>
+          <div className="mt-5 border-t border-status-warning/30 pt-4">
+            <p className="text-sm font-semibold text-status-warning">Storage gate</p>
+            <p className="mt-2 text-sm leading-6 text-text-secondary">
+              Hosted demo flows need Vercel KV or Upstash Redis env vars. Without them, the API stays usable for
+              single requests but health reports memory storage.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border-subtle bg-bg-900/76 p-5">
+          <div className="flex items-center gap-3">
+            <Terminal className="h-5 w-5 text-brand-blue" />
+            <h3 className="text-lg font-semibold">Agent integration commands</h3>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {liveApiCurlExamples.map((example) => (
+              <div key={example.title} className="rounded-lg border border-border-subtle bg-bg-950/80 p-4">
+                <p className="text-sm font-semibold text-text-primary">{example.title}</p>
+                <pre className="mt-3 overflow-x-auto font-mono text-xs leading-5 text-brand-mint">
+                  <code>{example.command}</code>
+                </pre>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-border-subtle bg-surface-900/70 p-5">
+        <div className="flex items-center gap-3">
+          <Code2 className="h-5 w-5 text-brand-mint" />
+          <h3 className="text-lg font-semibold">Endpoints exposed for the demo</h3>
+        </div>
+        <div className="mt-4 grid gap-2">
+          {liveApiEndpoints.map((endpoint) => (
+            <div
+              key={`${endpoint.method}-${endpoint.path}`}
+              className="grid gap-3 rounded-lg border border-border-subtle bg-bg-950/62 p-3 sm:grid-cols-[92px_minmax(0,1fr)_minmax(220px,0.9fr)]"
+            >
+              <span className="inline-flex w-fit rounded-md border border-brand-blue/25 bg-brand-blue/10 px-2 py-1 font-mono text-xs font-semibold text-brand-blue">
+                {endpoint.method}
+              </span>
+              <code className="break-all font-mono text-sm text-text-primary">{endpoint.path}</code>
+              <p className="text-sm leading-6 text-text-secondary">{endpoint.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -797,6 +874,18 @@ function DeveloperTile({ title, value }: { title: string; value: string }) {
     <div className="rounded-lg border border-border-subtle bg-bg-900/70 p-4">
       <p className="text-xs text-text-muted">{title}</p>
       <p className="mt-2 text-sm font-semibold text-text-primary">{value}</p>
+    </div>
+  );
+}
+
+function LiveApiFact({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  return (
+    <div className="py-3">
+      <div className="flex items-center gap-2 text-xs text-text-muted">
+        <Icon className="h-4 w-4 text-brand-blue" />
+        <span>{label}</span>
+      </div>
+      <p className="mt-2 break-words font-mono text-sm font-semibold text-text-primary">{value}</p>
     </div>
   );
 }
