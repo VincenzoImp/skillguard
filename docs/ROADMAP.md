@@ -280,7 +280,8 @@ Optional Workflow F: x402 paid report.
 
 Required assets:
 
-- [x] public GitHub repo remote configured: `https://github.com/VincenzoImp/skillguard.git`
+- [x] GitHub repo remote configured: `https://github.com/VincenzoImp/skillguard.git`
+- [x] public GitHub repo visibility
 - [x] README with setup, architecture, demo flow, and security boundary
 - [x] local debug Android APK build
 - [x] local standalone debug-signed Android APK build
