@@ -1,6 +1,6 @@
 # SkillGuard
 
-![SkillGuard wordmark](assets/brand/wordmark.png)
+<img src="assets/brand/icon.png" alt="SkillGuard logo" width="96">
 
 > The firewall between AI agents and your Solana wallet.
 

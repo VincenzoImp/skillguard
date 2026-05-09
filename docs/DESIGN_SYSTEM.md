@@ -75,47 +75,17 @@ Guidelines:
 - do not place it on busy backgrounds
 - use it as the primary product icon
 
-### `assets/brand/wordmark.png`
-
-This is the horizontal lockup.
-
-Use it for:
-
-- README hero
-- landing page hero
-- public project site header
-- demo video intro
-- pitch deck cover
-- social banner
-
-What it communicates:
-
-- circular signal/check mark: agent activity and live monitoring
-- `SkillGuard` wordmark: strong product recognition
-- phone/check icon: mobile approval
-- tagline: explains the product quickly
-
-Note:
-
-- The current tagline says "Mobile approval layer for AI agent actions on Solana".
-- The revised product is broader: "Permission layer for Solana agents".
-- Keep the current asset for now, but future logo exports should update the tagline.
-
 ## Logo Usage
 
-Primary mark:
+Primary mark and only bitmap logo asset:
 
 - `icon.png`
 
-Primary wordmark:
-
-- `wordmark.png`
-
 Rule:
 
-- Use the shield icon for app/product identity.
-- Use the circular signal/check mark only when using the full wordmark asset.
-- Do not place the shield icon and circular wordmark icon side by side in small UI.
+- Use the shield icon for app/product identity, README, site, pitch cover, splash, and mobile header.
+- Do not use a separate bitmap wordmark in the product or submission surface.
+- Render the text `SkillGuard` as live text next to the icon when a horizontal lockup is needed.
 
 ## Color Tokens
 
@@ -419,14 +389,11 @@ Show:
 - receipt timeline
 - revoked agent state
 
-Use the wordmark in:
+Use the icon in:
 
 - README hero
 - demo intro/outro
 - presentation cover
-
-Use the icon in:
-
 - app icon
 - splash
 - mobile header

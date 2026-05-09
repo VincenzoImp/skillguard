@@ -23,7 +23,6 @@ import {
 import QRCode from "qrcode";
 import { BrowserRouter, Link, NavLink, Route, Routes } from "react-router-dom";
 import iconMark from "../../../assets/brand/icon.png";
-import wordmark from "../../../assets/brand/wordmark.png";
 import { liveApiBaseUrl, liveApiCurlExamples, liveApiEndpoints, liveSiteUrl } from "./liveApi";
 import { researchAgentPairing, researchAgentPairingLink } from "./pairing";
 import { firewallHero, siteRoutes } from "./siteNavigation";
@@ -153,7 +152,7 @@ const resourceLinks = [
   },
   {
     title: "Brand assets",
-    text: "Icon and wordmark used across the site and mobile UI.",
+    text: "Single SkillGuard logo mark used across the site and mobile UI.",
     href: `${repositoryUrl}/tree/main/assets/brand`,
     status: "ready",
   },
@@ -270,10 +269,7 @@ function Header() {
     <header className="sticky top-4 z-40 flex items-center justify-between gap-4 rounded-xl border border-border-subtle bg-bg-950/88 px-3 py-3 backdrop-blur-xl sm:px-4">
       <Link to="/" className="flex items-center gap-3">
         <img src={iconMark} alt="SkillGuard icon" className="h-10 w-10 rounded-lg" />
-        <div>
-          <p className="text-sm font-semibold text-text-primary">SkillGuard</p>
-          <p className="text-xs text-text-muted">Wallet firewall for Solana agents</p>
-        </div>
+        <p className="text-sm font-semibold text-text-primary">SkillGuard</p>
       </Link>
       <nav className="hidden items-center gap-1 lg:flex">
         {siteRoutes.map((route) => (
@@ -309,11 +305,10 @@ function Header() {
 function HeroCopy() {
   return (
     <div className="max-w-3xl">
-      <img
-        src={wordmark}
-        alt="SkillGuard wordmark"
-        className="mb-8 max-h-24 w-auto max-w-full rounded-lg border border-border-subtle bg-bg-950/80 p-4"
-      />
+      <div className="mb-8 inline-flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-950/80 p-3">
+        <img src={iconMark} alt="SkillGuard logo" className="h-12 w-12 rounded-lg" />
+        <span className="font-display text-2xl font-bold text-text-primary">SkillGuard</span>
+      </div>
       <StatusPill icon={ShieldCheck}>Wallet firewall for Solana agents</StatusPill>
       <h1 className="mt-5 font-display text-4xl font-bold leading-[1.03] text-text-primary sm:text-5xl lg:text-6xl">
         {firewallHero.title}
@@ -688,7 +683,9 @@ function BrandSystemSection() {
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
-          <img src={wordmark} alt="SkillGuard brand lockup" className="w-full rounded-lg bg-bg-950 p-5" />
+          <div className="flex min-h-64 items-center justify-center rounded-lg border border-border-subtle bg-bg-950 p-6">
+            <img src={iconMark} alt="SkillGuard logo" className="h-36 w-36 rounded-2xl" />
+          </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <DeveloperTile title="Voice" value="Calm, precise, protective" />
             <DeveloperTile title="Shape" value="8px cards, compact controls" />
@@ -805,12 +802,10 @@ function PhoneDemo({
     <div className="mx-auto w-full max-w-[430px]">
       <div className="rounded-[34px] border border-white/10 bg-black p-3 shadow-[0_34px_95px_rgba(0,0,0,0.5)]">
         <div className="overflow-hidden rounded-[26px] border border-border-subtle bg-bg-900">
-          <div className="flex items-center justify-between border-b border-border-subtle px-5 py-4">
+          <div className="flex items-center justify-between border-b border-border-subtle px-5 pb-4 pt-7">
             <div className="flex items-center gap-3">
               <img src={iconMark} alt="" className="h-9 w-9 rounded-lg" />
-              <div>
-                <p className="text-sm font-semibold">SkillGuard</p>
-              </div>
+              <p className="text-sm font-semibold">SkillGuard</p>
             </div>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${decisionCopy.border} ${decisionCopy.background} ${decisionCopy.tone}`}
@@ -821,17 +816,29 @@ function PhoneDemo({
           </div>
 
           <div className="space-y-4 p-4">
-            <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold">Research Agent</p>
-                  <p className="mt-1 text-xs leading-5 text-text-secondary">
-                    Requests Helius/Birdeye wallet-risk context and paid SOL reports.
-                  </p>
+            <div className="rounded-xl border border-border-subtle bg-bg-950/70 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Inbox
+              </p>
+              <div className="mt-3 rounded-lg border border-border-subtle bg-surface-900 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">Generate weekly wallet risk PDF</p>
+                    <p className="mt-1 text-xs leading-5 text-text-secondary">
+                      Research Agent wants to spend 0.001 SOL and record a SkillGuard receipt.
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-md border px-2 py-1 text-xs font-semibold ${decisionCopy.border} ${decisionCopy.background} ${decisionCopy.tone}`}
+                  >
+                    {decisionCopy.label}
+                  </span>
                 </div>
-                <span className="rounded-md bg-brand-blue/10 px-2 py-1 text-xs font-semibold text-brand-blue">
-                  active
-                </span>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                  <PolicyMini label="Network" value="devnet" tone="text-brand-blue" />
+                  <PolicyMini label="Spend" value="0.001 SOL" tone="text-text-primary" />
+                  <PolicyMini label="Risk" value="medium" tone="text-status-warning" />
+                </div>
               </div>
             </div>
 
@@ -846,6 +853,20 @@ function PhoneDemo({
                   Revoke
                 </button>
               </div>
+              <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg border border-border-subtle bg-bg-950 p-1 text-center text-[11px] font-semibold">
+                {["Ask", "Allow", "Block"].map((mode) => (
+                  <span
+                    key={mode}
+                    className={`rounded-md px-2 py-2 ${
+                      mode === "Ask"
+                        ? "bg-brand-mint text-bg-950"
+                        : "text-text-secondary"
+                    }`}
+                  >
+                    {mode}
+                  </span>
+                ))}
+              </div>
               <div className="mt-3 space-y-2">
                 {permissionRows.map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between gap-3 text-xs">
@@ -857,17 +878,22 @@ function PhoneDemo({
             </div>
 
             <div className={`rounded-lg border p-4 ${decisionCopy.border} ${decisionCopy.background}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold">Wallet impact</p>
-                  <p className="mt-1 text-xs text-text-secondary">Estimated spend: 0.001 SOL</p>
-                </div>
-                <ChevronRight className={`h-4 w-4 ${decisionCopy.tone}`} />
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-                <Metric label="Policy" value={decision === "revoked" ? "Fail" : "Pass"} tone={decisionCopy.tone} />
-                <Metric label="Cap" value="0.01 SOL" tone="text-brand-blue" />
-                <Metric label="Risk" value="Medium" tone="text-status-warning" />
+              <p className="text-sm font-semibold">After approval</p>
+              <p className="mt-1 text-xs leading-5 text-text-secondary">
+                The wallet signs one devnet transaction only after approval. The Activity tab
+                shows the receipt hash and Explorer link.
+              </p>
+              <div className="mt-3 space-y-2">
+                {[
+                  "Network allowed: solana-devnet",
+                  "Spend under per-action cap",
+                  "Wallet approval required for SOL movement",
+                ].map((check) => (
+                  <div key={check} className="flex gap-2 text-xs text-text-secondary">
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-mint" />
+                    <span>{check}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -891,7 +917,7 @@ function PhoneDemo({
             </div>
 
             <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
-              <p className="text-sm font-semibold">Receipt timeline</p>
+              <p className="text-sm font-semibold">Activity</p>
               <div className="mt-3 space-y-3">
                 {receiptEvents.map((event, index) => (
                   <div key={event} className="flex gap-3 text-xs text-text-secondary">
@@ -905,8 +931,40 @@ function PhoneDemo({
               </div>
             </div>
           </div>
+          <div className="grid grid-cols-5 border-t border-border-subtle bg-bg-950 px-2 py-2 text-[10px] font-semibold text-text-muted">
+            {["Home", "Inbox", "Agents", "Pair", "Activity"].map((tab) => (
+              <div
+                key={tab}
+                className={`relative rounded-lg py-2 text-center ${
+                  tab === "Inbox" ? "bg-surface-800 text-brand-mint" : ""
+                }`}
+              >
+                {tab}
+                {tab === "Inbox" && decision === "pending" ? (
+                  <span className="absolute right-3 top-2 h-1.5 w-1.5 rounded-full bg-brand-mint" />
+                ) : null}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PolicyMini({
+  label,
+  tone,
+  value,
+}: {
+  label: string;
+  tone: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border-subtle bg-bg-950 p-2 text-center">
+      <p className="text-[10px] text-text-muted">{label}</p>
+      <p className={`mt-1 font-semibold ${tone}`}>{value}</p>
     </div>
   );
 }
@@ -1088,15 +1146,6 @@ function StatusPill({ icon: Icon, children }: { icon: LucideIcon; children: Reac
     <div className="inline-flex items-center gap-2 rounded-full border border-brand-mint/20 bg-brand-mint/10 px-3 py-1.5 text-sm font-medium text-brand-mint">
       <Icon className="h-4 w-4" />
       {children}
-    </div>
-  );
-}
-
-function Metric({ label, value, tone }: { label: string; value: string; tone: string }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-bg-950/50 p-2">
-      <p className="text-[10px] text-text-muted">{label}</p>
-      <p className={`mt-1 font-semibold ${tone}`}>{value}</p>
     </div>
   );
 }

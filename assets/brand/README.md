@@ -2,23 +2,12 @@
 
 ## Files
 
-- `icon.png`: standalone shield/check app icon.
-- `wordmark.png`: horizontal SkillGuard wordmark with tagline and mobile approval mark.
+- `icon.png`: the single SkillGuard logo mark.
 
 ## Usage
 
-Use `icon.png` for app icon, favicon, splash screen, and compact UI.
+Use `icon.png` for app icon, favicon, splash screen, compact UI, README hero, pitch cover, and demo framing.
 
-Use `wordmark.png` for README, pitch deck, landing hero, and demo video intro/outro.
+## Rule
 
-## Note
-
-The current wordmark tagline says "Mobile approval layer for AI agent actions on Solana".
-
-The product definition is now broader:
-
-```text
-The permission layer for Solana agents.
-```
-
-Future exports should update the tagline when possible.
+SkillGuard now uses one logo asset only. Do not reintroduce a separate bitmap wordmark unless the mobile app and site are redesigned together around that lockup.
