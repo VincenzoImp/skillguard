@@ -50,32 +50,23 @@ For a hosted API, replace the value with the public endpoint:
 EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api npm run android
 ```
 
-Build an installable Android APK for local demo review:
+Build the installable Android APK for local demo review:
 
 ```bash
 . ../../scripts/dev-env.sh
 ../../scripts/build-mobile-apk.sh
 ```
 
-The default output is a debug-signed APK at:
+The build script writes exactly one canonical APK and removes stale APKs from
+`build/mobile` before copying the new artifact:
 
 ```text
-<repo-root>/build/mobile/skillguard-debug.apk
+<repo-root>/build/mobile/skillguard.apk
 ```
 
-Build a standalone local APK with the JavaScript bundle embedded:
-
-```bash
-SKILLGUARD_ANDROID_BUILD_PROFILE=standalone ../../scripts/build-mobile-apk.sh
-```
-
-Standalone local output:
-
-```text
-<repo-root>/build/mobile/skillguard-standalone-debugsigned.apk
-```
-
-Build a release-mode APK with a private upload keystore kept outside git:
+By default this is a standalone debug-signed APK with the JavaScript bundle
+embedded and the hosted API endpoint baked in. Build the same canonical output
+with the final upload keystore by using the release profile:
 
 ```bash
 SKILLGUARD_ANDROID_BUILD_PROFILE=release \
@@ -86,12 +77,7 @@ SKILLGUARD_ANDROID_KEY_PASSWORD=... \
 ../../scripts/build-mobile-apk.sh
 ```
 
-The release output is:
-
-```text
-<repo-root>/build/mobile/skillguard-release-signed.apk
-```
-
+The release profile still writes `<repo-root>/build/mobile/skillguard.apk`.
 Do not commit `.jks` files or secret signing properties.
 The generated APK and native `android/` directory are local artifacts and are ignored by git.
 

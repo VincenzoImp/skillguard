@@ -54,18 +54,14 @@ Completed owner-held operational step:
 
 Local APK build proof:
 
-- Debug command: `. scripts/dev-env.sh && scripts/build-mobile-apk.sh`
-- Debug result: `BUILD SUCCESSFUL` in 6m 48s on May 8, 2026.
-- Debug artifact: `build/mobile/skillguard-debug.apk` at 188 MB.
-- Standalone feasibility command: `. scripts/dev-env.sh && cd apps/mobile/android && ./gradlew assembleRelease`
-- Standalone feasibility result: `BUILD SUCCESSFUL` in 3m 15s on May 8, 2026.
-- Standalone artifact: `apps/mobile/android/app/build/outputs/apk/release/app-release.apk` at 101 MB.
-- Standalone packaging command: `. scripts/dev-env.sh && SKILLGUARD_ANDROID_BUILD_PROFILE=standalone scripts/build-mobile-apk.sh`
-- Standalone packaging result: `BUILD SUCCESSFUL` in 13s on May 8, 2026.
-- Standalone packaged artifact: `build/mobile/skillguard-standalone-debugsigned.apk` at 101 MB.
+- Canonical command: `. scripts/dev-env.sh && scripts/build-mobile-apk.sh`
+- Canonical result: `BUILD SUCCESSFUL` on May 9, 2026.
+- Canonical artifact: `build/mobile/skillguard.apk` at about 101 MB.
+- Default profile: standalone debug-signed with the JavaScript bundle embedded.
+- Bundle endpoint check: embedded `assets/index.android.bundle` contains `https://skillguard-sol.vercel.app/api` and does not contain `10.0.2.2` or `8787`.
+- Artifact hygiene: the build script removes stale APKs from `build/mobile` before writing the canonical artifact.
 - Release signing command: `. scripts/dev-env.sh && SKILLGUARD_ANDROID_BUILD_PROFILE=release SKILLGUARD_ANDROID_KEYSTORE_PATH=/tmp/skillguard-release-script-test.jks SKILLGUARD_ANDROID_KEYSTORE_PASSWORD=... SKILLGUARD_ANDROID_KEY_ALIAS=skillguard-upload SKILLGUARD_ANDROID_KEY_PASSWORD=... scripts/build-mobile-apk.sh`
-- Release signing result: `BUILD SUCCESSFUL` on May 9, 2026 using a temporary test keystore outside git.
-- Release signed artifact: `build/mobile/skillguard-release-signed.apk` at 101 MB.
+- Release signing result: `BUILD SUCCESSFUL` on May 9, 2026 using a temporary test keystore outside git. The release profile writes the same canonical artifact path.
 
 Devnet deployment proof:
 
@@ -79,7 +75,7 @@ Mobile Wallet Adapter proof:
 
 - Date: May 9, 2026.
 - Device: Android emulator `skillguard_api36`, Android 16, `emulator-5554`.
-- App artifact: `build/mobile/skillguard-standalone-debugsigned.apk`.
+- App artifact: `build/mobile/skillguard.apk`.
 - Wallet: official Solana Mobile mock MWA wallet built locally from `https://github.com/solana-mobile/mock-mwa-wallet`.
 - Test wallet: `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx`. Key material stayed local and is not committed.
 - Flow: authenticate mock wallet, authorize SkillGuard on `solana:devnet`, approve the pending `Publish wallet-risk receipt` action, and submit a SkillGuard program transaction through MWA.

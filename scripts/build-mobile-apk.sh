@@ -8,7 +8,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 MOBILE_DIR="$ROOT_DIR/apps/mobile"
 OUTPUT_DIR="$ROOT_DIR/build/mobile"
-BUILD_PROFILE="${SKILLGUARD_ANDROID_BUILD_PROFILE:-debug}"
+BUILD_PROFILE="${SKILLGUARD_ANDROID_BUILD_PROFILE:-standalone}"
+CANONICAL_APK_RELATIVE_PATH="build/mobile/skillguard.apk"
+OUTPUT_APK="$ROOT_DIR/$CANONICAL_APK_RELATIVE_PATH"
 GRADLE_ARGS=()
 REQUIRE_RELEASE_SIGNING=false
 
@@ -16,19 +18,16 @@ case "$BUILD_PROFILE" in
   debug)
     GRADLE_TASK="assembleDebug"
     APK_PATH="$MOBILE_DIR/android/app/build/outputs/apk/debug/app-debug.apk"
-    OUTPUT_APK="$OUTPUT_DIR/skillguard-debug.apk"
     BUILD_LABEL="debug"
     ;;
   standalone)
     GRADLE_TASK="assembleRelease"
     APK_PATH="$MOBILE_DIR/android/app/build/outputs/apk/release/app-release.apk"
-    OUTPUT_APK="$OUTPUT_DIR/skillguard-standalone-debugsigned.apk"
     BUILD_LABEL="standalone debug-signed"
     ;;
   release)
     GRADLE_TASK="assembleRelease"
     APK_PATH="$MOBILE_DIR/android/app/build/outputs/apk/release/app-release.apk"
-    OUTPUT_APK="$OUTPUT_DIR/skillguard-release-signed.apk"
     BUILD_LABEL="release signed"
     REQUIRE_RELEASE_SIGNING=true
     ;;
@@ -73,6 +72,7 @@ fi
 ./gradlew "${GRADLE_ARGS[@]}"
 
 mkdir -p "$OUTPUT_DIR"
+rm -f "$OUTPUT_DIR"/*.apk
 cp "$APK_PATH" "$OUTPUT_APK"
 
 echo "Built $BUILD_LABEL APK: $OUTPUT_APK"

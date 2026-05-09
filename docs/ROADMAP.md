@@ -309,9 +309,9 @@ Ready locally:
   Anchor build/tests
   devnet program deploy proof
   MWA record_decision proof: 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF
-  debug APK build: build/mobile/skillguard-debug.apk
-  standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
-  release signed APK proof artifact: build/mobile/skillguard-release-signed.apk
+  canonical installable APK: build/mobile/skillguard.apk
+  build script removes stale APKs before writing the canonical artifact
+  release signing pipeline writes the same canonical APK path when signing env is loaded
   final owner-controlled upload keystore generated outside git
   password manager backup of the final upload keystore and signing env completed by owner
   GitHub Pages deployment workflow: .github/workflows/deploy-site.yml

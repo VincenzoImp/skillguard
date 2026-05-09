@@ -58,6 +58,23 @@ check_apk_signature() {
   rm -f "$signer_output"
 }
 
+check_apk_endpoint() {
+  local apk_path="$1"
+  local bundle_output
+
+  bundle_output="$(mktemp)"
+  unzip -p "$apk_path" assets/index.android.bundle >"$bundle_output"
+  check_text "https://skillguard-sol.vercel.app/api" "$bundle_output"
+
+  if grep -E "10\\.0\\.2\\.2|:8787" "$bundle_output" >/dev/null; then
+    echo "APK still contains a local API endpoint." >&2
+    rm -f "$bundle_output"
+    exit 1
+  fi
+
+  rm -f "$bundle_output"
+}
+
 echo "==> Submission source checks"
 check_text "$PROGRAM_ID" README.md
 check_text "$MWA_SIGNATURE" README.md
@@ -66,7 +83,7 @@ check_text "$VERCEL_SITE_URL" README.md
 check_text "$PUBLIC_SITE_URL" docs/SUBMISSION.md
 check_text "$PUBLIC_SITE_URL" docs/ROADMAP.md
 check_text "SKILLGUARD_ANDROID_BUILD_PROFILE=release" README.md
-check_text "build/mobile/skillguard-release-signed.apk" README.md
+check_text "build/mobile/skillguard.apk" README.md
 check_text ".github/workflows/deploy-site.yml" README.md
 check_text "KV_REST_API_URL" docs/VERCEL.md
 check_text "connected Git integration" README.md
@@ -78,11 +95,10 @@ check_file ".github/workflows/deploy-site.yml" \
 
 echo
 echo "==> Submission artifact checks"
-check_file "build/mobile/skillguard-standalone-debugsigned.apk" \
-  ". scripts/dev-env.sh && SKILLGUARD_ANDROID_BUILD_PROFILE=standalone scripts/build-mobile-apk.sh"
-check_file "build/mobile/skillguard-release-signed.apk" \
-  "Run the release command from README.md with an external upload keystore."
-check_apk_signature "build/mobile/skillguard-release-signed.apk"
+check_file "build/mobile/skillguard.apk" \
+  ". scripts/dev-env.sh && scripts/build-mobile-apk.sh"
+check_apk_signature "build/mobile/skillguard.apk"
+check_apk_endpoint "build/mobile/skillguard.apk"
 
 echo
 echo "==> Repository checks"

@@ -7,8 +7,7 @@ This file separates what is locally verified from what still requires an externa
 - Repository remote: `https://github.com/VincenzoImp/skillguard.git`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Devnet Mobile Wallet Adapter receipt transaction: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
-- Standalone local APK: `build/mobile/skillguard-standalone-debugsigned.apk`
-- Release signed APK: `build/mobile/skillguard-release-signed.apk`
+- Canonical installable APK: `build/mobile/skillguard.apk`
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Final Android upload keystore: generated outside git under owner-controlled local secret storage.
 - Public project site source: `apps/site`
@@ -26,7 +25,7 @@ scripts/precommit-check.sh
 scripts/submission-check.sh
 ```
 
-The submission checker verifies the README proof strings, local APK artifacts, release APK signature, origin remote, and clean working tree. It does not record the video or submit forms.
+The submission checker verifies the README proof strings, canonical APK artifact, APK signature, hosted API endpoint inside the APK bundle, origin remote, and clean working tree. It does not record the video or submit forms.
 
 During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-check.sh` only to validate the checker before committing its own changes. The final run should use the default clean-tree mode.
 

@@ -104,32 +104,24 @@ For a hosted API, build/run the mobile app with:
 EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api npm --prefix apps/mobile run android
 ```
 
-Build a local debug-signed Android APK:
+Build the installable Android APK:
 
 ```bash
 . scripts/dev-env.sh
 scripts/build-mobile-apk.sh
 ```
 
-APK output for the default development profile:
+The script writes exactly one canonical APK and removes stale APKs from
+`build/mobile` before copying the new artifact:
 
 ```text
-build/mobile/skillguard-debug.apk
+build/mobile/skillguard.apk
 ```
 
-Build a standalone local APK with the JavaScript bundle embedded:
-
-```bash
-SKILLGUARD_ANDROID_BUILD_PROFILE=standalone scripts/build-mobile-apk.sh
-```
-
-Standalone local output:
-
-```text
-build/mobile/skillguard-standalone-debugsigned.apk
-```
-
-Build a release-mode APK with a private upload keystore kept outside git:
+By default this is the standalone debug-signed build with the JavaScript bundle
+embedded and the hosted API endpoint baked in. To build the same canonical output
+with the final upload keystore, use the release profile and secrets kept outside
+git:
 
 ```bash
 SKILLGUARD_ANDROID_BUILD_PROFILE=release \
@@ -140,13 +132,9 @@ SKILLGUARD_ANDROID_KEY_PASSWORD=... \
 scripts/build-mobile-apk.sh
 ```
 
-Release output:
-
-```text
-build/mobile/skillguard-release-signed.apk
-```
-
-These APKs are local build artifacts ignored by git. The standalone profile is debug-signed; the release profile uses an external keystore through Gradle signing injection.
+Both profiles write `build/mobile/skillguard.apk`. The APK is a local build
+artifact ignored by git. The standalone profile is debug-signed; the release
+profile uses an external keystore through Gradle signing injection.
 
 ## Agent SDK
 
@@ -285,10 +273,9 @@ Verified submission proofs:
 - Vercel production site/API: `https://skillguard-sol.vercel.app/`, `https://skillguard-sol.vercel.app/api`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Mobile Wallet Adapter `record_decision` signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
-- Standalone local Android APK: `build/mobile/skillguard-standalone-debugsigned.apk`
-- Release signed Android APK proof artifact: `build/mobile/skillguard-release-signed.apk`
+- Canonical installable Android APK: `build/mobile/skillguard.apk`
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
-- Final owner-controlled upload keystore generated outside git and used for the current release APK.
+- Final owner-controlled upload keystore generated outside git and ready for the canonical release APK.
 - Password manager backup of the final upload keystore and signing env is complete.
 - GitHub Pages deployment workflow: `.github/workflows/deploy-site.yml`
 - Vercel deploy: connected Git integration for `https://skillguard-sol.vercel.app/`
