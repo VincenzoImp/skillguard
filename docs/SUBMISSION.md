@@ -12,6 +12,7 @@ This file separates what is locally verified from what still requires an externa
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Final Android upload keystore: generated outside git under owner-controlled local secret storage.
 - Public project site source: `apps/site`
+- Public project site URL: `https://vincenzoimp.github.io/skillguard/`
 - GitHub Pages workflow: `.github/workflows/deploy-site.yml`
 - Demo script: `docs/DEMO.md`
 
@@ -25,7 +26,7 @@ scripts/precommit-check.sh
 scripts/submission-check.sh
 ```
 
-The submission checker verifies the README proof strings, local APK artifacts, release APK signature, origin remote, and clean working tree. It does not deploy the site or record the video.
+The submission checker verifies the README proof strings, local APK artifacts, release APK signature, origin remote, and clean working tree. It does not record the video, submit forms, or back up owner secrets.
 
 During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-check.sh` only to validate the checker before committing its own changes. The final run should use the default clean-tree mode.
 
@@ -33,11 +34,10 @@ During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-
 
 These require an account, credential, or human review:
 
-1. Make the GitHub repository public.
-2. Back up the final Android upload keystore and signing env in the owner's password manager.
-3. Enable GitHub Pages with GitHub Actions, run `Deploy Site`, and add the public URL to the hackathon submission.
-4. Record the under-3-minute demo using `docs/DEMO.md`.
-5. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
+1. Back up the final Android upload keystore and signing env in the owner's password manager.
+2. Record the under-3-minute demo using `docs/DEMO.md`.
+3. Add the public site URL to the hackathon submission.
+4. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
 
 ## Video Arc
 

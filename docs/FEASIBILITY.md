@@ -45,8 +45,9 @@ Implemented and tested locally:
 
 Still pending for the hackathon submission:
 
-- final store/upload keystore owner decision
-- final demo screenshots, deployed public site, and demo video
+- password-manager backup of the final upload keystore and signing env
+- final demo screenshots and demo video
+- final hackathon submission form entry using the public site URL
 
 Local APK build proof:
 

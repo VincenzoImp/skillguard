@@ -28,9 +28,9 @@ export const roadmapItems: RoadmapItem[] = [
   },
   {
     step: "4",
-    title: "GitHub Pages workflow",
-    status: "ready",
-    note: "The static site can deploy through GitHub Actions after Pages is enabled.",
+    title: "Public project site",
+    status: "done",
+    note: "GitHub Pages is live at vincenzoimp.github.io/skillguard with project-path assets.",
   },
   {
     step: "5",

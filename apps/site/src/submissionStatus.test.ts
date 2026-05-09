@@ -7,7 +7,7 @@ describe("submissionStatus", () => {
     expect(statusFor("Devnet program deploy")).toBe("done");
     expect(statusFor("Release APK signing pipeline")).toBe("done");
     expect(statusFor("Final upload key")).toBe("done");
-    expect(statusFor("GitHub Pages workflow")).toBe("ready");
+    expect(statusFor("Public project site")).toBe("done");
   });
 
   it("keeps account-owned and human-owned submission steps external", () => {

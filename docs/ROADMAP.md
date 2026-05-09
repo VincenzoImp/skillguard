@@ -295,6 +295,7 @@ Required assets:
 - [x] source links and sponsor integration notes in docs
 - [x] local submission checklist and checker
 - [x] GitHub Pages deployment workflow for project site
+- [x] public hosted site: `https://vincenzoimp.github.io/skillguard/`
 
 Current package status:
 
@@ -313,11 +314,11 @@ Ready locally:
   release signed APK proof artifact: build/mobile/skillguard-release-signed.apk
   final owner-controlled upload keystore generated outside git
   GitHub Pages deployment workflow: .github/workflows/deploy-site.yml
+  public hosted site: https://vincenzoimp.github.io/skillguard/
   local demo orchestration
 
 Not yet submission-ready:
   password manager backup of the final upload keystore and signing env
-  public hosted site
   final video and screenshots
 ```
 

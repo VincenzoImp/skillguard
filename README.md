@@ -260,11 +260,11 @@ Core MVP scaffolding is implemented locally: shared protocol, API, Anchor receip
 Submission blockers still to close:
 
 - backup of the final upload keystore and signing env in the owner's password manager
-- public site deployment after GitHub Pages is enabled
 - demo video and final screenshots
 
 Verified submission proofs:
 
+- Public project site: `https://vincenzoimp.github.io/skillguard/`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Mobile Wallet Adapter `record_decision` signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
 - Standalone local Android APK: `build/mobile/skillguard-standalone-debugsigned.apk`

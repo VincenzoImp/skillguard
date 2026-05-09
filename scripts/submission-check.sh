@@ -10,6 +10,7 @@ cd "$ROOT_DIR"
 PROGRAM_ID="HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam"
 MWA_SIGNATURE="5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF"
 REPOSITORY_URL="https://github.com/VincenzoImp/skillguard.git"
+PUBLIC_SITE_URL="https://vincenzoimp.github.io/skillguard/"
 
 check_file() {
   local path="$1"
@@ -59,6 +60,9 @@ check_apk_signature() {
 echo "==> Submission source checks"
 check_text "$PROGRAM_ID" README.md
 check_text "$MWA_SIGNATURE" README.md
+check_text "$PUBLIC_SITE_URL" README.md
+check_text "$PUBLIC_SITE_URL" docs/SUBMISSION.md
+check_text "$PUBLIC_SITE_URL" docs/ROADMAP.md
 check_text "SKILLGUARD_ANDROID_BUILD_PROFILE=release" README.md
 check_text "build/mobile/skillguard-release-signed.apk" README.md
 check_text ".github/workflows/deploy-site.yml" README.md
