@@ -13,6 +13,36 @@ scripts/dev-demo.sh
 submit fake wallet actions. Connect a wallet in the Android app first, copy the
 full wallet address, then submit agent requests with that exact address.
 
+## Hosted Smoke
+
+After each Vercel production deploy, run the smoke against the public API:
+
+```bash
+node scripts/hosted-smoke.mjs
+```
+
+This uses a generated smoke wallet and proves the hosted API, Upstash storage,
+demo-agent integration, rejection, overspend blocking, revocation blocking, and
+wallet action history without needing a phone.
+
+## Hosted Mobile Demo
+
+Use this for the final recorded app demo:
+
+```bash
+EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
+  npm --prefix apps/mobile run android
+
+export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
+export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+npm --prefix apps/demo-agent run submit:unsafe
+npm --prefix apps/demo-agent run submit:safe
+npm --prefix apps/demo-agent run submit:revoked
+```
+
+The wallet address must be the exact address shown in the Android app after
+Mobile Wallet Adapter connection. The demo agent never receives the private key.
+
 ## Manual Commands
 
 ```bash

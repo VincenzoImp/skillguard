@@ -47,7 +47,7 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 npm run android
 For a hosted API, replace the value with the public endpoint:
 
 ```bash
-EXPO_PUBLIC_SKILLGUARD_API_URL=https://<your-skillguard-api-host> npm run android
+EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api npm run android
 ```
 
 Build an installable Android APK for local demo review:
