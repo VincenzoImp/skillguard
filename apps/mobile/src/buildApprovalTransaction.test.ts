@@ -66,4 +66,26 @@ describe("buildApprovalTransaction", () => {
       }),
     ).toThrow(/SOL/);
   });
+
+  it("throws before building an unsafe lamport transfer amount", () => {
+    expect(() =>
+      buildApprovalTransaction({
+        manifest: {
+          ...baseManifest,
+          spend: [
+            {
+              mint: "SOL",
+              amountAtomic: `${Number.MAX_SAFE_INTEGER + 1}`,
+              human: "too much SOL",
+              reason: "unsafe integer",
+            },
+          ],
+        },
+        owner,
+        blockhash,
+        treasuryAddress: treasury,
+        receiptInstructions: [],
+      }),
+    ).toThrow(/safe integer/);
+  });
 });

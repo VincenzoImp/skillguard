@@ -20,6 +20,9 @@ export function buildApprovalTransaction(input: BuildApprovalTransactionInput): 
 
   const lamports = totalLamportSpend(manifest);
   if (lamports > 0n) {
+    if (lamports > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error("buildApprovalTransaction: SOL spend exceeds JavaScript safe integer range");
+    }
     tx.add(
       SystemProgram.transfer({
         fromPubkey: owner,
