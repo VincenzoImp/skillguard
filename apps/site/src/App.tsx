@@ -90,7 +90,7 @@ const demoSteps: Array<{
   {
     label: "Unsafe",
     title: "Overspend request is blocked",
-    text: "The demo agent proposes a request above the user's USDC limit. SkillGuard returns `spend_exceeds_max` before signing.",
+    text: "The research agent proposes a request above the user's USDC limit. SkillGuard returns `spend_exceeds_max` before signing.",
     tone: "danger",
   },
   {
@@ -108,7 +108,7 @@ const demoSteps: Array<{
 ];
 
 const architectureNodes = [
-  "Demo agent",
+  "Research agent",
   "SkillGuard SDK",
   "SkillGuard API",
   "Policy engine",
@@ -287,7 +287,7 @@ function ProofStrip() {
         icon={Radio}
         label="Current state"
         value="Local vertical slice implemented"
-        text="Protocol, API, SDK, demo-agent, mobile demo, site, and Anchor tests are wired into the precommit gate."
+        text="Protocol, API, SDK, research-agent, mobile demo, site, and Anchor tests are wired into the precommit gate."
       />
       <ProofCard
         icon={FileCheck2}

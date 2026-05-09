@@ -7,7 +7,7 @@ SkillGuard can be deployed to Vercel as a public project site plus API endpoint.
 - public site at `https://<project>.vercel.app`
 - API under `https://<project>.vercel.app/api`
 - mobile app builds can point to that endpoint with `EXPO_PUBLIC_SKILLGUARD_API_URL`
-- demo-agent can submit actions with `SKILLGUARD_API_URL`
+- research-agent can submit actions with `SKILLGUARD_API_URL`
 
 ## Deploy
 
@@ -82,7 +82,7 @@ After deployment, configure clients:
 ```bash
 export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
-npm --prefix apps/demo-agent run submit:safe
+npm --prefix apps/research-agent run submit:safe
 
 EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
   npm --prefix apps/mobile run android

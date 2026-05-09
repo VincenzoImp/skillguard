@@ -4,7 +4,7 @@ export const safeRiskReportManifest: ActionManifest = {
   schemaVersion: "skillguard.action.v1",
   actionId: "action-safe-risk-report",
   agentId: "agent-research",
-  userWallet: "DemoWallet111111111111111111111111111111111",
+  userWallet: "FixtureWallet111111111111111111111111111111",
   network: "solana-devnet",
   kind: "wallet_risk_report",
   title: "Generate wallet risk report",
@@ -18,7 +18,7 @@ export const safeRiskReportManifest: ActionManifest = {
       reason: "Read-only report",
     },
   ],
-  accountsTouched: ["DemoWallet111111111111111111111111111111111"],
+  accountsTouched: ["FixtureWallet111111111111111111111111111111"],
   riskSignals: [
     {
       level: "low",
@@ -63,7 +63,7 @@ export const expiredManifest: ActionManifest = {
 export const askEveryTimePolicy: AgentPolicy = {
   policyId: "policy-ask-every-time",
   agentId: "agent-research",
-  userWallet: "DemoWallet111111111111111111111111111111111",
+  userWallet: "FixtureWallet111111111111111111111111111111",
   mode: "ask_every_time",
   active: true,
   revoked: false,

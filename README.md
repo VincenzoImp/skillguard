@@ -25,11 +25,18 @@ Agent proposes action
   -> SkillGuard Solana receipt
 ```
 
+The hosted API is the public integration surface for agents and third-party
+apps. A fresh mobile wallet has no agents and no inbox items. The user first
+imports or creates an agent connection, then that agent can submit manifests for
+that wallet through the API or SDK. The current MVP uses live API refresh in the
+mobile app; native push notifications are intentionally left as a post-MVP
+hardening step.
+
 ## Architecture
 
 ```mermaid
 flowchart LR
-  A[Solana agent or demo agent] --> B[SkillGuard SDK]
+  A[Solana agent or research agent] --> B[SkillGuard SDK]
   B --> C[SkillGuard API]
   C --> D[Canonical manifest hash]
   C --> E[Policy engine]
@@ -45,8 +52,8 @@ Core workspaces:
 
 - `packages/protocol`: shared manifest types, canonical hashing, fixtures, policy engine
 - `packages/sdk`: TypeScript client for agent developers
-- `apps/api`: API for agents, connections, policy evaluation, wallet decisions, and connection revocation
-- `apps/demo-agent`: deterministic safe, unsafe, and revoked action flows for a real connected wallet address
+- `apps/api`: public API for agents, connections, policy evaluation, wallet decisions, smoke cleanup, and connection revocation
+- `apps/research-agent`: sample research agent implementation with deterministic safe, unsafe, and revoked action flows for a real connected wallet address
 - `apps/mobile`: Android approval app using live API state and the SkillGuard design system
 - `apps/site`: public project site and canonical visual reference
 - `programs/skillguard`: Anchor program for user profiles, agent policies, revocation, and receipts
@@ -58,7 +65,7 @@ The judge demo is a 3-minute vertical slice:
 1. User opens the Android app and connects a devnet wallet.
 2. The wallet starts with zero agents; user imports `agent-research`, names it
    `Research Agent`, and configures spend, protocol, mint, and approval limits.
-3. Demo agent submits requests for that wallet address through the API after the
+3. Research agent submits requests for that wallet address through the API after the
    user-created connection exists.
 4. Unsafe requests are blocked before wallet signing.
 5. Safe requests can be approved from mobile and recorded as devnet receipts.
@@ -92,7 +99,7 @@ the app first:
 ```text
 Agent ID: agent-research
 Display name: Research Agent
-Allowed purpose: Demo Solana research agent that requests wallet-safe actions.
+Allowed purpose: Solana research agent that requests wallet-safe actions.
 Mode: Ask every time
 Max spend per action: 1
 Daily cap: 5
@@ -107,9 +114,9 @@ npm --prefix apps/api run dev
 
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
-npm --prefix apps/demo-agent run submit:unsafe
-npm --prefix apps/demo-agent run submit:safe
-npm --prefix apps/demo-agent run submit:revoked
+npm --prefix apps/research-agent run submit:unsafe
+npm --prefix apps/research-agent run submit:safe
+npm --prefix apps/research-agent run submit:revoked
 ```
 
 For a hosted API, build/run the mobile app with:
@@ -155,7 +162,12 @@ profile uses an external keystore through Gradle signing injection.
 ```ts
 import { createSkillGuardClient } from "@skillguard/sdk";
 
-const client = createSkillGuardClient({ apiUrl, agentId, agentSecret });
+const client = createSkillGuardClient({
+  apiUrl,
+  agentId,
+  agentSecret,
+  connectionId: `conn-${agentId}-${userWallet}`,
+});
 const action = await client.submitAction(manifest);
 const decision = await client.onDecision(action.actionId);
 ```
@@ -208,7 +220,7 @@ Core scope:
 
 - Solana: Anchor/Rust receipt program.
 - Solana Mobile: Android approval app using Mobile Wallet Adapter.
-- Agents: deterministic demo agent plus reusable TypeScript SDK.
+- Agents: deterministic research agent plus reusable TypeScript SDK.
 - UX: safe request, unsafe request, approval, rejection, revocation, receipt timeline.
 
 Optional extensions after the vertical slice is stable:
@@ -223,7 +235,7 @@ Optional extensions after the vertical slice is stable:
 apps/
   mobile/       Android app, Mobile Wallet Adapter, approval UX
   api/          SkillGuard API, policy engine, webhooks
-  demo-agent/   Sample agent that integrates with SkillGuard
+  research-agent/   Sample agent that integrates with SkillGuard
   site/        Public project site and visual source of truth
 programs/
   skillguard/   Anchor program for agent connections, policies, receipts
@@ -274,7 +286,7 @@ For local Solana and Android commands on the verified macOS/Homebrew setup:
 ## Status
 
 Core MVP is implemented locally: shared protocol, API, Anchor receipt program,
-mobile approval app with live API state, demo agent, TypeScript SDK, and local
+mobile approval app with live API state, research agent, TypeScript SDK, and local
 demo orchestration all run behind the precommit gate.
 
 Submission blockers still to close:

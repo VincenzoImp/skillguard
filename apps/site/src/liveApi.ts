@@ -74,7 +74,7 @@ export const liveApiCurlExamples = [
     title: "Submit safe demo action",
     command: `export SKILLGUARD_API_URL=${liveApiBaseUrl}
 export SKILLGUARD_USER_WALLET=<connected-wallet>
-npm --prefix apps/demo-agent run submit:safe`,
+npm --prefix apps/research-agent run submit:safe`,
   },
   {
     title: "Run Android against hosted API",

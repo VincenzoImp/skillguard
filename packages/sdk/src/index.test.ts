@@ -18,7 +18,7 @@ describe("SkillGuard SDK", () => {
       agentId: "agent-research",
       agentSecret: "secret-demo",
       apiUrl: "http://localhost:8787",
-      connectionId: "conn-demo",
+      connectionId: "conn-agent-research-Wallet111",
       fetch,
     });
     const action = await client.submitAction(safeRiskReportManifest);
@@ -49,6 +49,24 @@ describe("SkillGuard SDK", () => {
     await expect(client.onDecision(safeRiskReportManifest.actionId)).resolves.toBe(
       "approved"
     );
+  });
+
+  it("requires an explicit connection id before submitting wallet actions", async () => {
+    let called = false;
+    const fetch = async () => {
+      called = true;
+      return jsonResponse({ action: { actionId: safeRiskReportManifest.actionId } });
+    };
+    const client = createSkillGuardClient({
+      agentId: "agent-research",
+      apiUrl: "http://localhost:8787",
+      fetch,
+    });
+
+    await expect(client.submitAction(safeRiskReportManifest)).rejects.toThrow(
+      "connection_id_required"
+    );
+    expect(called).toBe(false);
   });
 });
 

@@ -10,8 +10,9 @@ scripts/dev-demo.sh
 ```
 
 `scripts/dev-demo.sh` starts the local API and site, then waits. It does not
-submit fake wallet actions. Connect a wallet in the Android app first, copy the
-full wallet address, then submit agent requests with that exact address.
+submit wallet actions before the app has a connected wallet. Connect a wallet in
+the Android app first, copy the full wallet address, then submit agent requests
+with that exact address.
 
 ## Hosted Smoke
 
@@ -22,8 +23,10 @@ node scripts/hosted-smoke.mjs
 ```
 
 This uses a generated smoke wallet and proves the hosted API, Upstash storage,
-demo-agent integration, rejection, overspend blocking, revocation blocking, and
-wallet action history without needing a phone.
+research-agent integration, rejection, overspend blocking, revocation blocking, and
+wallet action history without needing a phone. The smoke script deletes its
+generated `SmokeWallet...` agent, connection, and actions after the run; cleanup
+failure makes the smoke fail.
 
 ## Hosted Mobile Demo
 
@@ -35,13 +38,13 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
 
 export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
-npm --prefix apps/demo-agent run submit:unsafe
-npm --prefix apps/demo-agent run submit:safe
-npm --prefix apps/demo-agent run submit:revoked
+npm --prefix apps/research-agent run submit:unsafe
+npm --prefix apps/research-agent run submit:safe
+npm --prefix apps/research-agent run submit:revoked
 ```
 
 The wallet address must be the exact address shown in the Android app after
-Mobile Wallet Adapter connection. The demo agent never receives the private key.
+Mobile Wallet Adapter connection. The research agent never receives the private key.
 Before running those commands, import `agent-research` in the mobile app and
 keep the default conservative policy: ask every time, 1 USDC max spend per
 action, 5 USDC daily cap, `helius,birdeye`, and `SOL,USDC`.
@@ -56,9 +59,9 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 \
 
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
-npm --prefix apps/demo-agent run submit:unsafe
-npm --prefix apps/demo-agent run submit:safe
-npm --prefix apps/demo-agent run submit:revoked
+npm --prefix apps/research-agent run submit:unsafe
+npm --prefix apps/research-agent run submit:safe
+npm --prefix apps/research-agent run submit:revoked
 ```
 
 ## Spoken Lines
@@ -85,7 +88,7 @@ Run:
 
 ```bash
 SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
-  npm --prefix apps/demo-agent run submit:unsafe
+  npm --prefix apps/research-agent run submit:unsafe
 ```
 
 Refresh the mobile inbox. Show the unsafe request and the `spend_exceeds_max`
@@ -98,7 +101,7 @@ Run:
 
 ```bash
 SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
-  npm --prefix apps/demo-agent run submit:safe
+  npm --prefix apps/research-agent run submit:safe
 ```
 
 Refresh mobile, open the safe request, show zero spend, approve it through the
@@ -110,7 +113,7 @@ Revoke Research Agent in mobile, then run:
 
 ```bash
 SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
-  npm --prefix apps/demo-agent run submit:revoked
+  npm --prefix apps/research-agent run submit:revoked
 ```
 
 Show that the future request is blocked because the policy is inactive/revoked.
@@ -122,3 +125,12 @@ Show the README SDK snippet.
 ```text
 Any Solana agent can integrate SkillGuard without receiving the user's private key.
 ```
+
+## Product Intent
+
+The APK is meant to be installable by anyone. A newly connected wallet starts
+with no agents, no permissions, and no inbox items. The user imports or creates
+an agent, sets the policy, and can revoke or edit that policy later. Agents use
+the hosted API or SDK to submit wallet action manifests; the mobile app is the
+user-controlled approval center. The MVP uses live API refresh, not native push
+notifications.

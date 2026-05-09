@@ -3,7 +3,7 @@
 ## Components
 
 ```text
-Demo Agent / External Agent
+Research Agent / External Agent
   -> SkillGuard API
   -> Policy Engine
   -> Mobile App

@@ -54,14 +54,14 @@ export function createSkillGuardClient({
   return {
     async ensureAgentConnection(userWallet: string): Promise<ConnectionResponse["connection"]> {
       await request<AgentResponse>("agents", {
-        body: JSON.stringify(DEMO_AGENT),
+        body: JSON.stringify(RESEARCH_AGENT),
         headers: { "content-type": "application/json" },
         method: "POST",
       });
 
       const body = await request<ConnectionResponse>("connections", {
         body: JSON.stringify({
-          agentId: DEMO_AGENT.agentId,
+          agentId: RESEARCH_AGENT.agentId,
           connectionId,
           policy: policyForWallet(userWallet),
           userWallet,
@@ -99,20 +99,20 @@ export function createSkillGuardClient({
   };
 }
 
-export const DEMO_AGENT = {
+export const RESEARCH_AGENT = {
   agentId: "agent-research",
-  description: "Demo Solana research agent that requests wallet-safe actions.",
+  description: "Solana research agent that requests wallet-safe actions.",
   name: "Research Agent",
 };
 
-export function connectionIdForWallet(userWallet: string, agentId = DEMO_AGENT.agentId): string {
+export function connectionIdForWallet(userWallet: string, agentId = RESEARCH_AGENT.agentId): string {
   return `conn-${agentId}-${userWallet}`;
 }
 
 function policyForWallet(userWallet: string): AgentPolicy {
   return {
     active: true,
-    agentId: DEMO_AGENT.agentId,
+    agentId: RESEARCH_AGENT.agentId,
     allowedMints: ["SOL", "USDC"],
     allowedNetworks: ["solana-devnet"],
     allowedProtocols: ["helius", "birdeye"],
@@ -120,7 +120,7 @@ function policyForWallet(userWallet: string): AgentPolicy {
     expiresAt: 4_100_000_000,
     maxSpendAtomic: "1000000",
     mode: "ask_every_time",
-    policyId: `policy-${DEMO_AGENT.agentId}-${userWallet}`,
+    policyId: `policy-${RESEARCH_AGENT.agentId}-${userWallet}`,
     revoked: false,
     userWallet,
   };

@@ -4,10 +4,10 @@ import {
   unsafeOverspendManifest,
 } from "@skillguard/protocol";
 
-export type DemoActionKind = "safe" | "unsafe" | "revoked";
+export type ResearchActionKind = "safe" | "unsafe" | "revoked";
 
-export function createDemoManifest(
-  kind: DemoActionKind,
+export function createResearchManifest(
+  kind: ResearchActionKind,
   runId = String(Date.now()),
   userWallet: string
 ): ActionManifest {
@@ -16,7 +16,7 @@ export function createDemoManifest(
   if (kind === "unsafe") {
     return {
       ...unsafeOverspendManifest,
-      actionId: `action-demo-unsafe-${normalizedRunId}`,
+      actionId: `action-research-unsafe-${normalizedRunId}`,
       accountsTouched: [userWallet],
       title: "Swap 2 USDC through Jupiter",
       userWallet,
@@ -26,7 +26,7 @@ export function createDemoManifest(
   if (kind === "revoked") {
     return {
       ...safeRiskReportManifest,
-      actionId: `action-demo-revoked-${normalizedRunId}`,
+      actionId: `action-research-revoked-${normalizedRunId}`,
       accountsTouched: [userWallet],
       summary:
         "The agent submits this request after revocation so SkillGuard can block it.",
@@ -37,7 +37,7 @@ export function createDemoManifest(
 
   return {
     ...safeRiskReportManifest,
-    actionId: `action-demo-safe-${normalizedRunId}`,
+    actionId: `action-research-safe-${normalizedRunId}`,
     accountsTouched: [userWallet],
     title: "Generate wallet risk receipt",
     userWallet,

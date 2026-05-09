@@ -3,8 +3,8 @@ import type { ActionManifest } from "@skillguard/protocol";
 import { safeRiskReportManifest } from "@skillguard/protocol";
 import { createSkillGuardClient } from "./client.js";
 
-describe("demo agent client", () => {
-  it("can import the demo agent connection when an automation flow explicitly asks for it", async () => {
+describe("research agent client", () => {
+  it("can import the research agent connection when an automation flow explicitly asks for it", async () => {
     const calls: Array<{ body?: string; method?: string; url: string }> = [];
     const fetch = async (url: string | URL, init?: RequestInit) => {
       calls.push({
@@ -48,7 +48,7 @@ describe("demo agent client", () => {
       });
 
       if (url.toString().endsWith("/actions")) {
-        return jsonResponse({ action: { actionId: "action-demo-safe-run-1" } });
+        return jsonResponse({ action: { actionId: "action-research-safe-run-1" } });
       }
 
       return jsonResponse({ result: { reasons: [], status: "requires_approval" } });
@@ -56,7 +56,7 @@ describe("demo agent client", () => {
 
     const client = createSkillGuardClient({
       apiUrl: "http://localhost:8787",
-      connectionId: "conn-demo",
+      connectionId: "conn-agent-research-Wallet111",
       fetch,
     });
     const response = await client.submitAction(
@@ -70,22 +70,22 @@ describe("demo agent client", () => {
     ]);
   });
 
-  it("revokes the connection before the revoked demo path submits", async () => {
+  it("revokes the connection before the revoked research path submits", async () => {
     const calls: string[] = [];
     const fetch = async (url: string | URL, init?: RequestInit) => {
       calls.push(`${init?.method ?? "GET"} ${url.toString()}`);
-      return jsonResponse({ connection: { connectionId: "conn-demo" } });
+      return jsonResponse({ connection: { connectionId: "conn-agent-research-Wallet111" } });
     };
 
     const client = createSkillGuardClient({
       apiUrl: "http://localhost:8787",
-      connectionId: "conn-demo",
+      connectionId: "conn-agent-research-Wallet111",
       fetch,
     });
     await client.revokeConnection();
 
     expect(calls).toEqual([
-      "POST http://localhost:8787/connections/conn-demo/revoke",
+      "POST http://localhost:8787/connections/conn-agent-research-Wallet111/revoke",
     ]);
   });
 });

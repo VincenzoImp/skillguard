@@ -155,7 +155,7 @@ Behavior:
 - policy result is computed.
 - backend returns a mobile-friendly action summary.
 - backend prepares transaction or instruction data for the mobile app.
-- backend sends webhook callback to demo agent after approval/rejection.
+- backend sends webhook callback to research agent after approval/rejection.
 
 Storage:
 
@@ -164,12 +164,12 @@ Storage:
 
 Exit criteria:
 
-- A demo agent can register or be seeded.
+- A research agent can register after the user imports/configures it.
 - User can connect that agent.
 - A fixture action appears in mobile inbox.
 - Backend returns policy result and receipt transaction payload.
 - Receipt can be written to devnet.
-- Demo agent receives status callback.
+- Research agent receives status callback.
 
 ## Milestone 4: Android App
 
@@ -223,7 +223,7 @@ Wallet:
 Exit criteria:
 
 - APK runs on Android emulator or device.
-- User can connect a demo agent.
+- User can connect a research agent.
 - User can edit permissions.
 - User can approve one action and reject one action.
 - User can revoke the agent.
@@ -304,7 +304,7 @@ Ready locally:
   protocol tests
   API tests
   SDK tests
-  demo-agent tests
+  research-agent tests
   mobile typecheck/tests/doctor
   Anchor build/tests
   devnet program deploy proof

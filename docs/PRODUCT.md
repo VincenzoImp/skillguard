@@ -464,14 +464,14 @@ Build screens:
 Output:
 
 - APK
-- one connected demo agent
+- one connected research agent
 - one blocked request
 - one approved request
 - one revoked permission scene
 
-### Phase 5: Demo Agent
+### Phase 5: Research Agent
 
-Build a small demo agent that uses the SkillGuard SDK.
+Build a small research agent that uses the SkillGuard SDK.
 
 Agent capabilities:
 
@@ -514,7 +514,7 @@ The demo should show five moments:
    - connects wallet through Mobile Wallet Adapter
 
 2. Connect agent
-   - demo agent asks to connect
+   - research agent asks to connect
    - user chooses `Ask every time`
    - policy is recorded
 
@@ -539,7 +539,7 @@ The demo should show five moments:
 Optional final scene:
 
 - show an external integration snippet using the SkillGuard SDK
-- show webhook callback received by demo agent
+- show webhook callback received by research agent
 
 ## What The Project Produces
 

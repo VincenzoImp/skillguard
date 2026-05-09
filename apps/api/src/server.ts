@@ -1,12 +1,12 @@
 import { serve } from "@hono/node-server";
 
 import { createApp } from "./routes.js";
-import { createSeededStore } from "./seed.js";
+import { createEmptyStore } from "./seed.js";
 
 const port = Number(process.env.PORT ?? 8787);
 
 serve({
-  fetch: createApp(createSeededStore()).fetch,
+  fetch: createApp(createEmptyStore()).fetch,
   port,
 });
 

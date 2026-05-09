@@ -1,6 +1,7 @@
-# SkillGuard Demo Agent
+# SkillGuard Research Agent
 
-Sample agent used for the hackathon demo.
+Sample research-agent implementation used for the hackathon demo and smoke
+tests. It is a real client of the SkillGuard API, not preloaded mobile state.
 
 Capabilities:
 
@@ -11,14 +12,14 @@ Capabilities:
 
 ## Commands
 
-The demo agent must target the wallet currently connected in the mobile app:
+The research agent must target the wallet currently connected in the mobile app:
 
 Before submitting actions, import this agent in the app for that wallet:
 
 ```text
 Agent ID: agent-research
 Display name: Research Agent
-Allowed purpose: Demo Solana research agent that requests wallet-safe actions.
+Allowed purpose: Solana research agent that requests wallet-safe actions.
 Mode: Ask every time
 Max spend per action: 1
 Daily cap: 5
@@ -36,4 +37,6 @@ npm run submit:revoked
 
 By default the CLI only submits actions to an existing connection. It never
 receives the user's private key. For automated smoke tests without a phone, set
-`SKILLGUARD_AUTO_CONNECT=1` to create the demo connection before submitting.
+`SKILLGUARD_AUTO_CONNECT=1` to create the research-agent connection before submitting.
+Hosted smoke runs use generated `SmokeWallet...` addresses and clean those
+records through `DELETE /smoke-runs/:runId` after the assertions complete.

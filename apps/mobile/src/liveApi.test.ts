@@ -24,7 +24,7 @@ describe("mobile live API client", () => {
     expect(DEFAULT_SKILLGUARD_API_URL).toBe("https://skillguard-sol.vercel.app/api");
   });
 
-  it("connects an arbitrary agent instead of only the built-in demo agent", async () => {
+  it("connects an arbitrary agent instead of only the built-in research agent", async () => {
     const requests: Array<{ body: unknown; method: string; url: string }> = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       requests.push({
@@ -98,7 +98,7 @@ describe("mobile live API client", () => {
           agents: [
             {
               agentId: "agent-research",
-              description: "Demo Solana research agent.",
+              description: "Solana research agent.",
               name: "Research Agent",
             },
           ],

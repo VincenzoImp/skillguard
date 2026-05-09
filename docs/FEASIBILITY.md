@@ -36,12 +36,12 @@ Implemented and tested locally:
 - canonical manifest hashing
 - deterministic policy evaluation for safe, unsafe, expired, blocked, and revoked paths
 - API endpoints for agents, connections, pending actions, policy evaluation, decisions, and revocation
-- demo agent CLI that submits safe, unsafe, and revoked requests
+- research agent CLI that submits safe, unsafe, and revoked requests
 - reusable TypeScript SDK for agent developers
 - Anchor program for user profiles, agent connections, policies, revocation, decision receipts, and execution signature hashes
 - mobile approval demo screens for wallet connect, agents, permission editor, inbox, action detail, and receipt timeline
 - Android package metadata and a reproducible local APK build script
-- local orchestration script for API, site, and demo-agent flows
+- local orchestration script for API, site, and research-agent flows
 
 Still pending for the hackathon submission:
 

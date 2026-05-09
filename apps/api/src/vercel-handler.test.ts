@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import handler from "../../../api/[...path].ts";
 import { createSeededStore } from "./seed.js";
+import type { StoreSnapshot } from "./store.js";
 
 type TestRequest = AsyncIterable<string | Uint8Array> & {
   body?: unknown;
@@ -78,7 +79,7 @@ describe("Vercel API handler", () => {
     });
   });
 
-  test("starts the production handler with no seeded demo agents", async () => {
+  test("starts the production handler with no seeded agents", async () => {
     const response = await callHandler("GET", "/api/agents");
 
     expect(response).toEqual({
@@ -112,7 +113,7 @@ describe("Vercel API handler", () => {
     expect(events).toEqual(["GET", "SET"]);
   });
 
-  test("removes legacy seeded demo records from durable production storage", async () => {
+  test("removes legacy seeded records from durable production storage", async () => {
     process.env.KV_REST_API_TOKEN = "test-token";
     process.env.KV_REST_API_URL = "https://redis.test";
     globalThis.fetch = async (_input, init) => {
@@ -133,6 +134,188 @@ describe("Vercel API handler", () => {
 
     expect(response).toEqual({
       body: { connections: [] },
+      status: 200,
+    });
+  });
+
+  test("removes smoke run records and orphan legacy agents from durable production storage", async () => {
+    const persisted: StoreSnapshot[] = [];
+    process.env.KV_REST_API_TOKEN = "test-token";
+    process.env.KV_REST_API_URL = "https://redis.test";
+    globalThis.fetch = async (_input, init) => {
+      const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
+      if (command[0] === "GET") {
+        return jsonRedisResponse(
+          JSON.stringify({
+            actions: [
+              {
+                actionId: "action-demo-safe-smoke-1",
+                connectionId: "conn-agent-research-SmokeWallet111",
+                decisionStatus: null,
+                manifest: {
+                  actionId: "action-demo-safe-smoke-1",
+                  accountsTouched: ["SmokeWallet111"],
+                  agentId: "agent-research",
+                  createdAt: 1_800_000_000,
+                  expiresAt: 4_100_000_000,
+                  kind: "wallet_risk_report",
+                  network: "solana-devnet",
+                  protocols: ["helius"],
+                  rawTransactionRef: null,
+                  riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+                  schemaVersion: "skillguard.action.v1",
+                  spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+                  summary: "Smoke request.",
+                  title: "Smoke request",
+                  userWallet: "SmokeWallet111",
+                },
+                policyResult: null,
+              },
+            ],
+            agents: [
+              {
+                agentId: "agent-research",
+                description: "Legacy Solana research agent.",
+                name: "Research Agent",
+              },
+              {
+                agentId: "agent-live",
+                description: "User-created agent.",
+                name: "Live Agent",
+              },
+            ],
+            connections: [
+              {
+                agentId: "agent-research",
+                connectionId: "conn-agent-research-SmokeWallet111",
+                policy: {
+                  active: true,
+                  agentId: "agent-research",
+                  allowedMints: ["SOL", "USDC"],
+                  allowedNetworks: ["solana-devnet"],
+                  allowedProtocols: ["helius"],
+                  dailySpendCapAtomic: "5000000",
+                  expiresAt: 4_100_000_000,
+                  maxSpendAtomic: "1000000",
+                  mode: "ask_every_time",
+                  policyId: "policy-smoke",
+                  revoked: false,
+                  userWallet: "SmokeWallet111",
+                },
+                userWallet: "SmokeWallet111",
+              },
+              {
+                agentId: "agent-live",
+                connectionId: "conn-agent-live-Wallet111",
+                policy: {
+                  active: true,
+                  agentId: "agent-live",
+                  allowedMints: ["SOL", "USDC"],
+                  allowedNetworks: ["solana-devnet"],
+                  allowedProtocols: ["helius"],
+                  dailySpendCapAtomic: "5000000",
+                  expiresAt: 4_100_000_000,
+                  maxSpendAtomic: "1000000",
+                  mode: "ask_every_time",
+                  policyId: "policy-live",
+                  revoked: false,
+                  userWallet: "Wallet111",
+                },
+                userWallet: "Wallet111",
+              },
+            ],
+          } satisfies StoreSnapshot),
+        );
+      }
+      if (command[0] === "SET") {
+        persisted.push(JSON.parse(String(command[2])) as StoreSnapshot);
+        return jsonRedisResponse("OK");
+      }
+      throw new Error(`Unexpected Redis command ${command[0]}`);
+    };
+
+    const response = await callHandler("GET", "/api/agents");
+
+    expect(response).toEqual({
+      body: {
+        agents: [
+          {
+            agentId: "agent-live",
+            description: "User-created agent.",
+            name: "Live Agent",
+          },
+        ],
+      },
+      status: 200,
+    });
+    expect(persisted.at(-1)).toMatchObject({
+      actions: [],
+      agents: [
+        {
+          agentId: "agent-live",
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-live",
+          connectionId: "conn-agent-live-Wallet111",
+        },
+      ],
+    });
+  });
+
+  test("cleanup endpoint removes only smoke run artifacts", async () => {
+    const wallet = "SmokeWalletCleanup111";
+    const runId = "smoke-cleanup-1";
+    await createConnectionViaHandler({
+      connectionId: `conn-agent-research-${wallet}`,
+      wallet,
+    });
+    const actionResponse = await callHandler("POST", "/api/actions", {
+      connectionId: `conn-agent-research-${wallet}`,
+      manifest: {
+        actionId: `action-demo-safe-${runId}`,
+        accountsTouched: [wallet],
+        agentId: "agent-research",
+        createdAt: 1_800_000_000,
+        expiresAt: 4_100_000_000,
+        kind: "wallet_risk_report",
+        network: "solana-devnet",
+        protocols: ["helius"],
+        rawTransactionRef: null,
+        riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+        schemaVersion: "skillguard.action.v1",
+        spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+        summary: "Smoke request.",
+        title: "Smoke request",
+        userWallet: wallet,
+      },
+    });
+    expect(actionResponse.status).toBe(201);
+
+    const cleanupResponse = await callHandler(
+      "DELETE",
+      `/api/smoke-runs/${encodeURIComponent(runId)}?wallet=${encodeURIComponent(wallet)}`,
+    );
+    expect(cleanupResponse.status).toBe(200);
+    expect(cleanupResponse.body).toMatchObject({
+      deleted: {
+        actions: 1,
+        agents: 1,
+        connections: 1,
+      },
+    });
+
+    expect(await callHandler("GET", `/api/actions?wallet=${wallet}`)).toEqual({
+      body: { actions: [] },
+      status: 200,
+    });
+    expect(await callHandler("GET", `/api/connections?wallet=${wallet}`)).toEqual({
+      body: { connections: [] },
+      status: 200,
+    });
+    expect(await callHandler("GET", "/api/agents")).toEqual({
+      body: { agents: [] },
       status: 200,
     });
   });

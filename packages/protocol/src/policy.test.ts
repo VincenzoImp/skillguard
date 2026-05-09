@@ -17,7 +17,7 @@ const baseManifest: ActionManifest = {
   schemaVersion: "skillguard.action.v1",
   actionId: "action-safe-risk-report",
   agentId: "agent-research",
-  userWallet: "DemoWallet111111111111111111111111111111111",
+  userWallet: "FixtureWallet111111111111111111111111111111",
   network: "solana-devnet",
   kind: "wallet_risk_report",
   title: "Generate wallet risk report",
@@ -31,7 +31,7 @@ const baseManifest: ActionManifest = {
       reason: "Read-only report",
     },
   ],
-  accountsTouched: ["DemoWallet111111111111111111111111111111111"],
+  accountsTouched: ["FixtureWallet111111111111111111111111111111"],
   riskSignals: [
     {
       level: "low",

@@ -24,7 +24,7 @@ describe("SkillGuard API", () => {
     expect(await json(response)).toEqual({ ok: true, service: "skillguard-api" });
   });
 
-  test("seeded agent appears", async () => {
+  test("test fixture agent appears", async () => {
     const response = await createTestApp().request("/agents");
     const body = await json<{ agents: Array<{ agentId: string; name: string }> }>(response);
 
@@ -62,7 +62,7 @@ describe("SkillGuard API", () => {
   test("revoke blocks future action", async () => {
     const app = createTestApp();
 
-    const revokeResponse = await app.request("/connections/conn-demo/revoke", { method: "POST" });
+    const revokeResponse = await app.request("/connections/conn-seeded/revoke", { method: "POST" });
     expect(revokeResponse.status).toBe(200);
 
     const response = await app.request("/actions/action-safe-risk-report/evaluate", {
@@ -157,10 +157,10 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         manifest: {
           actionId: "action-live-safe",
-          accountsTouched: ["DemoWallet111111111111111111111111111111111"],
+          accountsTouched: ["FixtureWallet111111111111111111111111111111"],
           agentId: "agent-research",
           createdAt: 1_800_000_000,
           expiresAt: 4_100_000_000,
@@ -173,7 +173,7 @@ describe("SkillGuard API", () => {
           spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
           summary: "Live safe request.",
           title: "Live safe request",
-          userWallet: "DemoWallet111111111111111111111111111111111",
+          userWallet: "FixtureWallet111111111111111111111111111111",
         },
       }),
     });
@@ -190,7 +190,7 @@ describe("SkillGuard API", () => {
     expect(postBody.action.decisionStatus).toBeNull();
 
     const feedResponse = await app.request(
-      "/actions?wallet=DemoWallet111111111111111111111111111111111",
+      "/actions?wallet=FixtureWallet111111111111111111111111111111",
     );
     const feedBody = await json<{
       actions: Array<{ actionId: string; policyResult: { manifestHash: string } | null }>;
@@ -212,7 +212,7 @@ describe("SkillGuard API", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         agentId: "agent-research",
-        userWallet: "DemoWallet111111111111111111111111111111111",
+        userWallet: "FixtureWallet111111111111111111111111111111",
       }),
     });
     const body = await json<{ error: string }>(response);
@@ -228,7 +228,7 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         manifest: {
           actionId: "action-wallet-mismatch",
           accountsTouched: ["AttackerWallet111111111111111111111111111111"],
@@ -266,10 +266,10 @@ describe("SkillGuard API", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         manifest: {
           actionId: "action-safe-risk-report",
-          accountsTouched: ["DemoWallet111111111111111111111111111111111"],
+          accountsTouched: ["FixtureWallet111111111111111111111111111111"],
           agentId: "agent-research",
           createdAt: 1_800_000_000,
           expiresAt: 4_100_000_000,
@@ -282,7 +282,7 @@ describe("SkillGuard API", () => {
           spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
           summary: "Duplicate safe request.",
           title: "Duplicate safe request",
-          userWallet: "DemoWallet111111111111111111111111111111111",
+          userWallet: "FixtureWallet111111111111111111111111111111",
         },
       }),
     });
@@ -320,7 +320,7 @@ describe("SkillGuard API", () => {
   test("connection upsert does not reactivate a revoked agent", async () => {
     const app = createTestApp();
 
-    const revokeResponse = await app.request("/connections/conn-demo/revoke", { method: "POST" });
+    const revokeResponse = await app.request("/connections/conn-seeded/revoke", { method: "POST" });
     expect(revokeResponse.status).toBe(200);
 
     const reconnectResponse = await app.request("/connections", {
@@ -328,7 +328,7 @@ describe("SkillGuard API", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         agentId: "agent-research",
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         policy: {
           active: true,
           agentId: "agent-research",
@@ -341,9 +341,9 @@ describe("SkillGuard API", () => {
           mode: "ask_every_time",
           policyId: "policy-ask-every-time",
           revoked: false,
-          userWallet: "DemoWallet111111111111111111111111111111111",
+          userWallet: "FixtureWallet111111111111111111111111111111",
         },
-        userWallet: "DemoWallet111111111111111111111111111111111",
+        userWallet: "FixtureWallet111111111111111111111111111111",
       }),
     });
     const reconnectBody = await json<{
@@ -364,7 +364,7 @@ describe("SkillGuard API", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         agentId: "agent-research",
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         policy: {
           active: true,
           agentId: "agent-research",
@@ -391,7 +391,7 @@ describe("SkillGuard API", () => {
   test("revoking a connection blocks unresolved actions and removes approval ability", async () => {
     const app = createTestApp();
 
-    const revokeResponse = await app.request("/connections/conn-demo", { method: "DELETE" });
+    const revokeResponse = await app.request("/connections/conn-seeded", { method: "DELETE" });
     expect(revokeResponse.status).toBe(200);
 
     const actionResponse = await app.request("/actions/action-safe-risk-report");

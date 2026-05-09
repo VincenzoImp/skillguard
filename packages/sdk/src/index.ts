@@ -19,13 +19,11 @@ interface ActionResponse {
   action: SkillGuardAction;
 }
 
-const DEFAULT_CONNECTION_ID = "conn-demo";
-
 export function createSkillGuardClient({
   agentId,
   agentSecret,
   apiUrl,
-  connectionId = DEFAULT_CONNECTION_ID,
+  connectionId,
   fetch: fetchImpl = globalThis.fetch,
 }: SkillGuardClientOptions) {
   const baseUrl = apiUrl.endsWith("/") ? apiUrl : `${apiUrl}/`;
@@ -53,6 +51,10 @@ export function createSkillGuardClient({
     },
 
     async submitAction(manifest: ActionManifest): Promise<SkillGuardAction> {
+      if (!connectionId) {
+        throw new Error("connection_id_required");
+      }
+
       const body = await request<ActionResponse>("actions", {
         body: JSON.stringify({ connectionId, manifest }),
         headers: { "content-type": "application/json" },

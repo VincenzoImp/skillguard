@@ -25,12 +25,12 @@ export function createSeededSnapshot(): StoreSnapshot {
       {
         agentId: "agent-research",
         name: "Research Agent",
-        description: "Demo Solana research agent that requests wallet-safe actions.",
+        description: "Solana research agent that requests wallet-safe actions.",
       },
     ],
     connections: [
       {
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         agentId: "agent-research",
         userWallet: safeRiskReportManifest.userWallet,
         policy: { ...askEveryTimePolicy },
@@ -39,14 +39,14 @@ export function createSeededSnapshot(): StoreSnapshot {
     actions: [
       {
         actionId: safeRiskReportManifest.actionId,
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         manifest: safeRiskReportManifest,
         policyResult: null,
         decisionStatus: null,
       },
       {
         actionId: unsafeOverspendManifest.actionId,
-        connectionId: "conn-demo",
+        connectionId: "conn-seeded",
         manifest: unsafeOverspendManifest,
         policyResult: null,
         decisionStatus: null,

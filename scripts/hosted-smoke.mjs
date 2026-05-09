@@ -45,52 +45,75 @@ async function main() {
   const wallet = process.env.SKILLGUARD_USER_WALLET ?? defaults.wallet;
   const expectedStorage = process.env.SKILLGUARD_EXPECT_STORAGE ?? DEFAULT_EXPECTED_STORAGE;
 
-  const health = await requestJson(apiUrl, "health");
-  if (health.storage !== expectedStorage) {
-    throw new Error(`Expected storage ${expectedStorage}, received ${health.storage ?? "unknown"}`);
-  }
+  const createdActions = {};
+  let mainError;
 
-  const safe = runDemoAgent("safe", apiUrl, wallet, runId);
-  assertPolicyResult("safe", safe, "requires_approval", "policy_requires_manual_approval");
+  try {
+    const health = await requestJson(apiUrl, "health");
+    if (health.storage !== expectedStorage) {
+      throw new Error(`Expected storage ${expectedStorage}, received ${health.storage ?? "unknown"}`);
+    }
 
-  const rejected = await requestJson(apiUrl, `actions/${safe.actionId}/decision`, {
-    body: JSON.stringify({ status: "rejected" }),
-    headers: { "content-type": "application/json" },
-    method: "POST",
-  });
-  if (rejected.action?.decisionStatus !== "rejected") {
-    throw new Error(`Safe action was not rejected, received ${rejected.action?.decisionStatus}`);
-  }
+    const safe = runResearchAgent("safe", apiUrl, wallet, runId);
+    createdActions.safe = safe.actionId;
+    assertPolicyResult("safe", safe, "requires_approval", "policy_requires_manual_approval");
 
-  const unsafe = runDemoAgent("unsafe", apiUrl, wallet, runId);
-  assertPolicyResult("unsafe", unsafe, "fail", "spend_exceeds_max");
+    const rejected = await requestJson(apiUrl, `actions/${safe.actionId}/decision`, {
+      body: JSON.stringify({ status: "rejected" }),
+      headers: { "content-type": "application/json" },
+      method: "POST",
+    });
+    if (rejected.action?.decisionStatus !== "rejected") {
+      throw new Error(`Safe action was not rejected, received ${rejected.action?.decisionStatus}`);
+    }
 
-  const revoked = runDemoAgent("revoked", apiUrl, wallet, runId);
-  assertPolicyResult("revoked", revoked, "fail", "policy_revoked");
+    const unsafe = runResearchAgent("unsafe", apiUrl, wallet, runId);
+    createdActions.unsafe = unsafe.actionId;
+    assertPolicyResult("unsafe", unsafe, "fail", "spend_exceeds_max");
 
-  const listed = await requestJson(apiUrl, `actions?wallet=${encodeURIComponent(wallet)}`);
-  const actions = Array.isArray(listed.actions) ? listed.actions : [];
-  assertListedAction(actions, safe.actionId, "rejected");
-  assertListedAction(actions, unsafe.actionId, "blocked");
-  assertListedAction(actions, revoked.actionId, "blocked");
+    const revoked = runResearchAgent("revoked", apiUrl, wallet, runId);
+    createdActions.revoked = revoked.actionId;
+    assertPolicyResult("revoked", revoked, "fail", "policy_revoked");
 
-  console.log(
-    JSON.stringify(
-      {
-        apiUrl,
-        actions: {
-          revoked: revoked.actionId,
-          safe: safe.actionId,
-          unsafe: unsafe.actionId,
+    const listed = await requestJson(apiUrl, `actions?wallet=${encodeURIComponent(wallet)}`);
+    const actions = Array.isArray(listed.actions) ? listed.actions : [];
+    assertListedAction(actions, safe.actionId, "rejected");
+    assertListedAction(actions, unsafe.actionId, "blocked");
+    assertListedAction(actions, revoked.actionId, "blocked");
+
+    console.log(
+      JSON.stringify(
+        {
+          apiUrl,
+          actions: createdActions,
+          ok: true,
+          storage: health.storage,
+          wallet,
         },
-        ok: true,
-        storage: health.storage,
-        wallet,
-      },
-      null,
-      2,
-    ),
-  );
+        null,
+        2,
+      ),
+    );
+  } catch (error) {
+    mainError = error;
+    throw error;
+  } finally {
+    if (wallet.startsWith("SmokeWallet")) {
+      try {
+        await requestJson(
+          apiUrl,
+          `smoke-runs/${encodeURIComponent(runId)}?wallet=${encodeURIComponent(wallet)}`,
+          { method: "DELETE" },
+        );
+      } catch (error) {
+        if (!mainError) {
+          throw error;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Smoke cleanup failed: ${message}`);
+      }
+    }
+  }
 }
 
 async function requestJson(apiUrl, pathSegment, init) {
@@ -102,10 +125,10 @@ async function requestJson(apiUrl, pathSegment, init) {
   return body;
 }
 
-function runDemoAgent(kind, apiUrl, wallet, runId) {
+function runResearchAgent(kind, apiUrl, wallet, runId) {
   const result = spawnSync(
     "npm",
-    ["--prefix", "apps/demo-agent", "run", "--silent", `submit:${kind}`],
+    ["--prefix", "apps/research-agent", "run", "--silent", `submit:${kind}`],
     {
       cwd: rootDir,
       encoding: "utf8",
@@ -121,7 +144,7 @@ function runDemoAgent(kind, apiUrl, wallet, runId) {
 
   if (result.status !== 0) {
     throw new Error(
-      `Demo agent ${kind} failed with exit ${result.status}:\n${result.stderr || result.stdout}`,
+      `Research agent ${kind} failed with exit ${result.status}:\n${result.stderr || result.stdout}`,
     );
   }
 
@@ -132,7 +155,7 @@ function parseJsonOutput(output, label) {
   const start = output.indexOf("{");
   const end = output.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) {
-    throw new Error(`Demo agent ${label} did not print JSON:\n${output}`);
+    throw new Error(`Research agent ${label} did not print JSON:\n${output}`);
   }
   return JSON.parse(output.slice(start, end + 1));
 }

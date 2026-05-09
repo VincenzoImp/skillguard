@@ -4,7 +4,7 @@
 
 **Goal:** Build a hackathon-ready SkillGuard MVP that lets a demo Solana agent request wallet actions, evaluates them against user policy, lets the user approve/reject from a mobile-first UI, and records decision receipts on Solana devnet.
 
-**Architecture:** Use a monorepo-style public repo with a shared TypeScript protocol package, an API server, a demo agent, a mobile app, and an Anchor program. The first implementation uses deterministic fixtures and devnet receipts; optional integrations come only after the vertical slice works.
+**Architecture:** Use a monorepo-style public repo with a shared TypeScript protocol package, an API server, a research agent, a mobile app, and an Anchor program. The first implementation uses deterministic fixtures and devnet receipts; optional integrations come only after the vertical slice works.
 
 **Tech Stack:** TypeScript, Node, React Native/Expo, Solana Mobile Wallet Adapter, `@solana/kit` or `@solana/web3.js` where required by mobile libraries, Anchor 0.32, Rust, SQLite or file-backed JSON for MVP metadata, Vitest for shared/API tests.
 
@@ -18,11 +18,11 @@ The implementation order is strict:
 2. Operating protocol and baseline commit.
 3. Shared protocol package.
 4. Policy engine tests.
-5. API with seeded demo data.
+5. API with explicit user-created agent connections.
 6. Anchor receipt program.
 7. Mobile signing spike.
 8. Mobile approval UI.
-9. Demo agent.
+9. Research agent.
 10. End-to-end demo script.
 11. Public project site from `apps/site`.
 12. Optional integrations only if time remains.
@@ -38,7 +38,7 @@ packages/protocol
   Shared schemas, canonical hashing, policy evaluation, fixtures.
 
 apps/api
-  Local MVP API, seeded demo agent, pending action store, receipt transaction prep.
+  Local MVP API, explicit research-agent import, pending action store, receipt transaction prep.
 
 programs/skillguard
   Anchor program for policies, revocation, and decision receipts.
@@ -46,7 +46,7 @@ programs/skillguard
 apps/mobile
   Android app or Expo React Native app with Mobile Wallet Adapter integration.
 
-apps/demo-agent
+apps/research-agent
   CLI or small web worker that submits safe/unsafe ActionManifest fixtures.
 
 apps/site
@@ -440,7 +440,7 @@ POST /actions/:actionId/decision
 
 ```text
 health returns ok
-seeded agent appears
+test fixture agent appears
 unsafe action evaluates fail
 safe action evaluates requires_approval
 revoke blocks future action
@@ -690,17 +690,17 @@ receipt screen shows manifest hash and tx signature
 visual style follows apps/site and docs/DESIGN_SYSTEM.md
 ```
 
-## Milestone 5: Demo Agent
+## Milestone 5: Research Agent
 
 Goal: show that any agent can integrate without getting the user's private key.
 
 ### Task 5.1: CLI Agent
 
 **Files:**
-- Create: `apps/demo-agent/package.json`
-- Create: `apps/demo-agent/src/index.ts`
-- Create: `apps/demo-agent/src/actions.ts`
-- Create: `apps/demo-agent/src/client.ts`
+- Create: `apps/research-agent/package.json`
+- Create: `apps/research-agent/src/index.ts`
+- Create: `apps/research-agent/src/actions.ts`
+- Create: `apps/research-agent/src/client.ts`
 
 - [x] Implement commands:
 
@@ -714,7 +714,7 @@ npm run submit:revoked
 
 Implementation note:
 
-- `apps/demo-agent` creates deterministic safe, unsafe, and revoked-path manifests.
+- `apps/research-agent` creates deterministic safe, unsafe, and revoked-path manifests.
 - The CLI posts each manifest to `POST /actions` and then calls `POST /actions/:id/evaluate`.
 - The revoked path first calls `POST /connections/:connectionId/revoke`.
 - Demo-agent build and tests are now part of the root precommit gate.
@@ -737,7 +737,7 @@ revoked action is blocked
 - [x] Export:
 
 ```ts
-createSkillGuardClient({ apiUrl, agentId, agentSecret })
+createSkillGuardClient({ apiUrl, agentId, agentSecret, connectionId })
 client.submitAction(manifest)
 client.onDecision(actionId)
 ```
@@ -746,8 +746,8 @@ client.onDecision(actionId)
 
 Implementation note:
 
-- SDK uses the same API surface as the demo agent but exposes a reusable agent-developer entrypoint.
-- `connectionId` is optional and defaults to the MVP demo connection; production integration should pass the real connection ID.
+- SDK uses the same API surface as the research agent but exposes a reusable agent-developer entrypoint.
+- `connectionId` must be explicit for action submission; the SDK does not default to a demo connection.
 - SDK build and tests are now part of the root precommit gate.
 
 ## Milestone 6: End-To-End Demo
@@ -766,7 +766,7 @@ Goal: produce a reliable 3-minute judge demo.
 ```text
 API server
 mobile app instructions
-demo agent commands
+research agent commands
 site public site
 ```
 
@@ -779,8 +779,8 @@ site public site
 
 ```bash
 cd apps/api && npm run dev
-cd apps/demo-agent && npm run submit:unsafe
-cd apps/demo-agent && npm run submit:safe
+cd apps/research-agent && npm run submit:unsafe
+cd apps/research-agent && npm run submit:safe
 ```
 
 - [x] Include exact spoken lines:
@@ -900,7 +900,7 @@ Do not cut:
 
 SkillGuard MVP is done when:
 
-- A demo agent can submit safe and unsafe action manifests.
+- A research agent can submit safe and unsafe action manifests.
 - The API evaluates both deterministically.
 - The user can approve/reject in a mobile-first UI.
 - At least one approval or rejection receipt is recorded on Solana localnet/devnet.

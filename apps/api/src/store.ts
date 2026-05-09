@@ -29,6 +29,12 @@ export interface StoreSnapshot {
   actions: ActionRecord[];
 }
 
+export interface SmokeRunDeletionResult {
+  actions: number;
+  agents: number;
+  connections: number;
+}
+
 export class SkillGuardStore {
   private readonly agents = new Map<string, AgentRecord>();
   private readonly connections = new Map<string, ConnectionRecord>();
@@ -158,5 +164,38 @@ export class SkillGuardStore {
       action.decisionReceiptAddress = metadata.receiptAddress;
     }
     return action;
+  }
+
+  deleteSmokeRunArtifacts(runId: string, wallet: string): SmokeRunDeletionResult {
+    const deletedConnectionAgentIds = new Set<string>();
+    let actions = 0;
+    let connections = 0;
+
+    for (const [actionId, action] of this.actions) {
+      if (action.manifest.userWallet === wallet && actionId.includes(runId)) {
+        this.actions.delete(actionId);
+        actions += 1;
+      }
+    }
+
+    for (const [connectionId, connection] of this.connections) {
+      if (connection.userWallet === wallet) {
+        deletedConnectionAgentIds.add(connection.agentId);
+        this.connections.delete(connectionId);
+        connections += 1;
+      }
+    }
+
+    const referencedAgentIds = new Set(
+      [...this.connections.values()].map((connection) => connection.agentId),
+    );
+    let agents = 0;
+    for (const agentId of deletedConnectionAgentIds) {
+      if (!referencedAgentIds.has(agentId) && this.agents.delete(agentId)) {
+        agents += 1;
+      }
+    }
+
+    return { actions, agents, connections };
   }
 }

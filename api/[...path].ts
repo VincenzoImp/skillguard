@@ -120,30 +120,63 @@ function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
     return { changed: true, snapshot: createEmptySnapshot() };
   }
 
+  const removedAgentIds = new Set<string>();
   const sanitized = {
     actions: snapshot.actions.filter(
-      (action) =>
-        !(
-          action.connectionId === "conn-demo" &&
-          action.manifest.userWallet ===
-            "DemoWallet111111111111111111111111111111111"
-        )
+      (action) => !isProductionResidueAction(action, removedAgentIds)
     ),
-    agents: snapshot.agents,
     connections: snapshot.connections.filter(
-      (connection) =>
-        !(
-          connection.connectionId === "conn-demo" &&
-          connection.userWallet ===
-            "DemoWallet111111111111111111111111111111111"
-        )
+      (connection) => !isProductionResidueConnection(connection, removedAgentIds)
     ),
+  };
+  const referencedAgentIds = new Set(
+    sanitized.connections.map((connection) => connection.agentId)
+  );
+  const agents = snapshot.agents.filter((agent) => {
+    if (removedAgentIds.has(agent.agentId) && !referencedAgentIds.has(agent.agentId)) {
+      return false;
+    }
+    return !(agent.agentId === "agent-research" && !referencedAgentIds.has(agent.agentId));
+  });
+  const nextSnapshot = {
+    actions: sanitized.actions,
+    agents,
+    connections: sanitized.connections,
   };
 
   return {
-    changed: JSON.stringify(sanitized) !== JSON.stringify(snapshot),
-    snapshot: sanitized,
+    changed: JSON.stringify(nextSnapshot) !== JSON.stringify(snapshot),
+    snapshot: nextSnapshot,
   };
+}
+
+function isProductionResidueAction(
+  action: StoreSnapshot["actions"][number],
+  removedAgentIds: Set<string>,
+): boolean {
+  const isResidue =
+    action.connectionId === "conn-demo" ||
+    action.actionId.startsWith("action-demo-") ||
+    action.manifest.userWallet === "DemoWallet111111111111111111111111111111111" ||
+    action.manifest.userWallet.startsWith("SmokeWallet");
+  if (isResidue) {
+    removedAgentIds.add(action.manifest.agentId);
+  }
+  return isResidue;
+}
+
+function isProductionResidueConnection(
+  connection: StoreSnapshot["connections"][number],
+  removedAgentIds: Set<string>,
+): boolean {
+  const isResidue =
+    connection.connectionId === "conn-demo" ||
+    connection.userWallet === "DemoWallet111111111111111111111111111111111" ||
+    connection.userWallet.startsWith("SmokeWallet");
+  if (isResidue) {
+    removedAgentIds.add(connection.agentId);
+  }
+  return isResidue;
 }
 
 function decisionStatusForPolicy(result: ReturnType<typeof evaluatePolicy>): DecisionStatus | null {
@@ -488,6 +521,26 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
   notFound(res);
 }
 
+async function handleSmokeRuns(
+  req: VercelRequest,
+  res: VercelResponse,
+  segments: string[],
+): Promise<void> {
+  if (req.method !== "DELETE" || segments.length !== 2) {
+    notFound(res);
+    return;
+  }
+
+  const wallet = queryValue(req, "wallet");
+  if (!hasText(wallet) || !wallet.startsWith("SmokeWallet")) {
+    sendJson(res, 400, { error: "smoke_wallet_required" });
+    return;
+  }
+
+  const deleted = store.deleteSmokeRunArtifacts(segments[1], wallet);
+  await sendPersistedJson(res, 200, { deleted });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     await loadStore();
@@ -514,6 +567,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     if (segments[0] === "actions") {
       await handleActions(req, res, segments);
+      return;
+    }
+
+    if (segments[0] === "smoke-runs") {
+      await handleSmokeRuns(req, res, segments);
       return;
     }
 

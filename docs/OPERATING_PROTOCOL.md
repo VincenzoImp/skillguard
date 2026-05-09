@@ -56,7 +56,7 @@ As the repo grows, this script must expand to include:
 - API tests
 - Anchor tests
 - mobile typecheck/build checks
-- demo-agent tests
+- research-agent tests
 
 ## Diff Audit Gate
 

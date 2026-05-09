@@ -58,24 +58,24 @@ request, because revocation intentionally blocks all still-pending actions.
 
   export SKILLGUARD_API_URL="$API_URL"
   export SKILLGUARD_USER_WALLET="$wallet_value"
-  npm --prefix apps/demo-agent run submit:unsafe
-  npm --prefix apps/demo-agent run submit:safe
-  npm --prefix apps/demo-agent run submit:revoked
+  npm --prefix apps/research-agent run submit:unsafe
+  npm --prefix apps/research-agent run submit:safe
+  npm --prefix apps/research-agent run submit:revoked
 
 The mobile app can refresh after each command. Unsafe and revoked requests are
 blocked by policy; the safe request can be approved and recorded on devnet.
 EOF
 
 if [ "${SKILLGUARD_AUTORUN_AGENT:-0}" = "1" ] && [ -n "${SKILLGUARD_USER_WALLET:-}" ]; then
-  echo "==> Demo agent wallet: ${SKILLGUARD_USER_WALLET}"
+  echo "==> Research agent wallet: ${SKILLGUARD_USER_WALLET}"
 
-  echo "==> Demo agent: unsafe request"
+  echo "==> Research agent: unsafe request"
   env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_USER_WALLET="$SKILLGUARD_USER_WALLET" \
-    SKILLGUARD_RUN_ID="${RUN_PREFIX}-unsafe" npm --prefix apps/demo-agent run submit:unsafe
+    SKILLGUARD_RUN_ID="${RUN_PREFIX}-unsafe" npm --prefix apps/research-agent run submit:unsafe
 
-  echo "==> Demo agent: safe request"
+  echo "==> Research agent: safe request"
   env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_USER_WALLET="$SKILLGUARD_USER_WALLET" \
-    SKILLGUARD_RUN_ID="${RUN_PREFIX}-safe" npm --prefix apps/demo-agent run submit:safe
+    SKILLGUARD_RUN_ID="${RUN_PREFIX}-safe" npm --prefix apps/research-agent run submit:safe
 
   echo "==> Autoran unsafe and safe requests only. Run submit:revoked after approving or rejecting the safe request."
 fi

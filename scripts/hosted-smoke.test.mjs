@@ -27,7 +27,7 @@ describe("hosted smoke helpers", () => {
   it("accepts the expected policy status and reason", () => {
     assert.doesNotThrow(() => {
       assertPolicyResult("safe", {
-        actionId: "action-demo-safe-smoke",
+        actionId: "action-research-safe-smoke",
         policyReasons: ["policy_requires_manual_approval"],
         policyStatus: "requires_approval",
       }, "requires_approval", "policy_requires_manual_approval");
@@ -38,7 +38,7 @@ describe("hosted smoke helpers", () => {
     assert.throws(
       () => {
         assertPolicyResult("unsafe", {
-          actionId: "action-demo-unsafe-smoke",
+          actionId: "action-research-unsafe-smoke",
           policyReasons: ["policy_requires_manual_approval"],
           policyStatus: "requires_approval",
         }, "fail", "spend_exceeds_max");

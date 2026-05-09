@@ -1,4 +1,4 @@
-import { createDemoManifest, type DemoActionKind } from "./actions.js";
+import { createResearchManifest, type ResearchActionKind } from "./actions.js";
 import { connectionIdForWallet, createSkillGuardClient } from "./client.js";
 
 const DEFAULT_API_URL = "http://localhost:8787";
@@ -25,7 +25,7 @@ async function main() {
     await client.revokeConnection();
   }
 
-  const manifest = createDemoManifest(kind, process.env.SKILLGUARD_RUN_ID, userWallet);
+  const manifest = createResearchManifest(kind, process.env.SKILLGUARD_RUN_ID, userWallet);
   const submitted = await client.submitAction(manifest);
 
   console.log(
@@ -42,7 +42,7 @@ async function main() {
   );
 }
 
-function parseKind(value: string | undefined): DemoActionKind {
+function parseKind(value: string | undefined): ResearchActionKind {
   if (value === "safe" || value === "unsafe" || value === "revoked") {
     return value;
   }
@@ -51,7 +51,7 @@ function parseKind(value: string | undefined): DemoActionKind {
 }
 
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Demo agent failed";
+  const message = error instanceof Error ? error.message : "Research agent failed";
   console.error(message);
   process.exitCode = 1;
 });

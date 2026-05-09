@@ -87,7 +87,7 @@ The generated APK and native `android/` directory are local artifacts and are ig
 
 Manual Android verification passed on May 9, 2026 using the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
 
-The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a SkillGuard program transaction through Mobile Wallet Adapter. The transaction created the user profile, connected the demo agent, and recorded an approval receipt:
+The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a SkillGuard program transaction through Mobile Wallet Adapter. The transaction created the user profile, connected the research agent, and recorded an approval receipt:
 
 ```text
 Signature: 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF
