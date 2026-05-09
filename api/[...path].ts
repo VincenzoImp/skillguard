@@ -349,16 +349,13 @@ async function handleAgents(req: VercelRequest, res: VercelResponse, segments: s
 
     const existingAgent = store.getAgent(agentInput.agentId);
     if (existingAgent) {
-      if (
-        existingAgent.publicKey !== agentInput.publicKey ||
-        existingAgent.name !== agentInput.name ||
-        existingAgent.description !== agentInput.description
-      ) {
+      if (existingAgent.publicKey !== agentInput.publicKey) {
         sendJson(res, 409, { error: "agent_id_conflict" });
         return;
       }
 
-      sendJson(res, 200, { agent: existingAgent });
+      const agent = store.createAgent(agentInput);
+      await sendPersistedJson(res, 200, { agent });
       return;
     }
 

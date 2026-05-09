@@ -110,15 +110,11 @@ export function createApp(store: SkillGuardStore, options: CreateAppOptions = {}
 
     const existingAgent = store.getAgent(agent.agentId);
     if (existingAgent) {
-      if (
-        existingAgent.publicKey !== agent.publicKey ||
-        existingAgent.name !== agent.name ||
-        existingAgent.description !== agent.description
-      ) {
+      if (existingAgent.publicKey !== agent.publicKey) {
         return c.json({ error: "agent_id_conflict" }, 409);
       }
 
-      return c.json({ agent: existingAgent }, 200);
+      return c.json({ agent: store.createAgent(agent) }, 200);
     }
 
     return c.json({ agent: store.createAgent(agent) }, 201);

@@ -236,6 +236,31 @@ describe("Vercel API handler", () => {
     });
   });
 
+  test("refreshes existing agent metadata when the public key is unchanged", async () => {
+    const publicKey = walletFor(testKeyPair(32));
+    const created = await callHandler("POST", "/api/agents", {
+      agentId: "agent-research",
+      description: "Solana research agent that requests wallet-safe actions.",
+      name: "Research Agent",
+      publicKey,
+    });
+    expect(created.status).toBe(201);
+
+    const refreshed = await callHandler("POST", "/api/agents", {
+      agentId: "agent-research",
+      description: "Solana wallet risk agent that requests wallet-safe actions.",
+      name: "Research Agent",
+      publicKey,
+    });
+
+    expect(refreshed.status).toBe(200);
+    expect(refreshed.body.agent).toMatchObject({
+      agentId: "agent-research",
+      description: "Solana wallet risk agent that requests wallet-safe actions.",
+      publicKey,
+    });
+  });
+
   test("initializes empty durable storage instead of seeding demo data", async () => {
     const events: string[] = [];
     process.env.KV_REST_API_TOKEN = "test-token";

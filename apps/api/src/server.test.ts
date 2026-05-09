@@ -329,6 +329,27 @@ describe("SkillGuard API", () => {
     ]);
   });
 
+  test("agent registration refreshes metadata when the public key is unchanged", async () => {
+    const app = createTestApp();
+
+    const response = await app.request("/agents", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-research",
+        description: "Solana wallet risk agent that requests wallet-safe actions.",
+        name: "Research Agent",
+        publicKey: "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
+      }),
+    });
+    const body = await json<{ agent: { description: string } }>(response);
+
+    expect(response.status).toBe(200);
+    expect(body.agent.description).toBe(
+      "Solana wallet risk agent that requests wallet-safe actions."
+    );
+  });
+
   test("unsafe action evaluates fail", async () => {
     const response = await createTestApp().request("/actions/action-unsafe-overspend/evaluate", {
       method: "POST",
