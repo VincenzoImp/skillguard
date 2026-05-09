@@ -17,7 +17,9 @@ Capabilities:
 The research agent must target the wallet currently connected in the mobile app:
 
 Before submitting actions, import this agent in the app for that wallet. The
-smooth path is to paste this pairing link into the app's Agent ID field, review
+smooth path is to open `https://skillguard-sol.vercel.app/developers` and scan
+the Research Agent QR from the app's `Pair` tab. If camera access is not
+available, paste this pairing link into the manual fallback field, review
 limits, and sign the wallet-owner challenge:
 
 ```text

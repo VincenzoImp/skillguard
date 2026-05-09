@@ -9,6 +9,7 @@ Android-first Expo app for wallet connection, agent permissions, action approval
 - React 19
 - Solana Mobile Wallet Adapter through `@wallet-ui/react-native-web3js`
 - `@solana/web3.js` for the current mobile wallet flow
+- `expo-camera` for default QR-based agent pairing
 - `expo-notifications`, `expo-device`, and `expo-constants` for native push
   registration and notification tap routing
 - `react-native-quick-crypto`, `react-native-get-random-values`, and `buffer` for Solana-compatible runtime primitives
@@ -24,8 +25,9 @@ mobile shell:
   with the selected action detail and approve/reject controls
 - `Agents`: connected agent inventory, active/revoked state, revoke action, and
   policy mode editing
-- `Pair`: pairing-link import, agent public key capture, approval mode, spend
-  limits, protocol allowlist, and mint allowlist
+- `Pair`: default QR pairing scanner, manual pairing-link fallback, agent
+  public key capture, approval mode, spend limits, protocol allowlist, and mint
+  allowlist
 - `Activity`: decision receipts, manifest hashes, and Explorer links when
   signatures exist
 
@@ -38,8 +40,9 @@ The product flows are:
   reading wallet-specific connections or actions
 - register an Expo push token for the connected wallet session when native
   notifications are available
-- import an agent by pairing link or ID, sign a wallet-owner challenge, and
-  configure approval mode, spend limits, protocol allowlist, and mint allowlist
+- import an agent by scanning a pairing QR, or by pasting a pairing link/ID as
+  fallback, sign a wallet-owner challenge, and configure approval mode, spend
+  limits, protocol allowlist, and mint allowlist
 - edit the remote policy mode
 - review pending, blocked, approved, and rejected live agent requests
 - approve a pending request through a devnet SkillGuard `record_decision` transaction

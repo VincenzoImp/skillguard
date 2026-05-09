@@ -34,7 +34,7 @@ Concrete standards every change in this plan must meet before being marked done:
 - Real custody. SkillGuard does not move tokens without an explicit user signature.
 - Multi-agent ecosystem. One agent (`agent-research`), one wallet, one device. Pitch the standard, demo a vertical slice.
 - iOS, web wallet, or Phantom-mobile fallback. Android + MWA only.
-- QR-code pairing. Deep-link paste is enough for the demo; QR is a future polish.
+- Third-party agent marketplace. The demo now includes QR pairing for the one canonical `agent-research` flow, with manual link paste as fallback.
 
 ---
 

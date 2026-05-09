@@ -61,6 +61,20 @@ describe("agent policy form helpers", () => {
     });
   });
 
+  it("parses hosted pairing links used by QR codes", () => {
+    expect(
+      parseAgentPairingInput(
+        "https://skillguard-sol.vercel.app/pair?agentId=agent-research&name=Research%20Agent&description=Wallet%20risk%20checks&protocols=helius,birdeye&publicKey=AgentPubkey111"
+      )
+    ).toEqual({
+      agentId: "agent-research",
+      allowedProtocols: "helius,birdeye",
+      description: "Wallet risk checks",
+      name: "Research Agent",
+      publicKey: "AgentPubkey111",
+    });
+  });
+
   it("ignores regular agent IDs when parsing pairing links", () => {
     expect(parseAgentPairingInput("agent-research")).toBeNull();
   });

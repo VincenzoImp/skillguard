@@ -19,8 +19,8 @@ The app uses five persistent tabs:
   refresh, and primary shortcuts
 - `Inbox`: live action manifests and selected action detail
 - `Agents`: active/revoked agent inventory and policy mode editing
-- `Pair`: pairing-link import with public key, purpose, limits, protocols, and
-  mints
+- `Pair`: default QR scanner, pairing-link fallback, public key, purpose,
+  limits, protocols, and mints
 - `Activity`: completed decisions and Explorer links when signatures exist
 
 This keeps the wallet approval workflow dense but not crowded. Each tab maps to
@@ -34,8 +34,8 @@ one user job instead of making the user scroll through every control.
 - Approving or rejecting a request routes to `Activity` after the API state
   refreshes.
 - Importing or revoking an agent routes to `Agents`.
-- Pairing requires a wallet-owner sign-message proof before the API creates a
-  connection.
+- QR pairing only fills agent identity fields; pairing still requires a
+  wallet-owner sign-message proof before the API creates a connection.
 - Wallet-specific reads require a wallet session token created by sign-message.
 
 ## Empty States

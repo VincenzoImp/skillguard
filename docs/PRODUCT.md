@@ -66,8 +66,8 @@ Allowed protocols: SkillGuard demo, wallet analysis, LI.FI preview
 The user connects an agent in one of three ways:
 
 - scan QR code from an agent dashboard
-- open a `skillguard://connect-agent/...` deeplink
-- paste/connect an agent ID
+- open a `skillguard://pair?...` deeplink
+- paste a pairing link or connect an agent ID as fallback
 
 The app shows:
 

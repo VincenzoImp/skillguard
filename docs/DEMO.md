@@ -44,10 +44,14 @@ npm --prefix apps/research-agent run agent:loop
 
 The wallet address must be the exact address shown in the Android app after
 Mobile Wallet Adapter connection. The research agent never receives the private key.
-Before running those commands, import `agent-research` in the mobile app with
-the pairing link below, sign the wallet-owner challenge, and keep the default
-conservative policy: ask every time, `0.01 SOL` max spend per action,
-`0.05 SOL` daily cap, `helius,birdeye`, and `SOL`.
+Before running those commands, import `agent-research` in the mobile app by
+opening `https://skillguard-sol.vercel.app/developers` and scanning the
+Research Agent pairing QR from the app's `Pair` tab. The QR only fills the
+agent identity; the wallet owner still reviews the policy and signs the import
+challenge. Keep the default conservative policy: ask every time, `0.01 SOL`
+max spend per action, `0.05 SOL` daily cap, `helius,birdeye`, and `SOL`.
+
+If camera access is unavailable, use the manual fallback and paste:
 
 The APK registers an Expo push token after the wallet session is signed. On a
 physical Android build with notification permission enabled, pending agent
@@ -95,9 +99,9 @@ npm --prefix apps/research-agent run submit:revoked
 Open SkillGuard mobile on the `Home` tab and connect a devnet wallet through
 Mobile Wallet Adapter. Sign the wallet-session message, then show the wallet
 address, devnet badge, live API badge, and zero-agent counters. Move to `Pair`,
-paste the `agent-research` pairing link, review the policy, sign the import
-challenge, then move to `Agents` and show the connection that was created by the
-wallet owner.
+tap `Scan QR`, scan the Research Agent QR from the developer page, review the
+policy, sign the import challenge, then move to `Agents` and show the
+connection that was created by the wallet owner.
 
 ## Scene 2: Unsafe Request
 

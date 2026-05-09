@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   CheckCircle2,
   ChevronRight,
@@ -9,6 +9,7 @@ import {
   FileCheck2,
   Globe2,
   LockKeyhole,
+  QrCode,
   Radio,
   Server,
   ShieldAlert,
@@ -19,10 +20,12 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
+import QRCode from "qrcode";
 import { BrowserRouter, Link, NavLink, Route, Routes } from "react-router-dom";
 import iconMark from "../../../assets/brand/icon.png";
 import wordmark from "../../../assets/brand/wordmark.png";
 import { liveApiBaseUrl, liveApiCurlExamples, liveApiEndpoints, liveSiteUrl } from "./liveApi";
+import { researchAgentPairing, researchAgentPairingLink } from "./pairing";
 import { firewallHero, siteRoutes } from "./siteNavigation";
 import { roadmapItems, type RoadmapStatus } from "./submissionStatus";
 
@@ -500,7 +503,72 @@ const decision = await client.onDecision(action.actionId);`}</code>
           <DeveloperTile title="Output" value="Decision and receipt hash" />
         </div>
       </div>
+      <ResearchAgentPairingCard />
     </section>
+  );
+}
+
+function ResearchAgentPairingCard() {
+  const [qrDataUrl, setQrDataUrl] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    QRCode.toDataURL(researchAgentPairingLink, {
+      color: {
+        dark: "#030712",
+        light: "#ffffff",
+      },
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: 224,
+    })
+      .then((dataUrl) => {
+        if (!cancelled) {
+          setQrDataUrl(dataUrl);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQrDataUrl("");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <div className="mt-5 grid gap-5 rounded-xl border border-border-subtle bg-bg-900/76 p-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="flex items-center justify-center rounded-xl border border-white/10 bg-white p-3">
+        {qrDataUrl ? (
+          <img src={qrDataUrl} alt="Research Agent pairing QR code" className="h-56 w-56" />
+        ) : (
+          <div className="flex h-56 w-56 items-center justify-center text-bg-950">
+            <QrCode className="h-10 w-10" />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col justify-center">
+        <div className="flex items-center gap-3">
+          <QrCode className="h-5 w-5 text-brand-mint" />
+          <h3 className="text-lg font-semibold">Default mobile pairing</h3>
+        </div>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
+          Open the Android app, connect a wallet, go to Pair, and scan this QR. The
+          app fills the trusted Research Agent identity, then the wallet owner
+          reviews policy limits and signs the import.
+        </p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <DeveloperTile title="Agent" value={researchAgentPairing.name} />
+          <DeveloperTile title="Protocols" value={researchAgentPairing.protocols} />
+        </div>
+        <code className="mt-4 block break-all rounded-lg border border-border-subtle bg-bg-950/80 p-3 font-mono text-xs leading-5 text-brand-mint">
+          {researchAgentPairingLink}
+        </code>
+      </div>
+    </div>
   );
 }
 

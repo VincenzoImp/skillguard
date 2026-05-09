@@ -11,6 +11,11 @@ import {
   TextInput,
   View,
 } from "react-native";
+import {
+  CameraView,
+  useCameraPermissions,
+  type BarcodeScanningResult,
+} from "expo-camera";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import type { AppTabId } from "../appNavigation";
 import {
@@ -75,6 +80,8 @@ export function WalletConnectScreen({
     useState("helius,birdeye");
   const [dailySpendInput, setDailySpendInput] = useState("0.05");
   const [maxSpendInput, setMaxSpendInput] = useState("0.01");
+  const [isPairingScannerOpen, setIsPairingScannerOpen] = useState(false);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const { account, connect, disconnect, signAndSendTransaction, signMessage, connection } =
     useMobileWallet();
   const apiClient = useMemo(() => createSkillGuardApiClient(), []);
@@ -457,11 +464,10 @@ export function WalletConnectScreen({
     setActiveTab("inbox");
   }
 
-  function handleAgentIdInputChange(value: string) {
+  function applyAgentPairingPayload(value: string, source: "link" | "qr") {
     const pairing = parseAgentPairingInput(value);
     if (!pairing) {
-      setAgentIdInput(value);
-      return;
+      return false;
     }
 
     setAgentIdInput(pairing.agentId);
@@ -471,7 +477,44 @@ export function WalletConnectScreen({
     if (pairing.allowedProtocols) {
       setAllowedProtocolsInput(pairing.allowedProtocols);
     }
-    setStatus("Pairing link loaded. Review limits, then sign to import.");
+    setStatus(
+      source === "qr"
+        ? "QR pairing loaded. Review limits, then sign to import."
+        : "Pairing link loaded. Review limits, then sign to import."
+    );
+    return true;
+  }
+
+  function handleAgentIdInputChange(value: string) {
+    if (!applyAgentPairingPayload(value, "link")) {
+      setAgentIdInput(value);
+    }
+  }
+
+  async function handleOpenPairingScanner() {
+    if (isBusy) {
+      return;
+    }
+    if (!cameraPermission?.granted) {
+      const nextPermission = await requestCameraPermission();
+      if (!nextPermission.granted) {
+        setStatus("Camera permission is required to scan a pairing QR.");
+        return;
+      }
+    }
+    setIsPairingScannerOpen(true);
+    setStatus("Scan a SkillGuard pairing QR from the project site or agent CLI.");
+  }
+
+  function handlePairingQrScanned(result: BarcodeScanningResult) {
+    if (!isPairingScannerOpen) {
+      return;
+    }
+    if (applyAgentPairingPayload(result.data, "qr")) {
+      setIsPairingScannerOpen(false);
+      return;
+    }
+    setStatus("QR did not contain a valid SkillGuard pairing link.");
   }
 
   return (
@@ -530,6 +573,7 @@ export function WalletConnectScreen({
               allowedProtocolsInput={allowedProtocolsInput}
               dailySpendInput={dailySpendInput}
               isBusy={isBusy}
+              isQrScannerOpen={isPairingScannerOpen}
               maxSpendInput={maxSpendInput}
               onAgentDescriptionChange={setAgentDescriptionInput}
               onAgentIdChange={handleAgentIdInputChange}
@@ -540,8 +584,12 @@ export function WalletConnectScreen({
               onAllowedProtocolsChange={setAllowedProtocolsInput}
               onConnect={handleConnect}
               onDailySpendChange={setDailySpendInput}
+              onCloseQrScanner={() => setIsPairingScannerOpen(false)}
               onImport={handleConnectAgent}
               onMaxSpendChange={setMaxSpendInput}
+              onOpenQrScanner={handleOpenPairingScanner}
+              onQrScanned={handlePairingQrScanned}
+              qrCameraPermissionGranted={cameraPermission?.granted ?? false}
             />
           ) : null}
           {activeTab === "activity" ? <ReceiptScreen actions={mobileState.actions} /> : null}
@@ -657,7 +705,7 @@ function HomePage({
           onPress={onGoInbox}
         />
         <QuickAction
-          body="Import by pairing link"
+          body="Scan QR or paste fallback"
           disabled={!address}
           label="Pair"
           onPress={onGoPairing}
@@ -765,6 +813,7 @@ function PairingPage({
   allowedProtocolsInput,
   dailySpendInput,
   isBusy,
+  isQrScannerOpen,
   maxSpendInput,
   onAgentDescriptionChange,
   onAgentIdChange,
@@ -775,8 +824,12 @@ function PairingPage({
   onAllowedProtocolsChange,
   onConnect,
   onDailySpendChange,
+  onCloseQrScanner,
   onImport,
   onMaxSpendChange,
+  onOpenQrScanner,
+  onQrScanned,
+  qrCameraPermissionGranted,
 }: {
   address: string | undefined;
   agentDescriptionInput: string;
@@ -788,6 +841,7 @@ function PairingPage({
   allowedProtocolsInput: string;
   dailySpendInput: string;
   isBusy: boolean;
+  isQrScannerOpen: boolean;
   maxSpendInput: string;
   onAgentDescriptionChange: (value: string) => void;
   onAgentIdChange: (value: string) => void;
@@ -798,8 +852,12 @@ function PairingPage({
   onAllowedProtocolsChange: (value: string) => void;
   onConnect: () => void;
   onDailySpendChange: (value: string) => void;
+  onCloseQrScanner: () => void;
   onImport: () => void;
   onMaxSpendChange: (value: string) => void;
+  onOpenQrScanner: () => void;
+  onQrScanned: (result: BarcodeScanningResult) => void;
+  qrCameraPermissionGranted: boolean;
 }) {
   if (!address) {
     return (
@@ -817,8 +875,55 @@ function PairingPage({
     <View style={styles.agentFormPanel}>
       <Text style={styles.panelLabel}>Pair agent</Text>
       <Text style={styles.formHelp}>
-        Paste a SkillGuard pairing link. Review limits before signing the import.
+        Scan a trusted agent QR by default. Manual link entry stays available as
+        a fallback.
       </Text>
+      <View style={styles.qrPairingPanel}>
+        <Text style={styles.qrPairingTitle}>Scan pairing QR</Text>
+        <Text style={styles.qrPairingBody}>
+          Use the QR shown on the SkillGuard developer page or generated by an
+          agent. Scanning fills the agent identity only; importing still requires
+          your wallet signature.
+        </Text>
+        <View style={styles.actionRow}>
+          <PrimaryButton
+            disabled={isBusy || isQrScannerOpen}
+            label={isQrScannerOpen ? "Scanner open" : "Scan QR"}
+            onPress={onOpenQrScanner}
+          />
+          {isQrScannerOpen ? (
+            <SecondaryButton
+              disabled={isBusy}
+              label="Close"
+              onPress={onCloseQrScanner}
+            />
+          ) : null}
+        </View>
+        {isQrScannerOpen ? (
+          <View style={styles.cameraShell}>
+            <CameraView
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              facing="back"
+              onBarcodeScanned={onQrScanned}
+              style={styles.cameraPreview}
+            />
+            <View pointerEvents="none" style={styles.cameraGuide}>
+              <Text style={styles.cameraGuideText}>Align the pairing QR</Text>
+            </View>
+          </View>
+        ) : (
+          <Text style={styles.qrPermissionHint}>
+            {qrCameraPermissionGranted
+              ? "Camera permission is ready."
+              : "Camera permission will be requested when scanning starts."}
+          </Text>
+        )}
+      </View>
+      <View style={styles.manualPairingDivider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.manualPairingLabel}>Manual fallback</Text>
+        <View style={styles.dividerLine} />
+      </View>
       <Text style={styles.fieldLabel}>Agent ID or pairing link</Text>
       <TextInput
         autoCapitalize="none"
@@ -1120,8 +1225,42 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   appName: { color: colors.text, fontSize: 22, fontWeight: "800", letterSpacing: 0 },
+  cameraGuide: {
+    alignItems: "center",
+    borderColor: "rgba(0,240,168,0.72)",
+    borderRadius: 16,
+    borderWidth: 2,
+    bottom: 34,
+    justifyContent: "flex-end",
+    left: 34,
+    padding: 10,
+    position: "absolute",
+    right: 34,
+    top: 34,
+  },
+  cameraGuideText: {
+    backgroundColor: "rgba(3,7,18,0.78)",
+    borderRadius: 7,
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: "800",
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  cameraPreview: { height: 260, width: "100%" },
+  cameraShell: {
+    backgroundColor: colors.deep,
+    borderColor: colors.borderStrong,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 14,
+    minHeight: 260,
+    overflow: "hidden",
+  },
   content: { gap: 18, padding: 18, paddingBottom: 24 },
   disabledButton: { opacity: 0.45 },
+  dividerLine: { backgroundColor: colors.border, flex: 1, height: 1 },
   emptyBody: { color: colors.textSecondary, fontSize: 14, lineHeight: 20 },
   emptyPanel: {
     backgroundColor: colors.surface,
@@ -1236,6 +1375,18 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 4,
   },
+  manualPairingDivider: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+    marginVertical: 6,
+  },
+  manualPairingLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
   pageStack: { gap: 16 },
   panelLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
   policyField: { flex: 1, gap: 6 },
@@ -1263,6 +1414,22 @@ const styles = StyleSheet.create({
   },
   quickGrid: { flexDirection: "row", gap: 10 },
   quickLabel: { color: colors.text, fontSize: 17, fontWeight: "800" },
+  qrPairingBody: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
+  qrPairingPanel: {
+    backgroundColor: "rgba(0,240,168,0.07)",
+    borderColor: "rgba(0,240,168,0.26)",
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 6,
+    padding: 14,
+  },
+  qrPairingTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  qrPermissionHint: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 12,
+  },
   safeArea: { backgroundColor: colors.bg, flex: 1 },
   secondaryButton: {
     alignItems: "center",

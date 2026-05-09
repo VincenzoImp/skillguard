@@ -70,9 +70,9 @@ Core workspaces:
 The judge demo is a 3-minute vertical slice:
 
 1. User opens the Android app and connects a devnet wallet.
-2. The wallet starts with zero agents; user imports `agent-research`, reviews
-   the pairing metadata, signs the wallet-owner challenge, and configures spend,
-   protocol, mint, and approval limits.
+2. The wallet starts with zero agents; user scans the `agent-research` pairing
+   QR from `/developers`, reviews the pairing metadata, signs the wallet-owner
+   challenge, and configures spend, protocol, mint, and approval limits.
 3. Research agent runs the autonomous demo loop and submits requests for that
    wallet address through the API after the user-created connection exists.
 4. Pending requests arrive in the mobile inbox and, on supported builds/devices,
@@ -104,8 +104,11 @@ In a second terminal, run the mobile app when the script prints the Android comm
 On Android emulator, the app reaches the host API through `http://10.0.2.2:8787`.
 
 After connecting the wallet, copy the full wallet address from the app and submit
-real requests in a third terminal. For the standard demo, paste this pairing link
-into the app's Agent ID field, review the limits, and sign the import challenge:
+real requests in a third terminal. For the standard demo, open
+`https://skillguard-sol.vercel.app/developers` on another screen and scan the
+Research Agent pairing QR from the app's `Pair` tab. If camera access is not
+available, paste this pairing link into the manual fallback field, review the
+limits, and sign the import challenge:
 
 ```text
 skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye&publicKey=9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu

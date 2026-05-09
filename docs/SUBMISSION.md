@@ -45,7 +45,7 @@ Completed owner-held secret step:
 ## Video Arc
 
 1. Open with the site hero: SkillGuard is the firewall between AI agents and a Solana wallet.
-2. Pair `agent-research`, sign the wallet-owner challenge, and show the default `0.01 SOL` policy.
+2. Scan the `agent-research` pairing QR, sign the wallet-owner challenge, and show the default `0.01 SOL` policy.
 3. Run `npm --prefix apps/research-agent run agent:loop`; show push/inbox delivery for the free scan.
 4. Approve the `0.001 SOL` paid report and show one devnet transaction with SOL transfer plus SkillGuard receipt.
 5. Show the `0.05 SOL` subscription upgrade blocked before wallet signing.
