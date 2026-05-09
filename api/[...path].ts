@@ -161,8 +161,7 @@ function isProductionResidueAction(
   const isResidue =
     action.connectionId === "conn-demo" ||
     action.actionId.startsWith("action-demo-") ||
-    action.manifest.userWallet === "DemoWallet111111111111111111111111111111111" ||
-    action.manifest.userWallet.startsWith("SmokeWallet");
+    action.manifest.userWallet === "DemoWallet111111111111111111111111111111111";
   if (isResidue) {
     removedAgentIds.add(action.manifest.agentId);
   }
@@ -175,8 +174,7 @@ function isProductionResidueConnection(
 ): boolean {
   const isResidue =
     connection.connectionId === "conn-demo" ||
-    connection.userWallet === "DemoWallet111111111111111111111111111111111" ||
-    connection.userWallet.startsWith("SmokeWallet");
+    connection.userWallet === "DemoWallet111111111111111111111111111111111";
   if (isResidue) {
     removedAgentIds.add(connection.agentId);
   }

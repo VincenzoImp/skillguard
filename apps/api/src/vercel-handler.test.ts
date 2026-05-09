@@ -138,7 +138,7 @@ describe("Vercel API handler", () => {
     });
   });
 
-  test("removes smoke run records and orphan legacy agents from durable production storage", async () => {
+  test("removes legacy residue records and orphan legacy agents from durable production storage", async () => {
     const persisted: StoreSnapshot[] = [];
     process.env.KV_REST_API_TOKEN = "test-token";
     process.env.KV_REST_API_URL = "https://redis.test";
@@ -150,11 +150,11 @@ describe("Vercel API handler", () => {
             actions: [
               {
                 actionId: "action-demo-safe-smoke-1",
-                connectionId: "conn-agent-research-SmokeWallet111",
+                connectionId: "conn-demo",
                 decisionStatus: null,
                 manifest: {
                   actionId: "action-demo-safe-smoke-1",
-                  accountsTouched: ["SmokeWallet111"],
+                  accountsTouched: ["DemoWallet111111111111111111111111111111111"],
                   agentId: "agent-research",
                   createdAt: 1_800_000_000,
                   expiresAt: 4_100_000_000,
@@ -167,7 +167,7 @@ describe("Vercel API handler", () => {
                   spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
                   summary: "Smoke request.",
                   title: "Smoke request",
-                  userWallet: "SmokeWallet111",
+                  userWallet: "DemoWallet111111111111111111111111111111111",
                 },
                 policyResult: null,
               },
@@ -187,7 +187,7 @@ describe("Vercel API handler", () => {
             connections: [
               {
                 agentId: "agent-research",
-                connectionId: "conn-agent-research-SmokeWallet111",
+                connectionId: "conn-demo",
                 policy: {
                   active: true,
                   agentId: "agent-research",
@@ -198,11 +198,11 @@ describe("Vercel API handler", () => {
                   expiresAt: 4_100_000_000,
                   maxSpendAtomic: "1000000",
                   mode: "ask_every_time",
-                  policyId: "policy-smoke",
+                  policyId: "policy-demo",
                   revoked: false,
-                  userWallet: "SmokeWallet111",
+                  userWallet: "DemoWallet111111111111111111111111111111111",
                 },
-                userWallet: "SmokeWallet111",
+                userWallet: "DemoWallet111111111111111111111111111111111",
               },
               {
                 agentId: "agent-live",
@@ -483,6 +483,85 @@ describe("Vercel API handler", () => {
         ],
       },
       status: 200,
+    });
+  });
+
+  test("allows current smoke wallets until explicit smoke cleanup", async () => {
+    let stored: string | null = null;
+    process.env.KV_REST_API_TOKEN = "test-token";
+    process.env.KV_REST_API_URL = "https://redis.test";
+    globalThis.fetch = async (_input, init) => {
+      const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
+      if (command[0] === "GET") {
+        return jsonRedisResponse(stored);
+      }
+      if (command[0] === "SET") {
+        stored = String(command[2]);
+        return jsonRedisResponse("OK");
+      }
+      throw new Error(`Unexpected Redis command ${command[0]}`);
+    };
+
+    const wallet = "SmokeWalletCurrent111";
+    const runId = "smoke-current-1";
+    await callHandler("POST", "/api/agents", {
+      agentId: "agent-research",
+      description: "Solana research agent that requests wallet-safe actions.",
+      name: "Research Agent",
+    });
+    const connectionResponse = await callHandler("POST", "/api/connections", {
+      agentId: "agent-research",
+      connectionId: `conn-agent-research-${wallet}`,
+      policy: {
+        active: true,
+        agentId: "agent-research",
+        allowedMints: ["SOL", "USDC"],
+        allowedNetworks: ["solana-devnet"],
+        allowedProtocols: ["helius", "birdeye"],
+        dailySpendCapAtomic: "5000000",
+        expiresAt: 4_100_000_000,
+        maxSpendAtomic: "1000000",
+        mode: "ask_every_time",
+        policyId: `policy-agent-research-${wallet}`,
+        revoked: false,
+        userWallet: wallet,
+      },
+      userWallet: wallet,
+    });
+    expect(connectionResponse.status).toBe(201);
+
+    const actionResponse = await callHandler("POST", "/api/actions", {
+      connectionId: `conn-agent-research-${wallet}`,
+      manifest: {
+        actionId: `action-research-safe-${runId}`,
+        accountsTouched: [wallet],
+        agentId: "agent-research",
+        createdAt: 1_800_000_000,
+        expiresAt: 4_100_000_000,
+        kind: "wallet_risk_report",
+        network: "solana-devnet",
+        protocols: ["helius"],
+        rawTransactionRef: null,
+        riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+        schemaVersion: "skillguard.action.v1",
+        spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+        summary: "Smoke request.",
+        title: "Smoke request",
+        userWallet: wallet,
+      },
+    });
+    expect(actionResponse.status).toBe(201);
+
+    const cleanupResponse = await callHandler(
+      "DELETE",
+      `/api/smoke-runs/${encodeURIComponent(runId)}?wallet=${encodeURIComponent(wallet)}`,
+    );
+    expect(cleanupResponse.body).toMatchObject({
+      deleted: {
+        actions: 1,
+        agents: 1,
+        connections: 1,
+      },
     });
   });
 
