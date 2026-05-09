@@ -23,6 +23,7 @@ import {
   buildTabItems,
   recommendedInitialTab,
 } from "../appNavigation";
+import { signAndSubmitApprovalTransaction } from "../approvalTransactionSender";
 import { buildApprovalTransaction } from "../buildApprovalTransaction";
 import { StatusBadge } from "../components/StatusBadge";
 import { registerSkillGuardDevicePushToken } from "../expoPushNotifications";
@@ -82,7 +83,7 @@ export function WalletConnectScreen({
   const [maxSpendInput, setMaxSpendInput] = useState("0.01");
   const [isPairingScannerOpen, setIsPairingScannerOpen] = useState(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const { account, connect, disconnect, signAndSendTransaction, signMessage, connection } =
+  const { account, connect, disconnect, signMessage, signTransaction, connection } =
     useMobileWallet();
   const apiClient = useMemo(() => createSkillGuardApiClient(), []);
 
@@ -304,7 +305,6 @@ export function WalletConnectScreen({
       }
 
       const latestBlockhash = await connection.getLatestBlockhash("confirmed");
-      const minContextSlot = await connection.getSlot("confirmed");
       const transaction = buildApprovalTransaction({
         blockhash: latestBlockhash.blockhash,
         manifest: actionToApprove.manifest,
@@ -321,7 +321,13 @@ export function WalletConnectScreen({
         treasuryAddress: RESEARCH_TREASURY_ADDRESS,
       });
 
-      const txSignature = await signAndSendTransaction(transaction, minContextSlot);
+      setStatus("Requesting wallet signature");
+      const txSignature = await signAndSubmitApprovalTransaction({
+        connection,
+        latestBlockhash,
+        signTransaction,
+        transaction,
+      });
       await apiClient.approveAction(
         actionToApprove.id,
         actionToApprove.connectionId,
