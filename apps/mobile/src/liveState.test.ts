@@ -87,6 +87,7 @@ describe("mobile live state mapping", () => {
     });
 
     expect(state.agent?.status).toBe("active");
+    expect(state.agents.map((agent) => agent.id)).toEqual(["agent-research"]);
     expect(state.selectedActionId).toBe("action-live");
     expect(getSelectedAction(state)?.id).toBe("action-live");
     expect(getPendingActions(state)).toHaveLength(1);
@@ -94,6 +95,42 @@ describe("mobile live state mapping", () => {
     expect(state.actions[0].checks.map((check) => check.label)).toContain(
       "User approval required"
     );
+  });
+
+  it("keeps every connected agent visible and chooses the first active agent as primary", () => {
+    const state = toMobileState({
+      actions: [],
+      connections: [
+        {
+          agentId: "agent-revoked",
+          connectionId: "conn-revoked",
+          policy: {
+            ...policy,
+            active: false,
+            agentId: "agent-revoked",
+            policyId: "policy-revoked",
+            revoked: true,
+          },
+          userWallet,
+        },
+        {
+          agentId: "agent-payments",
+          connectionId: "conn-payments",
+          policy: {
+            ...policy,
+            agentId: "agent-payments",
+            policyId: "policy-payments",
+          },
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.agents.map((agent) => [agent.id, agent.status])).toEqual([
+      ["agent-revoked", "revoked"],
+      ["agent-payments", "active"],
+    ]);
+    expect(state.agent?.id).toBe("agent-payments");
   });
 
   it("shows revoked agents and blocks failed policy results", () => {

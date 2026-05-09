@@ -1,7 +1,11 @@
 import type { AgentPolicy, DecisionStatus } from "@skillguard/protocol";
 import { evaluatePolicy } from "@skillguard/protocol";
 
-import { createSeededStore } from "../apps/api/src/seed.js";
+import {
+  createEmptySnapshot,
+  createEmptyStore,
+  createSeededSnapshot,
+} from "../apps/api/src/seed.js";
 import { SkillGuardStore } from "../apps/api/src/store.js";
 import type { StoreSnapshot } from "../apps/api/src/store.js";
 import {
@@ -34,7 +38,7 @@ type JsonRecord = Record<string, unknown>;
 
 const STORE_KEY = "skillguard:store:v1";
 
-let store = globalThis.skillguardStore ?? createSeededStore();
+let store = globalThis.skillguardStore ?? createEmptyStore();
 
 function envValue(name: string): string | undefined {
   const runtime = globalThis as {
@@ -77,18 +81,24 @@ async function redisCommand<T>(command: unknown[]): Promise<T> {
 
 async function loadStore(): Promise<void> {
   if (!redisConfig()) {
-    store = globalThis.skillguardStore ?? createSeededStore();
+    store = globalThis.skillguardStore ?? createEmptyStore();
     globalThis.skillguardStore = store;
     return;
   }
 
   const raw = await redisCommand<string | null>(["GET", STORE_KEY]);
   if (raw) {
-    store = new SkillGuardStore(JSON.parse(raw) as StoreSnapshot);
+    const { changed, snapshot } = sanitizeProductionSnapshot(
+      JSON.parse(raw) as StoreSnapshot
+    );
+    store = new SkillGuardStore(snapshot);
+    if (changed) {
+      await persistStore();
+    }
     return;
   }
 
-  store = createSeededStore();
+  store = createEmptyStore();
   await persistStore();
 }
 
@@ -99,6 +109,41 @@ async function persistStore(): Promise<void> {
   }
 
   await redisCommand<string>(["SET", STORE_KEY, JSON.stringify(store.toSnapshot())]);
+}
+
+function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
+  changed: boolean;
+  snapshot: StoreSnapshot;
+} {
+  const seededSnapshot = createSeededSnapshot();
+  if (JSON.stringify(snapshot) === JSON.stringify(seededSnapshot)) {
+    return { changed: true, snapshot: createEmptySnapshot() };
+  }
+
+  const sanitized = {
+    actions: snapshot.actions.filter(
+      (action) =>
+        !(
+          action.connectionId === "conn-demo" &&
+          action.manifest.userWallet ===
+            "DemoWallet111111111111111111111111111111111"
+        )
+    ),
+    agents: snapshot.agents,
+    connections: snapshot.connections.filter(
+      (connection) =>
+        !(
+          connection.connectionId === "conn-demo" &&
+          connection.userWallet ===
+            "DemoWallet111111111111111111111111111111111"
+        )
+    ),
+  };
+
+  return {
+    changed: JSON.stringify(sanitized) !== JSON.stringify(snapshot),
+    snapshot: sanitized,
+  };
 }
 
 function decisionStatusForPolicy(result: ReturnType<typeof evaluatePolicy>): DecisionStatus | null {

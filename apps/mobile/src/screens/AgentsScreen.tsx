@@ -4,18 +4,34 @@ import { colors } from "../theme";
 import { StatusBadge } from "../components/StatusBadge";
 
 interface AgentsScreenProps {
-  agent: ConnectedAgent;
-  onRevoke: () => void;
+  agents: ConnectedAgent[];
+  onRevoke: (connectionId: string) => void;
 }
 
-export function AgentsScreen({ agent, onRevoke }: AgentsScreenProps) {
+export function AgentsScreen({ agents, onRevoke }: AgentsScreenProps) {
+  return (
+    <View style={styles.panel}>
+      <Text style={styles.kicker}>Connected agents</Text>
+      {agents.map((agent) => (
+        <AgentRow agent={agent} key={agent.connectionId} onRevoke={onRevoke} />
+      ))}
+    </View>
+  );
+}
+
+function AgentRow({
+  agent,
+  onRevoke,
+}: {
+  agent: ConnectedAgent;
+  onRevoke: (connectionId: string) => void;
+}) {
   const isRevoked = agent.status === "revoked";
 
   return (
-    <View style={styles.panel}>
+    <View style={styles.agentCard}>
       <View style={styles.topRow}>
         <View style={styles.copy}>
-          <Text style={styles.kicker}>Connected agent</Text>
           <Text style={styles.title}>{agent.name}</Text>
           <Text style={styles.body}>{agent.description}</Text>
         </View>
@@ -25,13 +41,17 @@ export function AgentsScreen({ agent, onRevoke }: AgentsScreenProps) {
         />
       </View>
       <View style={styles.metaGrid}>
-        <InfoCell label="Last seen" value={agent.lastSeen} />
+        <InfoCell label="Agent ID" value={agent.id} />
         <InfoCell label="Network" value={agent.policy.network} />
+      </View>
+      <View style={styles.metaGrid}>
+        <InfoCell label="Last seen" value={agent.lastSeen} />
+        <InfoCell label="Mode" value={agent.policy.mode.replaceAll("_", " ")} />
       </View>
       <Pressable
         accessibilityRole="button"
         disabled={isRevoked}
-        onPress={onRevoke}
+        onPress={() => onRevoke(agent.connectionId)}
         style={({ pressed }) => [
           styles.revokeButton,
           isRevoked ? styles.disabledButton : null,
@@ -56,6 +76,13 @@ function InfoCell({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  agentCard: {
+    borderColor: colors.border,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 14,
+    padding: 14,
+  },
   body: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   copy: { flex: 1, gap: 5 },
   disabledButton: { opacity: 0.45 },

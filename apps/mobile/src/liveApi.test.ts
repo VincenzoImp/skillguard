@@ -45,6 +45,43 @@ describe("mobile live API client", () => {
     ]);
   });
 
+  it("connects an arbitrary agent instead of only the built-in demo agent", async () => {
+    const requests: Array<{ body: unknown; method: string; url: string }> = [];
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        method: init?.method ?? "GET",
+        url,
+      });
+
+      if (url.endsWith("/agents")) {
+        return response({ agent: requests.at(-1)?.body });
+      }
+
+      return response({ connection: requests.at(-1)?.body }, 201);
+    });
+    const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
+
+    const connection = await client.connectAgent(userWallet, {
+      agentId: "agent-payments",
+      description: "Payment automation agent.",
+      name: "Payments Agent",
+    });
+
+    expect(connection.connectionId).toBe(connectionIdForWallet(userWallet, "agent-payments"));
+    expect(connection.agentId).toBe("agent-payments");
+    expect(connection.policy).toMatchObject({
+      agentId: "agent-payments",
+      policyId: `policy-agent-payments-${userWallet}`,
+      userWallet,
+    });
+    expect(requests[0]?.body).toEqual({
+      agentId: "agent-payments",
+      description: "Payment automation agent.",
+      name: "Payments Agent",
+    });
+  });
+
   it("loads connections and wallet actions without using seeded local state", async () => {
     const policy = buildDefaultPolicy(userWallet);
     const fetchMock = vi.fn(async (url: string) => {
@@ -112,6 +149,7 @@ describe("mobile live API client", () => {
     const state = await client.loadWalletState(userWallet);
 
     expect(state.agent?.status).toBe("active");
+    expect(state.agents.map((agent) => agent.id)).toEqual(["agent-research"]);
     expect(state.selectedActionId).toBe("action-live");
     expect(state.actions[0]).toMatchObject({
       id: "action-live",

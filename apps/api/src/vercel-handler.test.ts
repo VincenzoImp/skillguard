@@ -78,6 +78,65 @@ describe("Vercel API handler", () => {
     });
   });
 
+  test("starts the production handler with no seeded demo agents", async () => {
+    const response = await callHandler("GET", "/api/agents");
+
+    expect(response).toEqual({
+      body: { agents: [] },
+      status: 200,
+    });
+  });
+
+  test("initializes empty durable storage instead of seeding demo data", async () => {
+    const events: string[] = [];
+    process.env.KV_REST_API_TOKEN = "test-token";
+    process.env.KV_REST_API_URL = "https://redis.test";
+    globalThis.fetch = async (_input, init) => {
+      const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
+      events.push(command[0]);
+      if (command[0] === "GET") {
+        return jsonRedisResponse(null);
+      }
+      if (command[0] === "SET") {
+        return jsonRedisResponse("OK");
+      }
+      throw new Error(`Unexpected Redis command ${command[0]}`);
+    };
+
+    const response = await callHandler("GET", "/api/agents");
+
+    expect(response).toEqual({
+      body: { agents: [] },
+      status: 200,
+    });
+    expect(events).toEqual(["GET", "SET"]);
+  });
+
+  test("removes legacy seeded demo records from durable production storage", async () => {
+    process.env.KV_REST_API_TOKEN = "test-token";
+    process.env.KV_REST_API_URL = "https://redis.test";
+    globalThis.fetch = async (_input, init) => {
+      const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
+      if (command[0] === "GET") {
+        return jsonRedisResponse(JSON.stringify(createSeededStore().toSnapshot()));
+      }
+      if (command[0] === "SET") {
+        return jsonRedisResponse("OK");
+      }
+      throw new Error(`Unexpected Redis command ${command[0]}`);
+    };
+
+    const response = await callHandler(
+      "GET",
+      "/api/connections?wallet=DemoWallet111111111111111111111111111111111",
+    );
+
+    expect(response).toEqual({
+      body: { connections: [] },
+      status: 200,
+    });
+  });
+
   test("rejects malformed connection creation in the production handler path", async () => {
     const response = await callHandler("POST", "/api/connections", {
       agentId: "agent-research",
@@ -89,8 +148,13 @@ describe("Vercel API handler", () => {
   });
 
   test("rejects action manifests that do not match the connection wallet", async () => {
+    await createConnectionViaHandler({
+      connectionId: "conn-live",
+      wallet: "Wallet111111111111111111111111111111111111",
+    });
+
     const response = await callHandler("POST", "/api/actions", {
-      connectionId: "conn-demo",
+      connectionId: "conn-live",
       manifest: {
         actionId: "action-vercel-wallet-mismatch",
         accountsTouched: ["AttackerWallet111111111111111111111111111111"],
@@ -115,11 +179,15 @@ describe("Vercel API handler", () => {
   });
 
   test("does not reactivate a revoked connection through the production handler path", async () => {
-    await callHandler("POST", "/api/connections/conn-demo/revoke");
+    await createConnectionViaHandler({
+      connectionId: "conn-live",
+      wallet: "Wallet111111111111111111111111111111111111",
+    });
+    await callHandler("POST", "/api/connections/conn-live/revoke");
 
     const response = await callHandler("POST", "/api/connections", {
       agentId: "agent-research",
-      connectionId: "conn-demo",
+      connectionId: "conn-live",
       policy: {
         agentId: "agent-research",
         active: true,
@@ -130,16 +198,16 @@ describe("Vercel API handler", () => {
         expiresAt: 4_100_000_000,
         maxSpendAtomic: "1000000",
         mode: "ask_every_time",
-        policyId: "policy-reconnect-demo",
+        policyId: "policy-reconnect-live",
         revoked: false,
-        userWallet: "DemoWallet111111111111111111111111111111111",
+        userWallet: "Wallet111111111111111111111111111111111111",
       },
-      userWallet: "DemoWallet111111111111111111111111111111111",
+      userWallet: "Wallet111111111111111111111111111111111111",
     });
 
     expect(response.status).toBe(200);
     expect(response.body.connection).toMatchObject({
-      connectionId: "conn-demo",
+      connectionId: "conn-live",
       policy: {
         active: false,
         revoked: true,
@@ -148,9 +216,14 @@ describe("Vercel API handler", () => {
   });
 
   test("rejects connection id reuse for a different wallet in the production handler path", async () => {
+    await createConnectionViaHandler({
+      connectionId: "conn-live",
+      wallet: "Wallet111111111111111111111111111111111111",
+    });
+
     const response = await callHandler("POST", "/api/connections", {
       agentId: "agent-research",
-      connectionId: "conn-demo",
+      connectionId: "conn-live",
       policy: {
         agentId: "agent-research",
         active: true,
@@ -180,7 +253,14 @@ describe("Vercel API handler", () => {
       const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
       if (command[0] === "GET") {
         events.push("redis-get");
-        return jsonRedisResponse(JSON.stringify(createSeededStore().toSnapshot()));
+        return jsonRedisResponse(
+          JSON.stringify(
+            snapshotForConnection({
+              connectionId: "conn-live",
+              wallet: "Wallet111111111111111111111111111111111111",
+            })
+          )
+        );
       }
       if (command[0] === "SET") {
         events.push("redis-set");
@@ -191,7 +271,7 @@ describe("Vercel API handler", () => {
 
     const response = await callHandler(
       "POST",
-      "/api/connections/conn-demo/revoke",
+      "/api/connections/conn-live/revoke",
       undefined,
       () => events.push("response-end"),
     );
@@ -200,6 +280,82 @@ describe("Vercel API handler", () => {
     expect(events).toEqual(["redis-get", "redis-set", "response-end"]);
   });
 });
+
+async function createConnectionViaHandler({
+  connectionId,
+  wallet,
+}: {
+  connectionId: string;
+  wallet: string;
+}) {
+  await callHandler("POST", "/api/agents", {
+    agentId: "agent-research",
+    description: "Live test agent.",
+    name: "Research Agent",
+  });
+
+  const response = await callHandler("POST", "/api/connections", {
+    agentId: "agent-research",
+    connectionId,
+    policy: {
+      agentId: "agent-research",
+      active: true,
+      allowedMints: ["SOL", "USDC"],
+      allowedNetworks: ["solana-devnet"],
+      allowedProtocols: ["helius", "birdeye"],
+      dailySpendCapAtomic: "5000000",
+      expiresAt: 4_100_000_000,
+      maxSpendAtomic: "1000000",
+      mode: "ask_every_time",
+      policyId: `policy-${connectionId}`,
+      revoked: false,
+      userWallet: wallet,
+    },
+    userWallet: wallet,
+  });
+
+  expect(response.status).toBe(201);
+}
+
+function snapshotForConnection({
+  connectionId,
+  wallet,
+}: {
+  connectionId: string;
+  wallet: string;
+}) {
+  return {
+    actions: [],
+    agents: [
+      {
+        agentId: "agent-research",
+        description: "Live test agent.",
+        name: "Research Agent",
+      },
+    ],
+    connections: [
+      {
+        agentId: "agent-research",
+        connectionId,
+        policy: {
+          active: true,
+          agentId: "agent-research",
+          allowedMints: ["SOL", "USDC"],
+          allowedNetworks: ["solana-devnet"],
+          allowedProtocols: ["helius", "birdeye"],
+          dailySpendCapAtomic: "5000000",
+          expiresAt: 4_100_000_000,
+          maxSpendAtomic: "1000000",
+          mode: "ask_every_time",
+          policyId: `policy-${connectionId}`,
+          revoked: false,
+          userWallet: wallet,
+        },
+        userWallet: wallet,
+      },
+    ],
+  };
+}
 
 function jsonRedisResponse(result: unknown): Response {
   return new Response(JSON.stringify({ result }), {

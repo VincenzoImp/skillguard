@@ -7,6 +7,18 @@ import {
 import { SkillGuardStore } from "./store.js";
 import type { StoreSnapshot } from "./store.js";
 
+export function createEmptySnapshot(): StoreSnapshot {
+  return {
+    actions: [],
+    agents: [],
+    connections: [],
+  };
+}
+
+export function createEmptyStore(): SkillGuardStore {
+  return new SkillGuardStore(createEmptySnapshot());
+}
+
 export function createSeededSnapshot(): StoreSnapshot {
   return {
     agents: [

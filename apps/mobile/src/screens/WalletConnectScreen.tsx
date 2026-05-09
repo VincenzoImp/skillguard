@@ -1,6 +1,6 @@
 import "../polyfills";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { Transaction } from "@solana/web3.js";
@@ -36,6 +37,11 @@ export function WalletConnectScreen() {
   const [mobileState, setMobileState] = useState(emptyMobileState);
   const [status, setStatus] = useState("Wallet not connected");
   const [isBusy, setIsBusy] = useState(false);
+  const [agentIdInput, setAgentIdInput] = useState("agent-research");
+  const [agentNameInput, setAgentNameInput] = useState("Research Agent");
+  const [agentDescriptionInput, setAgentDescriptionInput] = useState(
+    "Solana research agent that requests wallet-safe actions."
+  );
   const { account, connect, disconnect, signAndSendTransaction, connection } =
     useMobileWallet();
   const apiClient = useMemo(() => createSkillGuardApiClient(), []);
@@ -46,6 +52,39 @@ export function WalletConnectScreen() {
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   }, [address]);
   const selectedAction = getSelectedAction(mobileState);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRestoredSession() {
+      if (!address) {
+        setMobileState(emptyMobileState);
+        setStatus("Wallet not connected");
+        return;
+      }
+
+      setStatus("Wallet session restored. Loading live SkillGuard state.");
+      try {
+        const nextState = await apiClient.loadWalletState(address);
+        if (!cancelled) {
+          setMobileState(nextState);
+          setStatus(
+            `Loaded ${nextState.agents.length} agents and ${nextState.actions.length} live requests`
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setStatus(readError(error));
+        }
+      }
+    }
+
+    loadRestoredSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address, apiClient]);
 
   async function refreshWalletState(userWallet: string) {
     const nextState = await apiClient.loadWalletState(userWallet);
@@ -59,11 +98,10 @@ export function WalletConnectScreen() {
     try {
       const connected = await connect();
       const userWallet = connected.publicKey.toBase58();
-      setStatus("Registering live agent connection");
-      await apiClient.ensureAgentConnection(userWallet);
+      setStatus("Loading live SkillGuard state");
       const nextState = await refreshWalletState(userWallet);
       setStatus(
-        `Connected ${userWallet.slice(0, 8)}... ${nextState.actions.length} live requests`
+        `Connected ${userWallet.slice(0, 8)}... ${nextState.agents.length} agents, ${nextState.actions.length} requests`
       );
     } catch (error) {
       setStatus(readError(error));
@@ -189,17 +227,49 @@ export function WalletConnectScreen() {
     }
   }
 
-  async function handleRevokeAgent() {
-    if (!address || !mobileState.agent) {
+  async function revokeConnection(connectionId: string) {
+    if (!address) {
       setStatus("Connect a wallet before revoking an agent");
       return;
     }
 
     setIsBusy(true);
     try {
-      await apiClient.revokeConnection(mobileState.agent.connectionId);
+      await apiClient.revokeConnection(connectionId);
       await refreshWalletState(address);
       setStatus("Agent revoked. Future requests are blocked.");
+    } catch (error) {
+      setStatus(readError(error));
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleConnectAgent() {
+    if (!address) {
+      setStatus("Connect a wallet before adding an agent");
+      return;
+    }
+
+    const agentId = agentIdInput.trim();
+    const name = agentNameInput.trim();
+    const description = agentDescriptionInput.trim();
+    if (!agentId || !name || !description) {
+      setStatus("Agent ID, name, and description are required");
+      return;
+    }
+
+    setIsBusy(true);
+    try {
+      await apiClient.connectAgent(address, {
+        agentId,
+        description,
+        name,
+      });
+      const nextState = await refreshWalletState(address);
+      setStatus(
+        `Connected agent ${agentId}. ${nextState.agents.length} agents now controlled.`
+      );
     } catch (error) {
       setStatus(readError(error));
     } finally {
@@ -294,13 +364,56 @@ export function WalletConnectScreen() {
           </View>
         </View>
 
-        {mobileState.agent ? (
-          <>
-            <AgentsScreen agent={mobileState.agent} onRevoke={handleRevokeAgent} />
-            <PermissionEditorScreen
-              policy={mobileState.agent.policy}
-              onModeChange={handlePolicyModeChange}
+        {address ? (
+          <View style={styles.agentFormPanel}>
+            <Text style={styles.panelLabel}>Connect agent</Text>
+            <Text style={styles.formHelp}>
+              Add the agent that is allowed to submit requests for this wallet.
+            </Text>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isBusy}
+              onChangeText={setAgentIdInput}
+              placeholder="agent-id"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={agentIdInput}
             />
+            <TextInput
+              editable={!isBusy}
+              onChangeText={setAgentNameInput}
+              placeholder="Agent name"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={agentNameInput}
+            />
+            <TextInput
+              editable={!isBusy}
+              multiline
+              onChangeText={setAgentDescriptionInput}
+              placeholder="What this agent is allowed to request"
+              placeholderTextColor={colors.textMuted}
+              style={[styles.input, styles.textArea]}
+              value={agentDescriptionInput}
+            />
+            <SecondaryButton
+              disabled={isBusy}
+              label="Connect agent"
+              onPress={handleConnectAgent}
+            />
+          </View>
+        ) : null}
+
+        {mobileState.agents.length > 0 ? (
+          <>
+            <AgentsScreen agents={mobileState.agents} onRevoke={revokeConnection} />
+            {mobileState.agent ? (
+              <PermissionEditorScreen
+                policy={mobileState.agent.policy}
+                onModeChange={handlePolicyModeChange}
+              />
+            ) : null}
           </>
         ) : null}
         <InboxScreen
@@ -389,6 +502,14 @@ function readError(error: unknown): string {
 
 const styles = StyleSheet.create({
   actionRow: { flexDirection: "row", gap: 10, marginTop: 18 },
+  agentFormPanel: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+    padding: 18,
+  },
   appName: { color: colors.text, fontSize: 24, fontWeight: "800", letterSpacing: 0 },
   content: { gap: 18, padding: 18, paddingBottom: 36 },
   disabledButton: { opacity: 0.45 },
@@ -404,6 +525,7 @@ const styles = StyleSheet.create({
   emptyTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
   header: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 8 },
   headerCopy: { flex: 1 },
+  formHelp: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   heroBody: { color: colors.textSecondary, fontSize: 15, lineHeight: 22, marginTop: 10 },
   heroCard: {
     backgroundColor: colors.surface,
@@ -422,6 +544,17 @@ const styles = StyleSheet.create({
   },
   heroTopRow: { flexDirection: "row", gap: 8 },
   icon: { height: 48, width: 48 },
+  input: {
+    backgroundColor: colors.deep,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    color: colors.text,
+    fontSize: 14,
+    minHeight: 46,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   panelLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
   pressedButton: { transform: [{ scale: 0.99 }] },
   primaryButton: {
@@ -448,6 +581,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: { color: colors.text, fontSize: 15, fontWeight: "700" },
   statusText: { color: colors.textSecondary, fontSize: 13, marginTop: 6 },
   tagline: { color: colors.textSecondary, fontSize: 13, lineHeight: 18 },
+  textArea: { minHeight: 82, textAlignVertical: "top" },
   walletAddress: { color: colors.text, fontSize: 20, fontWeight: "800", marginTop: 5 },
   walletPanel: {
     backgroundColor: colors.deep,

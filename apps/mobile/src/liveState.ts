@@ -57,6 +57,7 @@ export interface MobileAction {
 
 export interface SkillGuardMobileState {
   agent: ConnectedAgent | null;
+  agents: ConnectedAgent[];
   selectedActionId: string | null;
   actions: MobileAction[];
 }
@@ -81,6 +82,7 @@ export interface ApiActionRecord {
 export const emptyMobileState: SkillGuardMobileState = {
   actions: [],
   agent: null,
+  agents: [],
   selectedActionId: null,
 };
 
@@ -91,6 +93,7 @@ export function toMobileState({
   actions: ApiActionRecord[];
   connections: ApiConnectionRecord[];
 }): SkillGuardMobileState {
+  const agents = connections.map(toConnectedAgent);
   const primaryConnection =
     connections.find((connection) => !connection.policy.revoked) ?? connections[0] ?? null;
   const mobileActions = actions
@@ -100,6 +103,7 @@ export function toMobileState({
 
   return {
     actions: mobileActions,
+    agents,
     agent: primaryConnection ? toConnectedAgent(primaryConnection) : null,
     selectedActionId:
       mobileActions.find((action) => action.status === "pending")?.id ??
