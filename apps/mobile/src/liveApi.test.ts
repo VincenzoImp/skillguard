@@ -239,6 +239,52 @@ describe("mobile live API client", () => {
     );
   });
 
+  it("registers and removes an Expo push token with the wallet session header", async () => {
+    const calls: Array<{ body: unknown; headers?: HeadersInit; method: string; url: string }> = [];
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push({
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+        headers: init?.headers,
+        method: init?.method ?? "GET",
+        url,
+      });
+      return response({ pushTokens: ["ExponentPushToken[token-1]"] }, 201);
+    });
+    const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
+
+    await client.registerPushToken(
+      userWallet,
+      "sgw_live_session_token",
+      "ExponentPushToken[token-1]"
+    );
+    await client.removePushToken(
+      userWallet,
+      "sgw_live_session_token",
+      "ExponentPushToken[token-1]"
+    );
+
+    expect(calls).toMatchObject([
+      {
+        body: { token: "ExponentPushToken[token-1]" },
+        headers: {
+          "content-type": "application/json",
+          "x-skillguard-wallet-session": "sgw_live_session_token",
+        },
+        method: "POST",
+        url: `https://api.skillguard.test/wallets/${userWallet}/push-token`,
+      },
+      {
+        body: { token: "ExponentPushToken[token-1]" },
+        headers: {
+          "content-type": "application/json",
+          "x-skillguard-wallet-session": "sgw_live_session_token",
+        },
+        method: "DELETE",
+        url: `https://api.skillguard.test/wallets/${userWallet}/push-token`,
+      },
+    ]);
+  });
+
   it("records approved decisions only with wallet proof, transaction signature, and receipt address", async () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
       response({

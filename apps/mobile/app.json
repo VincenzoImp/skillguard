@@ -26,6 +26,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#10b981",
+          "defaultChannel": "skillguard-actions"
+        }
+      ]
+    ]
   }
 }

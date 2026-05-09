@@ -20,6 +20,7 @@ import {
 } from "../appNavigation";
 import { buildApprovalTransaction } from "../buildApprovalTransaction";
 import { StatusBadge } from "../components/StatusBadge";
+import { registerSkillGuardDevicePushToken } from "../expoPushNotifications";
 import { buildAgentPolicyInput, parseAgentPairingInput } from "../agentPolicyForm";
 import { createSkillGuardApiClient } from "../liveApi";
 import {
@@ -41,13 +42,26 @@ import { InboxScreen } from "./InboxScreen";
 import { PermissionEditorScreen } from "./PermissionEditorScreen";
 import { ReceiptScreen } from "./ReceiptScreen";
 
-export function WalletConnectScreen() {
+interface WalletConnectScreenProps {
+  notificationActionId?: string | null;
+  onNotificationActionHandled?: () => void;
+}
+
+export function WalletConnectScreen({
+  notificationActionId = null,
+  onNotificationActionHandled,
+}: WalletConnectScreenProps) {
   const [mobileState, setMobileState] = useState(emptyMobileState);
   const [activeTab, setActiveTab] = useState<AppTabId>("home");
   const [status, setStatus] = useState("Wallet not connected");
   const [isBusy, setIsBusy] = useState(false);
   const [walletSession, setWalletSession] = useState<{
     token: string;
+    wallet: string;
+  } | null>(null);
+  const [pushRegistration, setPushRegistration] = useState<{
+    reason?: string;
+    token?: string;
     wallet: string;
   } | null>(null);
   const [agentIdInput, setAgentIdInput] = useState("");
@@ -115,8 +129,49 @@ export function WalletConnectScreen() {
     };
   }, [address, apiClient, signMessage, walletSession]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function openNotificationAction() {
+      if (!address || !notificationActionId) {
+        return;
+      }
+
+      setStatus("Opening request from notification");
+      try {
+        const nextState = await refreshWalletState(address);
+        if (cancelled) {
+          return;
+        }
+        const hasAction = nextState.actions.some(
+          (action) => action.id === notificationActionId
+        );
+        if (hasAction) {
+          setMobileState((state) => selectAction(state, notificationActionId));
+          setActiveTab("inbox");
+          setStatus("Opened pending request from notification");
+        } else {
+          setStatus("Notification request is no longer pending for this wallet");
+        }
+        onNotificationActionHandled?.();
+      } catch (error) {
+        if (!cancelled) {
+          setStatus(readError(error));
+          onNotificationActionHandled?.();
+        }
+      }
+    }
+
+    openNotificationAction();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address, notificationActionId]);
+
   async function refreshWalletState(userWallet: string) {
     const sessionToken = await ensureWalletSession(userWallet);
+    await ensurePushRegistration(userWallet, sessionToken);
     const nextState = await apiClient.loadWalletState(userWallet, sessionToken);
     setMobileState(nextState);
     return nextState;
@@ -129,6 +184,21 @@ export function WalletConnectScreen() {
     const session = await apiClient.createWalletSession(userWallet, signMessage);
     setWalletSession({ token: session.token, wallet: userWallet });
     return session.token;
+  }
+
+  async function ensurePushRegistration(userWallet: string, walletSessionToken: string) {
+    if (pushRegistration?.wallet === userWallet) {
+      return;
+    }
+
+    const result = await registerSkillGuardDevicePushToken();
+    if (result.status === "registered") {
+      await apiClient.registerPushToken(userWallet, walletSessionToken, result.token);
+      setPushRegistration({ token: result.token, wallet: userWallet });
+      return;
+    }
+
+    setPushRegistration({ reason: result.reason, wallet: userWallet });
   }
 
   async function handleConnect() {
@@ -153,8 +223,16 @@ export function WalletConnectScreen() {
   async function handleDisconnect() {
     setIsBusy(true);
     try {
+      if (walletSession && pushRegistration?.token) {
+        await apiClient.removePushToken(
+          walletSession.wallet,
+          walletSession.token,
+          pushRegistration.token
+        );
+      }
       await disconnect();
       setWalletSession(null);
+      setPushRegistration(null);
       setMobileState(emptyMobileState);
       setActiveTab("home");
       setStatus("Wallet disconnected");

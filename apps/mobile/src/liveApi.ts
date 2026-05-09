@@ -348,6 +348,44 @@ export function createSkillGuardApiClient(
       });
     },
 
+    async registerPushToken(
+      userWallet: string,
+      walletSessionToken: string,
+      token: string
+    ): Promise<string[]> {
+      const body = await request<{ pushTokens: string[] }>(
+        `wallets/${encodeURIComponent(userWallet)}/push-token`,
+        {
+          body: JSON.stringify({ token }),
+          headers: {
+            "content-type": "application/json",
+            "x-skillguard-wallet-session": walletSessionToken,
+          },
+          method: "POST",
+        }
+      );
+      return body.pushTokens;
+    },
+
+    async removePushToken(
+      userWallet: string,
+      walletSessionToken: string,
+      token: string
+    ): Promise<string[]> {
+      const body = await request<{ pushTokens: string[] }>(
+        `wallets/${encodeURIComponent(userWallet)}/push-token`,
+        {
+          body: JSON.stringify({ token }),
+          headers: {
+            "content-type": "application/json",
+            "x-skillguard-wallet-session": walletSessionToken,
+          },
+          method: "DELETE",
+        }
+      );
+      return body.pushTokens;
+    },
+
     async rejectAction(
       actionId: string,
       connectionId: string,
