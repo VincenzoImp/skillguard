@@ -45,9 +45,14 @@ npm --prefix apps/research-agent run submit:revoked
 
 The wallet address must be the exact address shown in the Android app after
 Mobile Wallet Adapter connection. The research agent never receives the private key.
-Before running those commands, import `agent-research` in the mobile app and
-keep the default conservative policy: ask every time, 1 USDC max spend per
-action, 5 USDC daily cap, `helius,birdeye`, and `SOL,USDC`.
+Before running those commands, import `agent-research` in the mobile app with
+the pairing link below, sign the wallet-owner challenge, and keep the default
+conservative policy: ask every time, 1 USDC max spend per action, 5 USDC daily
+cap, `helius,birdeye`, and `SOL,USDC`.
+
+```text
+skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye
+```
 
 ## Manual Commands
 
@@ -79,8 +84,8 @@ npm --prefix apps/research-agent run submit:revoked
 
 Open SkillGuard mobile and connect a devnet wallet through Mobile Wallet Adapter.
 Show the wallet address, devnet badge, live API badge, and empty agent state.
-Import `agent-research` as `Research Agent`, set the policy, and show the agent
-connection that was created by the wallet owner.
+Paste the `agent-research` pairing link, review the policy, sign the import
+challenge, and show the agent connection that was created by the wallet owner.
 
 ## Scene 2: Unsafe Request
 

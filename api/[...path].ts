@@ -6,6 +6,7 @@ import {
   createEmptyStore,
   createSeededSnapshot,
 } from "../apps/api/src/seed.js";
+import { verifyConnectionOwnerProof } from "../apps/api/src/ownerProof.js";
 import { SkillGuardStore } from "../apps/api/src/store.js";
 import type { StoreSnapshot } from "../apps/api/src/store.js";
 import {
@@ -337,6 +338,12 @@ async function handleConnections(
       }
 
       sendJson(res, 200, { connection: existingConnection });
+      return;
+    }
+
+    const ownerProofResult = verifyConnectionOwnerProof(body.ownerProof, connectionInput);
+    if (!ownerProofResult.ok) {
+      sendJson(res, 403, { error: ownerProofResult.error });
       return;
     }
 

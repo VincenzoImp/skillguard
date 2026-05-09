@@ -18,7 +18,7 @@ npm run dev
 - `GET /agents`
 - `POST /agents`
 - `GET /agents/:agentId`
-- `POST /connections`
+- `POST /connections` with `ownerProof`
 - `GET /connections?wallet=...`
 - `PATCH /connections/:connectionId/policy`
 - `POST /connections/:connectionId/revoke`
@@ -38,9 +38,11 @@ mobile app queries by the connected wallet address and shows only connections
 and actions created for that wallet.
 
 The API is intentionally public: external agents and apps can register an
-agent, create a wallet-owned connection after the user imports/configures it in
-the app, submit `ActionManifest` payloads, and poll for decisions. The API never
-receives wallet private keys.
+agent, submit `ActionManifest` payloads, and poll for decisions. A new
+wallet-owned connection requires `ownerProof`: a Solana sign-message proof over
+the wallet, agent ID, connection ID, and exact policy fields. This prevents third
+parties from connecting agents to wallets that did not actively import them. The
+API never receives wallet private keys.
 
 Approved decisions must include both:
 

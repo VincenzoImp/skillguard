@@ -18,8 +18,8 @@ The current mobile slice uses live SkillGuard API state for the product screens:
 - connect an MWA-compatible wallet on devnet
 - show the connected wallet address
 - start fresh wallets with zero connected agents
-- import an agent by ID and configure approval mode, spend limits, protocol
-  allowlist, and mint allowlist
+- import an agent by pairing link or ID, sign a wallet-owner challenge, and
+  configure approval mode, spend limits, protocol allowlist, and mint allowlist
 - edit the remote policy mode
 - review pending, blocked, approved, and rejected live agent requests
 - approve a pending request through a devnet SkillGuard `record_decision` transaction
@@ -87,7 +87,7 @@ The generated APK and native `android/` directory are local artifacts and are ig
 
 Manual Android verification passed on May 9, 2026 using the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
 
-The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a SkillGuard program transaction through Mobile Wallet Adapter. The transaction created the user profile, connected the research agent, and recorded an approval receipt:
+The app authorized wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` on devnet and submitted a SkillGuard program transaction through Mobile Wallet Adapter. Agent import now also requires a Solana sign-message owner proof before the API creates the connection. The approval transaction created the user profile, connected the research agent on-chain, and recorded an approval receipt:
 
 ```text
 Signature: 5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF

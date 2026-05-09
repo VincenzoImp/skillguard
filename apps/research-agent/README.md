@@ -14,7 +14,15 @@ Capabilities:
 
 The research agent must target the wallet currently connected in the mobile app:
 
-Before submitting actions, import this agent in the app for that wallet:
+Before submitting actions, import this agent in the app for that wallet. The
+smooth path is to paste this pairing link into the app's Agent ID field, review
+limits, and sign the wallet-owner challenge:
+
+```text
+skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye
+```
+
+Manual import values:
 
 ```text
 Agent ID: agent-research
@@ -35,8 +43,9 @@ npm run submit:safe
 npm run submit:revoked
 ```
 
-By default the CLI only submits actions to an existing connection. It never
-receives the user's private key. For automated smoke tests without a phone, set
-`SKILLGUARD_AUTO_CONNECT=1` to create the research-agent connection before submitting.
-Hosted smoke runs use generated `SmokeWallet...` addresses and clean those
-records through `DELETE /smoke-runs/:runId` after the assertions complete.
+By default the CLI only submits actions to an existing wallet-owner-signed
+connection. It never receives the user's private key and cannot connect itself
+to a real wallet. For automated smoke tests without a phone, set
+`SKILLGUARD_AUTO_CONNECT=1` to create a fake `SmokeWallet...` research-agent
+connection before submitting. Hosted smoke runs clean those records through
+`DELETE /smoke-runs/:runId` after the assertions complete.

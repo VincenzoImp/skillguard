@@ -31,7 +31,7 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   {
     method: "POST",
     path: "/api/connections",
-    description: "Connect an agent to a wallet policy.",
+    description: "Connect an agent to a wallet policy with ownerProof.",
   },
   {
     method: "PATCH",

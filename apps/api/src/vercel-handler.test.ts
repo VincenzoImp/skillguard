@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import type { AgentPolicy } from "@skillguard/protocol";
+import bs58 from "bs58";
+import nacl from "tweetnacl";
 
 import handler from "../../../api/[...path].ts";
+import { buildConnectionOwnerMessage } from "./ownerProof.js";
 import { createSeededStore } from "./seed.js";
 import type { StoreSnapshot } from "./store.js";
 
@@ -50,6 +54,47 @@ async function callHandler(
   return {
     body: JSON.parse(res.body) as { error?: string; [key: string]: unknown },
     status: res.statusCode,
+  };
+}
+
+function testKeyPair(seedByte: number): nacl.SignKeyPair {
+  return nacl.sign.keyPair.fromSeed(new Uint8Array(32).fill(seedByte));
+}
+
+function walletFor(keyPair: nacl.SignKeyPair): string {
+  return bs58.encode(keyPair.publicKey);
+}
+
+function ownerProofFor({
+  agentId,
+  connectionId,
+  keyPair,
+  policy,
+  signedAt = Date.now(),
+  userWallet,
+}: {
+  agentId: string;
+  connectionId: string;
+  keyPair: nacl.SignKeyPair;
+  policy: AgentPolicy;
+  signedAt?: number;
+  userWallet: string;
+}) {
+  const message = buildConnectionOwnerMessage({
+    agentId,
+    connectionId,
+    policy,
+    signedAt,
+    userWallet,
+  });
+  return {
+    message,
+    signatureBase64: Buffer.from(
+      nacl.sign.detached(new TextEncoder().encode(message), keyPair.secretKey),
+    ).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
   };
 }
 
@@ -331,9 +376,11 @@ describe("Vercel API handler", () => {
   });
 
   test("rejects action manifests that do not match the connection wallet", async () => {
+    const wallet = walletFor(testKeyPair(11));
     await createConnectionViaHandler({
       connectionId: "conn-live",
-      wallet: "Wallet111111111111111111111111111111111111",
+      keyPair: testKeyPair(11),
+      wallet,
     });
 
     const response = await callHandler("POST", "/api/actions", {
@@ -362,9 +409,11 @@ describe("Vercel API handler", () => {
   });
 
   test("does not reactivate a revoked connection through the production handler path", async () => {
+    const wallet = walletFor(testKeyPair(12));
     await createConnectionViaHandler({
       connectionId: "conn-live",
-      wallet: "Wallet111111111111111111111111111111111111",
+      keyPair: testKeyPair(12),
+      wallet,
     });
     await callHandler("POST", "/api/connections/conn-live/revoke");
 
@@ -383,9 +432,9 @@ describe("Vercel API handler", () => {
         mode: "ask_every_time",
         policyId: "policy-reconnect-live",
         revoked: false,
-        userWallet: "Wallet111111111111111111111111111111111111",
+        userWallet: wallet,
       },
-      userWallet: "Wallet111111111111111111111111111111111111",
+      userWallet: wallet,
     });
 
     expect(response.status).toBe(200);
@@ -399,9 +448,11 @@ describe("Vercel API handler", () => {
   });
 
   test("rejects connection id reuse for a different wallet in the production handler path", async () => {
+    const wallet = walletFor(testKeyPair(13));
     await createConnectionViaHandler({
       connectionId: "conn-live",
-      wallet: "Wallet111111111111111111111111111111111111",
+      keyPair: testKeyPair(13),
+      wallet,
     });
 
     const response = await callHandler("POST", "/api/connections", {
@@ -451,24 +502,35 @@ describe("Vercel API handler", () => {
     });
     expect(agentResponse.status).toBe(201);
 
+    const keyPair = testKeyPair(14);
+    const wallet = walletFor(keyPair);
+    const connectionId = "conn-agent-research-Wallet111";
+    const policy: AgentPolicy = {
+      active: true,
+      agentId: "agent-research",
+      allowedMints: ["SOL", "USDC"],
+      allowedNetworks: ["solana-devnet"],
+      allowedProtocols: ["helius", "birdeye"],
+      dailySpendCapAtomic: "5000000",
+      expiresAt: 4_100_000_000,
+      maxSpendAtomic: "1000000",
+      mode: "ask_every_time",
+      policyId: "policy-agent-research-Wallet111",
+      revoked: false,
+      userWallet: wallet,
+    };
     const connectionResponse = await callHandler("POST", "/api/connections", {
       agentId: "agent-research",
-      connectionId: "conn-agent-research-Wallet111",
-      policy: {
-        active: true,
+      connectionId,
+      ownerProof: ownerProofFor({
         agentId: "agent-research",
-        allowedMints: ["SOL", "USDC"],
-        allowedNetworks: ["solana-devnet"],
-        allowedProtocols: ["helius", "birdeye"],
-        dailySpendCapAtomic: "5000000",
-        expiresAt: 4_100_000_000,
-        maxSpendAtomic: "1000000",
-        mode: "ask_every_time",
-        policyId: "policy-agent-research-Wallet111",
-        revoked: false,
-        userWallet: "Wallet111",
-      },
-      userWallet: "Wallet111",
+        connectionId,
+        keyPair,
+        policy,
+        userWallet: wallet,
+      }),
+      policy,
+      userWallet: wallet,
     });
 
     expect(connectionResponse.status).toBe(201);
@@ -603,9 +665,11 @@ describe("Vercel API handler", () => {
 
 async function createConnectionViaHandler({
   connectionId,
+  keyPair = testKeyPair(31),
   wallet,
 }: {
   connectionId: string;
+  keyPair?: nacl.SignKeyPair;
   wallet: string;
 }) {
   await callHandler("POST", "/api/agents", {
@@ -614,23 +678,31 @@ async function createConnectionViaHandler({
     name: "Research Agent",
   });
 
+  const policy: AgentPolicy = {
+    agentId: "agent-research",
+    active: true,
+    allowedMints: ["SOL", "USDC"],
+    allowedNetworks: ["solana-devnet"],
+    allowedProtocols: ["helius", "birdeye"],
+    dailySpendCapAtomic: "5000000",
+    expiresAt: 4_100_000_000,
+    maxSpendAtomic: "1000000",
+    mode: "ask_every_time",
+    policyId: `policy-${connectionId}`,
+    revoked: false,
+    userWallet: wallet,
+  };
   const response = await callHandler("POST", "/api/connections", {
     agentId: "agent-research",
     connectionId,
-    policy: {
+    ownerProof: ownerProofFor({
       agentId: "agent-research",
-      active: true,
-      allowedMints: ["SOL", "USDC"],
-      allowedNetworks: ["solana-devnet"],
-      allowedProtocols: ["helius", "birdeye"],
-      dailySpendCapAtomic: "5000000",
-      expiresAt: 4_100_000_000,
-      maxSpendAtomic: "1000000",
-      mode: "ask_every_time",
-      policyId: `policy-${connectionId}`,
-      revoked: false,
+      connectionId,
+      keyPair,
+      policy,
       userWallet: wallet,
-    },
+    }),
+    policy,
     userWallet: wallet,
   });
 

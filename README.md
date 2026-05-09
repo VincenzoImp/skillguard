@@ -27,10 +27,10 @@ Agent proposes action
 
 The hosted API is the public integration surface for agents and third-party
 apps. A fresh mobile wallet has no agents and no inbox items. The user first
-imports or creates an agent connection, then that agent can submit manifests for
-that wallet through the API or SDK. The current MVP uses live API refresh in the
-mobile app; native push notifications are intentionally left as a post-MVP
-hardening step.
+imports an agent with a pairing link or agent ID, signs a wallet-owner challenge,
+and only then can that connected agent submit manifests for that wallet through
+the API or SDK. The current MVP uses live API refresh in the mobile app; native
+push notifications are intentionally left as a post-MVP hardening step.
 
 ## Architecture
 
@@ -63,8 +63,9 @@ Core workspaces:
 The judge demo is a 3-minute vertical slice:
 
 1. User opens the Android app and connects a devnet wallet.
-2. The wallet starts with zero agents; user imports `agent-research`, names it
-   `Research Agent`, and configures spend, protocol, mint, and approval limits.
+2. The wallet starts with zero agents; user imports `agent-research`, reviews
+   the pairing metadata, signs the wallet-owner challenge, and configures spend,
+   protocol, mint, and approval limits.
 3. Research agent submits requests for that wallet address through the API after the
    user-created connection exists.
 4. Unsafe requests are blocked before wallet signing.
@@ -93,8 +94,14 @@ In a second terminal, run the mobile app when the script prints the Android comm
 On Android emulator, the app reaches the host API through `http://10.0.2.2:8787`.
 
 After connecting the wallet, copy the full wallet address from the app and submit
-real requests in a third terminal. For the standard demo, import this agent in
-the app first:
+real requests in a third terminal. For the standard demo, paste this pairing link
+into the app's Agent ID field, review the limits, and sign the import challenge:
+
+```text
+skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye
+```
+
+Manual import values:
 
 ```text
 Agent ID: agent-research
@@ -202,7 +209,11 @@ The program stores compact public facts:
 
 SkillGuard enforces policy only for actions that go through SkillGuard.
 
-The MVP does not claim universal wallet protection, does not custody funds, and does not give agents private keys. Token-moving actions still require user wallet signing unless a future limited delegation module is added.
+New agent connections require a wallet-owner sign-message proof, so requests can
+only appear for agents the wallet owner actively imported. The MVP does not
+claim universal wallet protection, does not custody funds, and does not give
+agents private keys. Token-moving actions still require user wallet signing
+unless a future limited delegation module is added.
 
 ## Public Site
 

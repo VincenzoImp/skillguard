@@ -10,6 +10,14 @@ interface AgentPolicyFormValues {
 }
 
 const allowedMintValues = new Set(["SOL", "USDC"]);
+const pairingProtocols = new Set(["skillguard:", "https:"]);
+
+interface AgentPairingInput {
+  agentId: string;
+  allowedProtocols?: string;
+  description: string;
+  name: string;
+}
 
 export function buildAgentPolicyInput(
   values: AgentPolicyFormValues
@@ -33,6 +41,44 @@ export function parseCsvList(value: string): string[] {
         .filter(Boolean)
     )
   );
+}
+
+export function parseAgentPairingInput(value: string): AgentPairingInput | null {
+  const trimmed = value.trim();
+  if (!trimmed.includes("://")) {
+    return null;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+
+  if (!pairingProtocols.has(url.protocol)) {
+    return null;
+  }
+  if (url.protocol === "skillguard:" && url.hostname !== "pair") {
+    return null;
+  }
+  if (url.protocol === "https:" && url.pathname !== "/pair") {
+    return null;
+  }
+
+  const agentId = url.searchParams.get("agentId")?.trim();
+  const name = url.searchParams.get("name")?.trim();
+  const description = url.searchParams.get("description")?.trim();
+  if (!agentId || !name || !description) {
+    return null;
+  }
+
+  return {
+    agentId,
+    allowedProtocols: url.searchParams.get("protocols")?.trim() || undefined,
+    description,
+    name,
+  };
 }
 
 export function parseUsdcToAtomic(value: string): string {
@@ -79,4 +125,4 @@ function parseMintList(value: string): Array<"SOL" | "USDC"> {
   return mints as Array<"SOL" | "USDC">;
 }
 
-export type { AgentPolicyFormValues };
+export type { AgentPairingInput, AgentPolicyFormValues };

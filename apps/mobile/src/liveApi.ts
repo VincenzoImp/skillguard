@@ -3,6 +3,7 @@ import type {
   ApprovalMode,
   SkillGuardNetwork,
 } from "@skillguard/protocol";
+import { Buffer } from "buffer";
 
 import type { ApiActionRecord, ApiConnectionRecord, SkillGuardMobileState } from "./liveState";
 import { toMobileState } from "./liveState";
@@ -14,6 +15,7 @@ declare const process:
   | undefined;
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
+type SignOwnerMessage = (message: Uint8Array) => Promise<Uint8Array>;
 
 interface AgentResponse {
   agent: {
@@ -61,6 +63,14 @@ export interface SkillGuardPolicyInput {
   mode?: ApprovalMode;
 }
 
+export interface ConnectionOwnerProof {
+  type: "solana-sign-message";
+  wallet: string;
+  message: string;
+  signatureBase64: string;
+  signedAt: number;
+}
+
 export const DEFAULT_SKILLGUARD_API_URL =
   process?.env?.EXPO_PUBLIC_SKILLGUARD_API_URL ??
   "https://skillguard-sol.vercel.app/api";
@@ -93,6 +103,36 @@ export function buildDefaultPolicy(
   };
 }
 
+export function buildConnectionOwnerMessage({
+  agentId,
+  connectionId,
+  policy,
+  signedAt,
+  userWallet,
+}: {
+  agentId: string;
+  connectionId: string;
+  policy: AgentPolicy;
+  signedAt: number;
+  userWallet: string;
+}): string {
+  return [
+    "SkillGuard connection approval",
+    `wallet:${userWallet}`,
+    `agent:${agentId}`,
+    `connection:${connectionId}`,
+    `policy:${policy.policyId}`,
+    `mode:${policy.mode}`,
+    `networks:${policy.allowedNetworks.join(",")}`,
+    `protocols:${policy.allowedProtocols.join(",")}`,
+    `mints:${policy.allowedMints.join(",")}`,
+    `maxSpendAtomic:${policy.maxSpendAtomic}`,
+    `dailySpendCapAtomic:${policy.dailySpendCapAtomic}`,
+    `expiresAt:${policy.expiresAt}`,
+    `signedAt:${signedAt}`,
+  ].join("\n");
+}
+
 export function createSkillGuardApiClient(
   apiUrl = DEFAULT_SKILLGUARD_API_URL,
   fetchImpl: FetchLike = globalThis.fetch
@@ -110,8 +150,19 @@ export function createSkillGuardApiClient(
   async function connectAgent(
     userWallet: string,
     agent: SkillGuardAgentInput,
-    policyInput?: SkillGuardPolicyInput
+    policyInput: SkillGuardPolicyInput | undefined,
+    signOwnerMessage: SignOwnerMessage
   ): Promise<ApiConnectionRecord> {
+    const connectionId = connectionIdForWallet(userWallet, agent.agentId);
+    const policy = buildDefaultPolicy(userWallet, agent.agentId, policyInput);
+    const ownerProof = await buildConnectionOwnerProof({
+      agentId: agent.agentId,
+      connectionId,
+      policy,
+      signOwnerMessage,
+      userWallet,
+    });
+
     await request<AgentResponse>("agents", {
       body: JSON.stringify(agent),
       headers: { "content-type": "application/json" },
@@ -121,8 +172,9 @@ export function createSkillGuardApiClient(
     const body = await request<ConnectionResponse>("connections", {
       body: JSON.stringify({
         agentId: agent.agentId,
-        connectionId: connectionIdForWallet(userWallet, agent.agentId),
-        policy: buildDefaultPolicy(userWallet, agent.agentId, policyInput),
+        connectionId,
+        ownerProof,
+        policy,
         userWallet,
       }),
       headers: { "content-type": "application/json" },
@@ -204,5 +256,36 @@ export function createSkillGuardApiClient(
       );
       return body.connection;
     },
+  };
+}
+
+async function buildConnectionOwnerProof({
+  agentId,
+  connectionId,
+  policy,
+  signOwnerMessage,
+  userWallet,
+}: {
+  agentId: string;
+  connectionId: string;
+  policy: AgentPolicy;
+  signOwnerMessage: SignOwnerMessage;
+  userWallet: string;
+}): Promise<ConnectionOwnerProof> {
+  const signedAt = Date.now();
+  const message = buildConnectionOwnerMessage({
+    agentId,
+    connectionId,
+    policy,
+    signedAt,
+    userWallet,
+  });
+  const signature = await signOwnerMessage(new TextEncoder().encode(message));
+  return {
+    message,
+    signatureBase64: Buffer.from(signature).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
   };
 }

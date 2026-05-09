@@ -3,6 +3,7 @@ import { evaluatePolicy } from "@skillguard/protocol";
 import { Hono } from "hono";
 
 import type { SkillGuardStore } from "./store.js";
+import { verifyConnectionOwnerProof } from "./ownerProof.js";
 import {
   hasText,
   isDecisionStatus,
@@ -68,7 +69,8 @@ export function createApp(store: SkillGuardStore): Hono {
   });
 
   app.post("/connections", async (c) => {
-    const connectionInput = parseConnectionRecord(await c.req.json());
+    const body = await c.req.json();
+    const connectionInput = parseConnectionRecord(body);
     if (!connectionInput) {
       return c.json({ error: "invalid_connection" }, 400);
     }
@@ -87,6 +89,14 @@ export function createApp(store: SkillGuardStore): Hono {
       }
 
       return c.json({ connection: existingConnection }, 200);
+    }
+
+    const ownerProofResult = verifyConnectionOwnerProof(
+      (body as { ownerProof?: unknown }).ownerProof,
+      connectionInput,
+    );
+    if (!ownerProofResult.ok) {
+      return c.json({ error: ownerProofResult.error }, 403);
     }
 
     const connection = store.createConnection(connectionInput);

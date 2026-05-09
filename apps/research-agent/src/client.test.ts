@@ -17,11 +17,11 @@ describe("research agent client", () => {
 
     const client = createSkillGuardClient({
       apiUrl: "http://localhost:8787",
-      connectionId: "conn-agent-research-Wallet111",
+      connectionId: "conn-agent-research-SmokeWallet111",
       fetch,
     });
 
-    await client.ensureAgentConnection("Wallet111");
+    await client.ensureAgentConnection("SmokeWallet111");
 
     expect(calls.map((call) => `${call.method} ${call.url}`)).toEqual([
       "POST http://localhost:8787/agents",
@@ -33,8 +33,8 @@ describe("research agent client", () => {
     });
     expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({
       agentId: "agent-research",
-      connectionId: "conn-agent-research-Wallet111",
-      userWallet: "Wallet111",
+      connectionId: "conn-agent-research-SmokeWallet111",
+      userWallet: "SmokeWallet111",
     });
   });
 

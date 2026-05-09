@@ -14,7 +14,7 @@ import {
 import { Transaction } from "@solana/web3.js";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { StatusBadge } from "../components/StatusBadge";
-import { buildAgentPolicyInput } from "../agentPolicyForm";
+import { buildAgentPolicyInput, parseAgentPairingInput } from "../agentPolicyForm";
 import { createSkillGuardApiClient } from "../liveApi";
 import {
   emptyMobileState,
@@ -48,7 +48,7 @@ export function WalletConnectScreen() {
     useState("helius,birdeye");
   const [dailySpendInput, setDailySpendInput] = useState("5");
   const [maxSpendInput, setMaxSpendInput] = useState("1");
-  const { account, connect, disconnect, signAndSendTransaction, connection } =
+  const { account, connect, disconnect, signAndSendTransaction, signMessage, connection } =
     useMobileWallet();
   const apiClient = useMemo(() => createSkillGuardApiClient(), []);
 
@@ -274,11 +274,16 @@ export function WalletConnectScreen() {
         maxSpendUsdc: maxSpendInput,
         mode: agentPolicyMode,
       });
-      await apiClient.connectAgent(address, {
-        agentId,
-        description,
-        name,
-      }, policyInput);
+      await apiClient.connectAgent(
+        address,
+        {
+          agentId,
+          description,
+          name,
+        },
+        policyInput,
+        signMessage
+      );
       const nextState = await refreshWalletState(address);
       setStatus(
         `Imported agent ${agentId}. ${nextState.agents.length} agents now controlled.`
@@ -317,6 +322,22 @@ export function WalletConnectScreen() {
 
   function handleSelectAction(actionId: string) {
     setMobileState((state) => selectAction(state, actionId));
+  }
+
+  function handleAgentIdInputChange(value: string) {
+    const pairing = parseAgentPairingInput(value);
+    if (!pairing) {
+      setAgentIdInput(value);
+      return;
+    }
+
+    setAgentIdInput(pairing.agentId);
+    setAgentNameInput(pairing.name);
+    setAgentDescriptionInput(pairing.description);
+    if (pairing.allowedProtocols) {
+      setAllowedProtocolsInput(pairing.allowedProtocols);
+    }
+    setStatus("Pairing link loaded. Review limits, then sign to import.");
   }
 
   return (
@@ -388,16 +409,16 @@ export function WalletConnectScreen() {
           <View style={styles.agentFormPanel}>
             <Text style={styles.panelLabel}>Import agent</Text>
             <Text style={styles.formHelp}>
-              This wallet starts with zero agents. Import one by ID and define
-              the limits it must respect before it can submit requests.
+              Paste a pairing link or import by ID, then sign with this wallet
+              before the agent can submit requests.
             </Text>
             <Text style={styles.fieldLabel}>Agent ID</Text>
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
               editable={!isBusy}
-              onChangeText={setAgentIdInput}
-              placeholder="agent-id"
+              onChangeText={handleAgentIdInputChange}
+              placeholder="agent-id or skillguard://pair link"
               placeholderTextColor={colors.textMuted}
               style={styles.input}
               value={agentIdInput}
@@ -477,7 +498,7 @@ export function WalletConnectScreen() {
             />
             <SecondaryButton
               disabled={isBusy}
-              label="Import agent"
+              label="Sign & import agent"
               onPress={handleConnectAgent}
             />
           </View>

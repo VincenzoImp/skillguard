@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
+import bs58 from "bs58";
+import nacl from "tweetnacl";
+import type { AgentPolicy } from "@skillguard/protocol";
 
+import { buildConnectionOwnerMessage } from "./ownerProof.js";
 import { createApp } from "./routes.js";
 import { createSeededStore } from "./seed.js";
 import { SkillGuardStore } from "./store.js";
@@ -14,6 +18,47 @@ function createEmptyTestApp() {
 
 async function json<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
+}
+
+function testKeyPair(seedByte: number): nacl.SignKeyPair {
+  return nacl.sign.keyPair.fromSeed(new Uint8Array(32).fill(seedByte));
+}
+
+function walletFor(keyPair: nacl.SignKeyPair): string {
+  return bs58.encode(keyPair.publicKey);
+}
+
+function ownerProofFor({
+  agentId,
+  connectionId,
+  keyPair,
+  policy,
+  signedAt = Date.now(),
+  userWallet,
+}: {
+  agentId: string;
+  connectionId: string;
+  keyPair: nacl.SignKeyPair;
+  policy: AgentPolicy;
+  signedAt?: number;
+  userWallet: string;
+}) {
+  const message = buildConnectionOwnerMessage({
+    agentId,
+    connectionId,
+    policy,
+    signedAt,
+    userWallet,
+  });
+  return {
+    message,
+    signatureBase64: Buffer.from(
+      nacl.sign.detached(new TextEncoder().encode(message), keyPair.secretKey),
+    ).toString("base64"),
+    signedAt,
+    type: "solana-sign-message",
+    wallet: userWallet,
+  };
 }
 
 describe("SkillGuard API", () => {
@@ -97,6 +142,65 @@ describe("SkillGuard API", () => {
 
   test("agent can be inserted, connected to a wallet, and listed by wallet", async () => {
     const app = createEmptyTestApp();
+    const keyPair = testKeyPair(7);
+    const wallet = walletFor(keyPair);
+    const connectionId = "conn-agent-live-Dd6t";
+    const policy: AgentPolicy = {
+      active: true,
+      agentId: "agent-live",
+      allowedMints: ["SOL", "USDC"],
+      allowedNetworks: ["solana-devnet"],
+      allowedProtocols: ["helius", "birdeye"],
+      dailySpendCapAtomic: "5000000",
+      expiresAt: 4_100_000_000,
+      maxSpendAtomic: "1000000",
+      mode: "ask_every_time",
+      policyId: "policy-agent-live-Dd6t",
+      revoked: false,
+      userWallet: wallet,
+    };
+
+    const agentResponse = await app.request("/agents", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-live",
+        description: "Live agent used by the hackathon flow.",
+        name: "Live Agent",
+      }),
+    });
+    expect(agentResponse.status).toBe(201);
+
+    const connectionResponse = await app.request("/connections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-live",
+        connectionId,
+        ownerProof: ownerProofFor({ agentId: "agent-live", connectionId, keyPair, policy, userWallet: wallet }),
+        policy,
+        userWallet: wallet,
+      }),
+    });
+    expect(connectionResponse.status).toBe(201);
+
+    const listResponse = await app.request(`/connections?wallet=${wallet}`);
+    const body = await json<{
+      connections: Array<{ agentId: string; connectionId: string; userWallet: string }>;
+    }>(listResponse);
+
+    expect(listResponse.status).toBe(200);
+    expect(body.connections).toEqual([
+      expect.objectContaining({
+        agentId: "agent-live",
+        connectionId,
+        userWallet: wallet,
+      }),
+    ]);
+  });
+
+  test("connection creation rejects requests without wallet owner proof", async () => {
+    const app = createEmptyTestApp();
     const wallet = "Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx";
 
     const agentResponse = await app.request("/agents", {
@@ -133,21 +237,10 @@ describe("SkillGuard API", () => {
         userWallet: wallet,
       }),
     });
-    expect(connectionResponse.status).toBe(201);
+    const body = await json<{ error: string }>(connectionResponse);
 
-    const listResponse = await app.request(`/connections?wallet=${wallet}`);
-    const body = await json<{
-      connections: Array<{ agentId: string; connectionId: string; userWallet: string }>;
-    }>(listResponse);
-
-    expect(listResponse.status).toBe(200);
-    expect(body.connections).toEqual([
-      expect.objectContaining({
-        agentId: "agent-live",
-        connectionId: "conn-agent-live-Dd6t",
-        userWallet: wallet,
-      }),
-    ]);
+    expect(connectionResponse.status).toBe(403);
+    expect(body.error).toBe("wallet_owner_proof_required");
   });
 
   test("posted action is evaluated immediately and visible in wallet action feed", async () => {

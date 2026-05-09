@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAgentPolicyInput,
+  parseAgentPairingInput,
   parseCsvList,
   parseUsdcToAtomic,
 } from "./agentPolicyForm";
@@ -44,5 +45,22 @@ describe("agent policy form helpers", () => {
       maxSpendAtomic: "1500000",
       mode: "allow_under_limits",
     });
+  });
+
+  it("parses a SkillGuard pairing link into import form values", () => {
+    expect(
+      parseAgentPairingInput(
+        "skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Wallet%20risk%20checks&protocols=helius,birdeye"
+      )
+    ).toEqual({
+      agentId: "agent-research",
+      allowedProtocols: "helius,birdeye",
+      description: "Wallet risk checks",
+      name: "Research Agent",
+    });
+  });
+
+  it("ignores regular agent IDs when parsing pairing links", () => {
+    expect(parseAgentPairingInput("agent-research")).toBeNull();
   });
 });

@@ -2,6 +2,7 @@ import type { AgentPolicy } from "@skillguard/protocol";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  buildConnectionOwnerMessage,
   buildDefaultPolicy,
   connectionIdForWallet,
   createSkillGuardApiClient,
@@ -40,6 +41,7 @@ describe("mobile live API client", () => {
       return response({ connection: requests.at(-1)?.body }, 201);
     });
     const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
+    const signOwnerMessage = vi.fn(async () => new Uint8Array([1, 2, 3, 4]));
 
     const connection = await client.connectAgent(
       userWallet,
@@ -55,9 +57,14 @@ describe("mobile live API client", () => {
         dailySpendCapAtomic: "2500000",
         maxSpendAtomic: "500000",
         mode: "allow_under_limits",
-      }
+      },
+      signOwnerMessage
     );
 
+    const connectionRequest = requests[1]?.body as {
+      ownerProof: { message: string; signatureBase64: string; type: string; wallet: string };
+      policy: AgentPolicy;
+    };
     expect(connection.connectionId).toBe(connectionIdForWallet(userWallet, "agent-payments"));
     expect(connection.agentId).toBe("agent-payments");
     expect(connection.policy).toMatchObject({
@@ -75,6 +82,25 @@ describe("mobile live API client", () => {
       description: "Payment automation agent.",
       name: "Payments Agent",
     });
+    expect(connectionRequest.ownerProof).toMatchObject({
+      signatureBase64: "AQIDBA==",
+      type: "solana-sign-message",
+      wallet: userWallet,
+    });
+    const signedAt = Number(connectionRequest.ownerProof.message.split("signedAt:").at(-1));
+    expect(Number.isSafeInteger(signedAt)).toBe(true);
+    expect(connectionRequest.ownerProof.message).toBe(
+      buildConnectionOwnerMessage({
+        agentId: "agent-payments",
+        connectionId: connectionIdForWallet(userWallet, "agent-payments"),
+        policy: connectionRequest.policy,
+        signedAt,
+        userWallet,
+      })
+    );
+    expect(signOwnerMessage).toHaveBeenCalledWith(
+      new TextEncoder().encode(connectionRequest.ownerProof.message)
+    );
   });
 
   it("loads connections and wallet actions without using seeded local state", async () => {
