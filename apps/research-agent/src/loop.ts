@@ -13,6 +13,7 @@ export interface LoopClient {
 }
 
 export interface RunLoopDeps {
+  agentId?: string;
   client: LoopClient;
   cycleDelayMs?: number;
   decisionPollMs?: number;
@@ -29,6 +30,7 @@ const DEFAULT_DECISION_POLL_MS = 2000;
 const DEFAULT_DECISION_TIMEOUT_MS = 5 * 60_000;
 
 export async function runLoop({
+  agentId,
   client,
   cycleDelayMs = DEFAULT_CYCLE_DELAY_MS,
   decisionPollMs = DEFAULT_DECISION_POLL_MS,
@@ -48,7 +50,7 @@ export async function runLoop({
   while (maxCycles === undefined || cycles < maxCycles) {
     for (const kind of LOOP_ACTION_SEQUENCE) {
       counter += 1;
-      const manifest = buildLoopManifest(kind, { counter, runId, userWallet });
+      const manifest = buildLoopManifest(kind, { agentId, counter, runId, userWallet });
       const submission = await client.submitAction(manifest);
       logger.submitted(
         kind,

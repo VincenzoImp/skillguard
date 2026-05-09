@@ -25,6 +25,18 @@ describe("research agent loop actions", () => {
     ]);
   });
 
+  it("can build manifests for a configured live agent id", () => {
+    const manifest = buildLoopManifest("freeScan", {
+      agentId: "agent-research-live",
+      counter: 1,
+      runId: "run-1",
+      userWallet: "Wallet111",
+    });
+
+    expect(manifest.agentId).toBe("agent-research-live");
+    expect(manifest.actionId).toBe("action-research-loop-run-1-1-freeScan");
+  });
+
   it("builds a paid risk report below the demo policy cap", () => {
     const manifest = buildLoopManifest("paidReport", {
       counter: 2,

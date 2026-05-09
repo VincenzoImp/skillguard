@@ -52,6 +52,16 @@ npm run submit:safe
 npm run submit:revoked
 ```
 
+For a newly generated QR-paired agent identity, set the optional identity
+overrides to match the QR payload before running the loop:
+
+```bash
+export SKILLGUARD_AGENT_ID=agent-research-live
+export SKILLGUARD_AGENT_NAME="Research Agent Live"
+export SKILLGUARD_AGENT_DESCRIPTION="Live QR-paired research agent."
+export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<matching-agent-secret-key>
+```
+
 By default the CLI only submits actions to an existing wallet-owner-signed
 connection. It never receives the user's private key and cannot connect itself
 to a real wallet. Every submitted action is signed with the agent private key

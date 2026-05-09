@@ -91,4 +91,36 @@ describe("research agent loop", () => {
 
     expect(submitted).toEqual(["action-research-loop-run-1-1-freeScan"]);
   });
+
+  it("submits loop actions with the configured live agent id", async () => {
+    const agentIds: string[] = [];
+
+    await runLoop({
+      agentId: "agent-research-live",
+      client: {
+        submitAction: async (manifest) => {
+          agentIds.push(manifest.agentId);
+          return {
+            action: { actionId: manifest.actionId, decisionStatus: null },
+            result: blocked,
+          };
+        },
+        waitForDecision: async (actionId) => ({
+          action: { actionId, decisionStatus: "approved" },
+          status: "approved",
+        }),
+      },
+      log: () => undefined,
+      maxCycles: 1,
+      runId: "run-1",
+      sleep: async () => undefined,
+      userWallet: "Wallet111",
+    });
+
+    expect(agentIds).toEqual([
+      "agent-research-live",
+      "agent-research-live",
+      "agent-research-live",
+    ]);
+  });
 });

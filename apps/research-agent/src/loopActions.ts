@@ -9,6 +9,7 @@ export const LOOP_ACTION_SEQUENCE: readonly LoopActionKind[] = [
 ];
 
 export interface BuildLoopManifestInput {
+  agentId?: string;
   counter: number;
   runId: string;
   userWallet: string;
@@ -16,7 +17,7 @@ export interface BuildLoopManifestInput {
 
 export function buildLoopManifest(
   kind: LoopActionKind,
-  { counter, runId, userWallet }: BuildLoopManifestInput
+  { agentId = "agent-research", counter, runId, userWallet }: BuildLoopManifestInput
 ): ActionManifest {
   const normalizedRunId = runId.replace(/[^a-zA-Z0-9_-]/g, "-");
   const actionId = `action-research-loop-${normalizedRunId}-${counter}-${kind}`;
@@ -24,7 +25,7 @@ export function buildLoopManifest(
   const base = {
     accountsTouched: [userWallet],
     actionId,
-    agentId: "agent-research",
+    agentId,
     createdAt,
     expiresAt: createdAt + 15 * 60,
     network: "solana-devnet" as const,

@@ -40,6 +40,47 @@ describe("research agent client", () => {
     });
   });
 
+  it("supports a custom agent identity for live demo rotations", async () => {
+    const calls: Array<{ body?: string; method?: string; url: string }> = [];
+    const fetch = async (url: string | URL, init?: RequestInit) => {
+      calls.push({
+        body: typeof init?.body === "string" ? init.body : undefined,
+        method: init?.method,
+        url: url.toString(),
+      });
+      return jsonResponse({ ok: true });
+    };
+
+    const client = createSkillGuardClient({
+      agent: {
+        agentId: "agent-research-live",
+        description: "Live QR-paired research agent.",
+        name: "Research Agent Live",
+      },
+      agentKeyPair: smokeAgentKeyPair(),
+      apiUrl: "http://localhost:8787",
+      connectionId: "conn-agent-research-live-Wallet111",
+      fetch,
+    });
+
+    await client.ensureAgentConnection("Wallet111");
+
+    expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
+      agentId: "agent-research-live",
+      description: "Live QR-paired research agent.",
+      name: "Research Agent Live",
+      publicKey: publicKeyForKeyPair(smokeAgentKeyPair()),
+    });
+    expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({
+      agentId: "agent-research-live",
+      connectionId: "conn-agent-research-live-Wallet111",
+      policy: {
+        agentId: "agent-research-live",
+        policyId: "policy-agent-research-live-Wallet111",
+      },
+    });
+  });
+
   it("posts an action manifest and asks the API to evaluate it", async () => {
     const calls: Array<{ body?: string; method?: string; url: string }> = [];
     const fetch = async (url: string | URL, init?: RequestInit) => {
@@ -77,6 +118,52 @@ describe("research agent client", () => {
         type: "ed25519-action",
       },
       connectionId: "conn-agent-research-Wallet111",
+    });
+  });
+
+  it("signs actions with the configured custom agent id", async () => {
+    const calls: Array<{ body?: string; url: string }> = [];
+    const fetch = async (url: string | URL, init?: RequestInit) => {
+      calls.push({
+        body: typeof init?.body === "string" ? init.body : undefined,
+        url: url.toString(),
+      });
+
+      if (url.toString().endsWith("/actions")) {
+        return jsonResponse({ action: { actionId: "action-custom-1" } });
+      }
+
+      return jsonResponse({ result: { reasons: [], status: "requires_approval" } });
+    };
+    const manifest = {
+      ...safeRiskReportManifest,
+      actionId: "action-custom-1",
+      agentId: "agent-research-live",
+    } as ActionManifest;
+
+    const client = createSkillGuardClient({
+      agent: {
+        agentId: "agent-research-live",
+        description: "Live QR-paired research agent.",
+        name: "Research Agent Live",
+      },
+      agentKeyPair: smokeAgentKeyPair(),
+      apiUrl: "http://localhost:8787",
+      connectionId: "conn-agent-research-live-Wallet111",
+      fetch,
+    });
+
+    await client.submitAction(manifest);
+
+    expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
+      agentProof: {
+        agentId: "agent-research-live",
+        type: "ed25519-action",
+      },
+      connectionId: "conn-agent-research-live-Wallet111",
+      manifest: {
+        agentId: "agent-research-live",
+      },
     });
   });
 

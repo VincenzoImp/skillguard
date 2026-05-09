@@ -6,6 +6,7 @@ import nacl from "tweetnacl";
 type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Response>;
 
 interface SkillGuardClientOptions {
+  agent?: ResearchAgentIdentity;
   agentKeyPair: nacl.SignKeyPair;
   apiUrl: string;
   connectionId: string;
@@ -58,6 +59,7 @@ export type WaitForDecisionResult =
 type TerminalDecisionStatus = Exclude<WaitForDecisionResult["status"], "timeout">;
 
 export function createSkillGuardClient({
+  agent = RESEARCH_AGENT,
   agentKeyPair,
   apiUrl,
   connectionId,
@@ -77,7 +79,7 @@ export function createSkillGuardClient({
     async ensureAgentConnection(userWallet: string): Promise<ConnectionResponse["connection"]> {
       await request<AgentResponse>("agents", {
         body: JSON.stringify({
-          ...RESEARCH_AGENT,
+          ...agent,
           publicKey: publicKeyForKeyPair(agentKeyPair),
         }),
         headers: { "content-type": "application/json" },
@@ -86,9 +88,9 @@ export function createSkillGuardClient({
 
       const body = await request<ConnectionResponse>("connections", {
         body: JSON.stringify({
-          agentId: RESEARCH_AGENT.agentId,
+          agentId: agent.agentId,
           connectionId,
-          policy: policyForWallet(userWallet),
+          policy: policyForWallet(userWallet, agent.agentId),
           userWallet,
         }),
         headers: { "content-type": "application/json" },
@@ -107,7 +109,7 @@ export function createSkillGuardClient({
 
     async submitAction(manifest: ActionManifest): Promise<SubmittedAction> {
       const agentProof = agentProofFor({
-        agentId: RESEARCH_AGENT.agentId,
+        agentId: agent.agentId,
         connectionId,
         keyPair: agentKeyPair,
         manifest,
@@ -222,7 +224,13 @@ function agentProofFor({
   };
 }
 
-export const RESEARCH_AGENT = {
+export interface ResearchAgentIdentity {
+  agentId: string;
+  description: string;
+  name: string;
+}
+
+export const RESEARCH_AGENT: ResearchAgentIdentity = {
   agentId: "agent-research",
   description: "Solana research agent that requests wallet-safe actions.",
   name: "Research Agent",
@@ -232,10 +240,13 @@ export function connectionIdForWallet(userWallet: string, agentId = RESEARCH_AGE
   return `conn-${agentId}-${userWallet}`;
 }
 
-function policyForWallet(userWallet: string): AgentPolicy {
+function policyForWallet(
+  userWallet: string,
+  agentId = RESEARCH_AGENT.agentId
+): AgentPolicy {
   return {
     active: true,
-    agentId: RESEARCH_AGENT.agentId,
+    agentId,
     allowedMints: ["SOL", "USDC"],
     allowedNetworks: ["solana-devnet"],
     allowedProtocols: ["helius", "birdeye"],
@@ -243,7 +254,7 @@ function policyForWallet(userWallet: string): AgentPolicy {
     expiresAt: 4_100_000_000,
     maxSpendAtomic: "1000000",
     mode: "ask_every_time",
-    policyId: `policy-${RESEARCH_AGENT.agentId}-${userWallet}`,
+    policyId: `policy-${agentId}-${userWallet}`,
     revoked: false,
     userWallet,
   };

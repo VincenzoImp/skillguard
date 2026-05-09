@@ -5,12 +5,14 @@ import { runLoop } from "./loop.js";
 async function main() {
   const runtime = readAgentRuntimeEnv();
   const client = createSkillGuardClient({
+    agent: runtime.agent,
     agentKeyPair: runtime.keyPair,
     apiUrl: runtime.apiUrl,
     connectionId: runtime.connectionId,
   });
 
   await runLoop({
+    agentId: runtime.agent.agentId,
     client,
     runId: process.env.SKILLGUARD_RUN_ID,
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
