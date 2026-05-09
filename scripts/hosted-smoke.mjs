@@ -5,6 +5,11 @@ import { fileURLToPath } from "node:url";
 
 const DEFAULT_API_URL = "https://skillguard-sol.vercel.app/api";
 const DEFAULT_EXPECTED_STORAGE = "upstash";
+const SMOKE_AGENT = {
+  description: "Isolated hosted smoke agent for production health checks.",
+  id: "agent-research-smoke",
+  name: "Research Agent Smoke",
+};
 
 const scriptPath = fileURLToPath(import.meta.url);
 const rootDir = path.resolve(path.dirname(scriptPath), "..");
@@ -36,6 +41,19 @@ export function assertPolicyResult(label, payload, expectedStatus, expectedReaso
       `${label} expected reason ${expectedReasons.join(" or ")}, received ${reasons.join(", ")}`,
     );
   }
+}
+
+export function researchAgentEnv(apiUrl, wallet, runId, env = process.env) {
+  return {
+    ...env,
+    SKILLGUARD_AGENT_DESCRIPTION: SMOKE_AGENT.description,
+    SKILLGUARD_AGENT_ID: SMOKE_AGENT.id,
+    SKILLGUARD_AGENT_NAME: SMOKE_AGENT.name,
+    SKILLGUARD_API_URL: apiUrl,
+    SKILLGUARD_AUTO_CONNECT: "1",
+    SKILLGUARD_RUN_ID: runId,
+    SKILLGUARD_USER_WALLET: wallet,
+  };
 }
 
 async function main() {
@@ -132,13 +150,7 @@ function runResearchAgent(kind, apiUrl, wallet, runId) {
     {
       cwd: rootDir,
       encoding: "utf8",
-      env: {
-        ...process.env,
-        SKILLGUARD_API_URL: apiUrl,
-        SKILLGUARD_AUTO_CONNECT: "1",
-        SKILLGUARD_RUN_ID: runId,
-        SKILLGUARD_USER_WALLET: wallet,
-      },
+      env: researchAgentEnv(apiUrl, wallet, runId),
     },
   );
 

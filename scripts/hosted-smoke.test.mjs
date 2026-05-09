@@ -5,6 +5,7 @@ import {
   assertPolicyResult,
   defaultSmokeIdentity,
   normalizeApiUrl,
+  researchAgentEnv,
 } from "./hosted-smoke.mjs";
 
 describe("hosted smoke helpers", () => {
@@ -45,5 +46,18 @@ describe("hosted smoke helpers", () => {
       },
       /unsafe expected fail/,
     );
+  });
+
+  it("uses an isolated smoke agent identity instead of the canonical demo agent", () => {
+    const env = researchAgentEnv("https://skillguard-sol.vercel.app/api", "SmokeWallet111", "run-1", {
+      PATH: "/bin",
+    });
+
+    assert.equal(env.SKILLGUARD_AGENT_ID, "agent-research-smoke");
+    assert.equal(env.SKILLGUARD_AGENT_NAME, "Research Agent Smoke");
+    assert.equal(env.SKILLGUARD_AUTO_CONNECT, "1");
+    assert.equal(env.SKILLGUARD_RUN_ID, "run-1");
+    assert.equal(env.SKILLGUARD_USER_WALLET, "SmokeWallet111");
+    assert.equal(env.PATH, "/bin");
   });
 });

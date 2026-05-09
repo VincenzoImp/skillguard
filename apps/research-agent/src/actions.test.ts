@@ -38,4 +38,16 @@ describe("research agent actions", () => {
     expect(manifest.summary).toContain("after revocation");
     expect(manifest.rawTransactionRef).toBeNull();
   });
+
+  it("supports a custom agent id for isolated hosted smoke runs", () => {
+    const manifest = createResearchManifest(
+      "safe",
+      "run-4",
+      "SmokeWallet444",
+      "agent-research-smoke"
+    );
+
+    expect(manifest.agentId).toBe("agent-research-smoke");
+    expect(manifest.actionId).toBe("action-research-safe-run-4");
+  });
 });

@@ -1,39 +1,34 @@
 import { createResearchManifest, type ResearchActionKind } from "./actions.js";
-import {
-  connectionIdForWallet,
-  createSkillGuardClient,
-} from "./client.js";
-import { agentKeyPairForWallet } from "./agentIdentity.js";
-
-const DEFAULT_API_URL = "http://localhost:8787";
+import { createSkillGuardClient } from "./client.js";
+import { readAgentRuntimeEnv } from "./agentIdentity.js";
 
 async function main() {
   const kind = parseKind(process.argv[2]);
-  const userWallet = process.env.SKILLGUARD_USER_WALLET;
-  if (!userWallet) {
-    throw new Error("Set SKILLGUARD_USER_WALLET to the connected mobile wallet address.");
-  }
-
-  const connectionId =
-    process.env.SKILLGUARD_CONNECTION_ID ?? connectionIdForWallet(userWallet);
+  const runtime = readAgentRuntimeEnv();
   const client = createSkillGuardClient({
-    agentKeyPair: agentKeyPairForWallet(userWallet),
-    apiUrl: process.env.SKILLGUARD_API_URL ?? DEFAULT_API_URL,
-    connectionId,
+    agent: runtime.agent,
+    agentKeyPair: runtime.keyPair,
+    apiUrl: runtime.apiUrl,
+    connectionId: runtime.connectionId,
   });
 
   if (process.env.SKILLGUARD_AUTO_CONNECT === "1") {
-    await client.ensureAgentConnection(userWallet);
+    await client.ensureAgentConnection(runtime.userWallet);
   }
 
   if (kind === "revoked") {
-    if (!userWallet.startsWith("SmokeWallet")) {
+    if (!runtime.userWallet.startsWith("SmokeWallet")) {
       throw new Error("Revoked path requires the wallet owner to revoke in the mobile app.");
     }
     await client.revokeConnection();
   }
 
-  const manifest = createResearchManifest(kind, process.env.SKILLGUARD_RUN_ID, userWallet);
+  const manifest = createResearchManifest(
+    kind,
+    process.env.SKILLGUARD_RUN_ID,
+    runtime.userWallet,
+    runtime.agent.agentId
+  );
   const submitted = await client.submitAction(manifest);
 
   console.log(

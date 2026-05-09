@@ -6,13 +6,18 @@ export type ResearchActionKind = "safe" | "unsafe" | "revoked";
 export function createResearchManifest(
   kind: ResearchActionKind,
   runId = String(Date.now()),
-  userWallet: string
+  userWallet: string,
+  agentId = "agent-research"
 ): ActionManifest {
   const normalizedRunId = runId.replace(/[^a-zA-Z0-9_-]/g, "-");
+  const base = {
+    ...safeRiskReportManifest,
+    agentId,
+  };
 
   if (kind === "unsafe") {
     return {
-      ...safeRiskReportManifest,
+      ...base,
       actionId: `action-research-unsafe-${normalizedRunId}`,
       accountsTouched: [userWallet],
       kind: "swap_preview",
@@ -40,7 +45,7 @@ export function createResearchManifest(
 
   if (kind === "revoked") {
     return {
-      ...safeRiskReportManifest,
+      ...base,
       actionId: `action-research-revoked-${normalizedRunId}`,
       accountsTouched: [userWallet],
       summary:
@@ -51,7 +56,7 @@ export function createResearchManifest(
   }
 
   return {
-    ...safeRiskReportManifest,
+    ...base,
     actionId: `action-research-safe-${normalizedRunId}`,
     accountsTouched: [userWallet],
     protocols: ["helius"],
