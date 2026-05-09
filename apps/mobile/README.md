@@ -13,7 +13,21 @@ Android-first Expo app for wallet connection, agent permissions, action approval
 
 ## Current Screens
 
-The current mobile slice uses live SkillGuard API state for the product screens:
+The current mobile slice uses live SkillGuard API state through a five-page
+mobile shell:
+
+- `Home`: wallet session status, live API state, pending/agent/blocked/action
+  counters, refresh, connect, and disconnect actions
+- `Inbox`: pending, blocked, approved, rejected, and expired action manifests
+  with the selected action detail and approve/reject controls
+- `Agents`: connected agent inventory, active/revoked state, revoke action, and
+  policy mode editing
+- `Pair`: pairing-link import, agent public key capture, approval mode, spend
+  limits, protocol allowlist, and mint allowlist
+- `Activity`: decision receipts, manifest hashes, and Explorer links when
+  signatures exist
+
+The product flows are:
 
 - connect an MWA-compatible wallet on devnet
 - show the connected wallet address
@@ -99,4 +113,7 @@ Status: finalized on devnet
 
 ## Audit Note
 
-`npm audit --omit=dev` currently reports moderate PostCSS findings through Expo/Metro tooling. `npm audit fix --force` proposes downgrading Expo to an older major version, so it is rejected for the MVP. The project keeps Expo 55-compatible dependencies and tracks this as a tooling dependency risk, not an application runtime feature.
+`npm audit --omit=dev` passes with zero known vulnerabilities. The mobile
+package pins Expo 55-compatible dependencies and uses an npm `overrides`
+entry for PostCSS so Expo/Metro tooling receives the patched 8.5.x line
+without downgrading Expo.

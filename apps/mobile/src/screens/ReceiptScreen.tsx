@@ -18,6 +18,11 @@ export function ReceiptScreen({ actions }: ReceiptScreenProps) {
         <Text style={styles.title}>Decision history</Text>
       </View>
       <View style={styles.timeline}>
+        {receiptActions.length === 0 ? (
+          <Text style={styles.emptyText}>
+            Decisions recorded by this wallet will appear here.
+          </Text>
+        ) : null}
         {receiptActions.map((action) => (
           <View key={action.id} style={styles.receiptRow}>
             <View style={styles.receiptTop}>
@@ -50,6 +55,7 @@ export function ReceiptScreen({ actions }: ReceiptScreenProps) {
 }
 
 const styles = StyleSheet.create({
+  emptyText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   kicker: {
     color: colors.textMuted,
     fontSize: 12,

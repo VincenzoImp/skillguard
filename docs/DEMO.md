@@ -82,11 +82,12 @@ npm --prefix apps/research-agent run submit:revoked
 
 ## Scene 1: Connect Wallet
 
-Open SkillGuard mobile and connect a devnet wallet through Mobile Wallet Adapter.
-Sign the wallet-session message, then show the wallet address, devnet badge,
-live API badge, and empty agent state. Paste the `agent-research` pairing link,
-review the policy, sign the import challenge, and show the agent connection that
-was created by the wallet owner.
+Open SkillGuard mobile on the `Home` tab and connect a devnet wallet through
+Mobile Wallet Adapter. Sign the wallet-session message, then show the wallet
+address, devnet badge, live API badge, and zero-agent counters. Move to `Pair`,
+paste the `agent-research` pairing link, review the policy, sign the import
+challenge, then move to `Agents` and show the connection that was created by the
+wallet owner.
 
 ## Scene 2: Unsafe Request
 
@@ -97,7 +98,7 @@ SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
   npm --prefix apps/research-agent run submit:unsafe
 ```
 
-Refresh the mobile inbox. Show the unsafe request and the `spend_exceeds_max`
+Open `Inbox` and refresh. Show the unsafe request and the `spend_exceeds_max`
 policy reason. The wallet is not asked to sign blocked actions.
 Say: "This one is blocked because it exceeds my limit."
 
@@ -110,8 +111,9 @@ SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
   npm --prefix apps/research-agent run submit:safe
 ```
 
-Refresh mobile, open the safe request, show zero spend, approve it through the
-wallet, and open the devnet SkillGuard receipt transaction.
+Refresh `Inbox`, open the safe request, show zero spend, approve it through the
+wallet, then move to `Activity` and open the devnet SkillGuard receipt
+transaction.
 
 ## Scene 4: Revoke Agent
 
@@ -122,7 +124,8 @@ SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
   npm --prefix apps/research-agent run submit:revoked
 ```
 
-Show that the future request is blocked because the policy is inactive/revoked.
+Open `Agents`, revoke Research Agent, then show in `Inbox` that the future
+request is blocked because the policy is inactive/revoked.
 
 ## Scene 5: Developer Integration
 
