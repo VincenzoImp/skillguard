@@ -17,7 +17,9 @@ async function main() {
     connectionId,
   });
 
-  await client.ensureAgentConnection(userWallet);
+  if (process.env.SKILLGUARD_AUTO_CONNECT === "1") {
+    await client.ensureAgentConnection(userWallet);
+  }
 
   if (kind === "revoked") {
     await client.revokeConnection();

@@ -133,6 +133,34 @@ describe("mobile live state mapping", () => {
     expect(state.agent?.id).toBe("agent-payments");
   });
 
+  it("uses registered agent metadata instead of hardcoded demo names", () => {
+    const state = toMobileState({
+      actions: [],
+      agents: [
+        {
+          agentId: "agent-payments",
+          description: "Payment automation approvals.",
+          name: "Payments Agent",
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-payments",
+          connectionId: "conn-payments",
+          policy: {
+            ...policy,
+            agentId: "agent-payments",
+            policyId: "policy-payments",
+          },
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.agent?.name).toBe("Payments Agent");
+    expect(state.agent?.description).toBe("Payment automation approvals.");
+  });
+
   it("shows revoked agents and blocks failed policy results", () => {
     const state = toMobileState({
       actions: [

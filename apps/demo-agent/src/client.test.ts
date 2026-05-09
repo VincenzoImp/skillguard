@@ -4,7 +4,7 @@ import { safeRiskReportManifest } from "@skillguard/protocol";
 import { createSkillGuardClient } from "./client.js";
 
 describe("demo agent client", () => {
-  it("inserts the demo agent and wallet connection before live submissions", async () => {
+  it("can import the demo agent connection when an automation flow explicitly asks for it", async () => {
     const calls: Array<{ body?: string; method?: string; url: string }> = [];
     const fetch = async (url: string | URL, init?: RequestInit) => {
       calls.push({

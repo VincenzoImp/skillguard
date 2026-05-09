@@ -14,6 +14,7 @@ import {
 import { Transaction } from "@solana/web3.js";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { StatusBadge } from "../components/StatusBadge";
+import { buildAgentPolicyInput } from "../agentPolicyForm";
 import { createSkillGuardApiClient } from "../liveApi";
 import {
   emptyMobileState,
@@ -26,7 +27,7 @@ import {
   deriveSkillGuardAccounts,
   skillGuardBytes32,
 } from "../skillguardProgram";
-import { colors } from "../theme";
+import { colors, labelForPolicyMode } from "../theme";
 import { ActionDetailScreen } from "./ActionDetailScreen";
 import { AgentsScreen } from "./AgentsScreen";
 import { InboxScreen } from "./InboxScreen";
@@ -37,11 +38,16 @@ export function WalletConnectScreen() {
   const [mobileState, setMobileState] = useState(emptyMobileState);
   const [status, setStatus] = useState("Wallet not connected");
   const [isBusy, setIsBusy] = useState(false);
-  const [agentIdInput, setAgentIdInput] = useState("agent-research");
-  const [agentNameInput, setAgentNameInput] = useState("Research Agent");
-  const [agentDescriptionInput, setAgentDescriptionInput] = useState(
-    "Solana research agent that requests wallet-safe actions."
-  );
+  const [agentIdInput, setAgentIdInput] = useState("");
+  const [agentNameInput, setAgentNameInput] = useState("");
+  const [agentDescriptionInput, setAgentDescriptionInput] = useState("");
+  const [agentPolicyMode, setAgentPolicyMode] =
+    useState<PolicyMode>("ask_every_time");
+  const [allowedMintsInput, setAllowedMintsInput] = useState("SOL,USDC");
+  const [allowedProtocolsInput, setAllowedProtocolsInput] =
+    useState("helius,birdeye");
+  const [dailySpendInput, setDailySpendInput] = useState("5");
+  const [maxSpendInput, setMaxSpendInput] = useState("1");
   const { account, connect, disconnect, signAndSendTransaction, connection } =
     useMobileWallet();
   const apiClient = useMemo(() => createSkillGuardApiClient(), []);
@@ -261,15 +267,25 @@ export function WalletConnectScreen() {
 
     setIsBusy(true);
     try {
+      const policyInput = buildAgentPolicyInput({
+        allowedMints: allowedMintsInput,
+        allowedProtocols: allowedProtocolsInput,
+        dailySpendUsdc: dailySpendInput,
+        maxSpendUsdc: maxSpendInput,
+        mode: agentPolicyMode,
+      });
       await apiClient.connectAgent(address, {
         agentId,
         description,
         name,
-      });
+      }, policyInput);
       const nextState = await refreshWalletState(address);
       setStatus(
-        `Connected agent ${agentId}. ${nextState.agents.length} agents now controlled.`
+        `Imported agent ${agentId}. ${nextState.agents.length} agents now controlled.`
       );
+      setAgentIdInput("");
+      setAgentNameInput("");
+      setAgentDescriptionInput("");
     } catch (error) {
       setStatus(readError(error));
     } finally {
@@ -330,7 +346,11 @@ export function WalletConnectScreen() {
           <Text style={styles.heroTitle}>
             {mobileState.actions.length > 0
               ? `${mobileState.agent?.name ?? "Agent"} wants to use your wallet.`
-              : "Connect a wallet to control Solana agents."}
+              : address
+                ? mobileState.agents.length > 0
+                  ? "Your wallet is controlling imported agents."
+                  : "Import an agent before it can request wallet actions."
+                : "Connect a wallet to control Solana agents."}
           </Text>
           <Text style={styles.heroBody}>
             Review live agent requests, approve only the actions you trust, and
@@ -366,10 +386,12 @@ export function WalletConnectScreen() {
 
         {address ? (
           <View style={styles.agentFormPanel}>
-            <Text style={styles.panelLabel}>Connect agent</Text>
+            <Text style={styles.panelLabel}>Import agent</Text>
             <Text style={styles.formHelp}>
-              Add the agent that is allowed to submit requests for this wallet.
+              This wallet starts with zero agents. Import one by ID and define
+              the limits it must respect before it can submit requests.
             </Text>
+            <Text style={styles.fieldLabel}>Agent ID</Text>
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
@@ -380,6 +402,7 @@ export function WalletConnectScreen() {
               style={styles.input}
               value={agentIdInput}
             />
+            <Text style={styles.fieldLabel}>Display name</Text>
             <TextInput
               editable={!isBusy}
               onChangeText={setAgentNameInput}
@@ -388,6 +411,7 @@ export function WalletConnectScreen() {
               style={styles.input}
               value={agentNameInput}
             />
+            <Text style={styles.fieldLabel}>Allowed purpose</Text>
             <TextInput
               editable={!isBusy}
               multiline
@@ -397,9 +421,63 @@ export function WalletConnectScreen() {
               style={[styles.input, styles.textArea]}
               value={agentDescriptionInput}
             />
+            <Text style={styles.fieldLabel}>Approval mode</Text>
+            <PolicyModeSelector
+              disabled={isBusy}
+              mode={agentPolicyMode}
+              onChange={setAgentPolicyMode}
+            />
+            <View style={styles.policyGrid}>
+              <View style={styles.policyField}>
+                <Text style={styles.fieldLabel}>Max spend per action (USDC)</Text>
+                <TextInput
+                  editable={!isBusy}
+                  keyboardType="decimal-pad"
+                  onChangeText={setMaxSpendInput}
+                  placeholder="1"
+                  placeholderTextColor={colors.textMuted}
+                  style={styles.input}
+                  value={maxSpendInput}
+                />
+              </View>
+              <View style={styles.policyField}>
+                <Text style={styles.fieldLabel}>Daily cap (USDC)</Text>
+                <TextInput
+                  editable={!isBusy}
+                  keyboardType="decimal-pad"
+                  onChangeText={setDailySpendInput}
+                  placeholder="5"
+                  placeholderTextColor={colors.textMuted}
+                  style={styles.input}
+                  value={dailySpendInput}
+                />
+              </View>
+            </View>
+            <Text style={styles.fieldLabel}>Allowed protocols</Text>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isBusy}
+              onChangeText={setAllowedProtocolsInput}
+              placeholder="helius,birdeye"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={allowedProtocolsInput}
+            />
+            <Text style={styles.fieldLabel}>Allowed mints</Text>
+            <TextInput
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!isBusy}
+              onChangeText={setAllowedMintsInput}
+              placeholder="SOL,USDC"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={allowedMintsInput}
+            />
             <SecondaryButton
               disabled={isBusy}
-              label="Connect agent"
+              label="Import agent"
               onPress={handleConnectAgent}
             />
           </View>
@@ -440,6 +518,44 @@ export function WalletConnectScreen() {
         <ReceiptScreen actions={mobileState.actions} />
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function PolicyModeSelector({
+  disabled,
+  mode,
+  onChange,
+}: {
+  disabled?: boolean;
+  mode: PolicyMode;
+  onChange: (mode: PolicyMode) => void;
+}) {
+  const modes: PolicyMode[] = ["ask_every_time", "allow_under_limits", "block"];
+  return (
+    <View style={styles.modeSelector}>
+      {modes.map((item) => (
+        <Pressable
+          accessibilityRole="button"
+          disabled={disabled}
+          key={item}
+          onPress={() => onChange(item)}
+          style={[
+            styles.modeOption,
+            mode === item ? styles.modeOptionActive : null,
+            disabled ? styles.disabledButton : null,
+          ]}
+        >
+          <Text
+            style={[
+              styles.modeOptionText,
+              mode === item ? styles.modeOptionTextActive : null,
+            ]}
+          >
+            {labelForPolicyMode(item)}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
   );
 }
 
@@ -523,6 +639,12 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   emptyTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  fieldLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 2,
+  },
   header: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 8 },
   headerCopy: { flex: 1 },
   formHelp: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
@@ -555,7 +677,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  modeOption: {
+    alignItems: "center",
+    borderColor: "transparent",
+    borderRadius: 7,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 42,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
+  modeOptionActive: {
+    backgroundColor: "rgba(0,240,168,0.12)",
+    borderColor: "rgba(0,240,168,0.38)",
+  },
+  modeOptionText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  modeOptionTextActive: { color: colors.mint },
+  modeSelector: {
+    backgroundColor: colors.deep,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 4,
+    padding: 4,
+  },
   panelLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
+  policyField: { flex: 1, gap: 6 },
+  policyGrid: { flexDirection: "row", gap: 10 },
   pressedButton: { transform: [{ scale: 0.99 }] },
   primaryButton: {
     alignItems: "center",

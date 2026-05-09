@@ -24,33 +24,6 @@ describe("mobile live API client", () => {
     expect(DEFAULT_SKILLGUARD_API_URL).toBe("https://skillguard-sol.vercel.app/api");
   });
 
-  it("creates a deterministic live agent connection for the connected wallet", async () => {
-    const requests: Array<{ body: unknown; method: string; url: string }> = [];
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-      requests.push({
-        body: init?.body ? JSON.parse(String(init.body)) : null,
-        method: init?.method ?? "GET",
-        url,
-      });
-
-      if (url.endsWith("/agents")) {
-        return response({ agent: requests.at(-1)?.body });
-      }
-
-      return response({ connection: requests.at(-1)?.body }, 201);
-    });
-    const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
-
-    const connection = await client.ensureAgentConnection(userWallet);
-
-    expect(connection.connectionId).toBe(connectionIdForWallet(userWallet));
-    expect(connection.policy.userWallet).toBe(userWallet);
-    expect(requests.map((request) => [request.method, request.url])).toEqual([
-      ["POST", "https://api.skillguard.test/agents"],
-      ["POST", "https://api.skillguard.test/connections"],
-    ]);
-  });
-
   it("connects an arbitrary agent instead of only the built-in demo agent", async () => {
     const requests: Array<{ body: unknown; method: string; url: string }> = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
@@ -68,16 +41,32 @@ describe("mobile live API client", () => {
     });
     const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
 
-    const connection = await client.connectAgent(userWallet, {
-      agentId: "agent-payments",
-      description: "Payment automation agent.",
-      name: "Payments Agent",
-    });
+    const connection = await client.connectAgent(
+      userWallet,
+      {
+        agentId: "agent-payments",
+        description: "Payment automation agent.",
+        name: "Payments Agent",
+      },
+      {
+        allowedMints: ["USDC"],
+        allowedNetworks: ["solana-devnet"],
+        allowedProtocols: ["helius"],
+        dailySpendCapAtomic: "2500000",
+        maxSpendAtomic: "500000",
+        mode: "allow_under_limits",
+      }
+    );
 
     expect(connection.connectionId).toBe(connectionIdForWallet(userWallet, "agent-payments"));
     expect(connection.agentId).toBe("agent-payments");
     expect(connection.policy).toMatchObject({
       agentId: "agent-payments",
+      allowedMints: ["USDC"],
+      allowedProtocols: ["helius"],
+      dailySpendCapAtomic: "2500000",
+      maxSpendAtomic: "500000",
+      mode: "allow_under_limits",
       policyId: `policy-agent-payments-${userWallet}`,
       userWallet,
     });
@@ -89,16 +78,28 @@ describe("mobile live API client", () => {
   });
 
   it("loads connections and wallet actions without using seeded local state", async () => {
-    const policy = buildDefaultPolicy(userWallet);
+    const policy = buildDefaultPolicy(userWallet, "agent-research");
     const fetchMock = vi.fn(async (url: string) => {
       if (url.includes("/connections?")) {
         return response({
           connections: [
             {
               agentId: "agent-research",
-              connectionId: connectionIdForWallet(userWallet),
+              connectionId: connectionIdForWallet(userWallet, "agent-research"),
               policy,
               userWallet,
+            },
+          ],
+        });
+      }
+
+      if (url.endsWith("/agents")) {
+        return response({
+          agents: [
+            {
+              agentId: "agent-research",
+              description: "Demo Solana research agent.",
+              name: "Research Agent",
             },
           ],
         });
@@ -108,7 +109,7 @@ describe("mobile live API client", () => {
         actions: [
           {
             actionId: "action-live",
-            connectionId: connectionIdForWallet(userWallet),
+            connectionId: connectionIdForWallet(userWallet, "agent-research"),
             decisionStatus: null,
             manifest: {
               accountsTouched: [userWallet],
@@ -155,6 +156,7 @@ describe("mobile live API client", () => {
     const state = await client.loadWalletState(userWallet);
 
     expect(state.agent?.status).toBe("active");
+    expect(state.agent?.name).toBe("Research Agent");
     expect(state.agents.map((agent) => agent.id)).toEqual(["agent-research"]);
     expect(state.selectedActionId).toBe("action-live");
     expect(state.actions[0]).toMatchObject({
@@ -200,11 +202,15 @@ describe("mobile live API client", () => {
       return response({});
     });
     const client = createSkillGuardApiClient("https://api.skillguard.test", fetchMock);
-    const policy: AgentPolicy = buildDefaultPolicy(userWallet);
+    const policy: AgentPolicy = buildDefaultPolicy(userWallet, "agent-research");
 
     await client.rejectAction("action-live");
-    await client.revokeConnection(connectionIdForWallet(userWallet));
-    await client.updatePolicyMode(connectionIdForWallet(userWallet), policy, "block");
+    await client.revokeConnection(connectionIdForWallet(userWallet, "agent-research"));
+    await client.updatePolicyMode(
+      connectionIdForWallet(userWallet, "agent-research"),
+      policy,
+      "block"
+    );
 
     expect(calls).toEqual([
       {
@@ -215,13 +221,17 @@ describe("mobile live API client", () => {
       {
         body: null,
         method: "DELETE",
-        url: `https://api.skillguard.test/connections/${connectionIdForWallet(userWallet)}`,
+        url: `https://api.skillguard.test/connections/${connectionIdForWallet(
+          userWallet,
+          "agent-research"
+        )}`,
       },
       {
         body: { mode: "block" },
         method: "PATCH",
         url: `https://api.skillguard.test/connections/${connectionIdForWallet(
-          userWallet
+          userWallet,
+          "agent-research"
         )}/policy`,
       },
     ]);

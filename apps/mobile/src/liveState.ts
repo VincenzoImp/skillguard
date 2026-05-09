@@ -69,6 +69,12 @@ export interface ApiConnectionRecord {
   policy: ProtocolAgentPolicy;
 }
 
+export interface ApiAgentRecord {
+  agentId: string;
+  description: string;
+  name: string;
+}
+
 export interface ApiActionRecord {
   actionId: string;
   connectionId: string;
@@ -88,12 +94,17 @@ export const emptyMobileState: SkillGuardMobileState = {
 
 export function toMobileState({
   actions,
+  agents: apiAgents = [],
   connections,
 }: {
   actions: ApiActionRecord[];
+  agents?: ApiAgentRecord[];
   connections: ApiConnectionRecord[];
 }): SkillGuardMobileState {
-  const agents = connections.map(toConnectedAgent);
+  const agentMetadata = new Map(apiAgents.map((agent) => [agent.agentId, agent]));
+  const toAgent = (connection: ApiConnectionRecord) =>
+    toConnectedAgent(connection, agentMetadata.get(connection.agentId));
+  const agents = connections.map(toAgent);
   const primaryConnection =
     connections.find((connection) => !connection.policy.revoked) ?? connections[0] ?? null;
   const mobileActions = actions
@@ -104,7 +115,7 @@ export function toMobileState({
   return {
     actions: mobileActions,
     agents,
-    agent: primaryConnection ? toConnectedAgent(primaryConnection) : null,
+    agent: primaryConnection ? toAgent(primaryConnection) : null,
     selectedActionId:
       mobileActions.find((action) => action.status === "pending")?.id ??
       mobileActions[0]?.id ??
@@ -142,13 +153,18 @@ export function selectAction(
   };
 }
 
-function toConnectedAgent(connection: ApiConnectionRecord): ConnectedAgent {
+function toConnectedAgent(
+  connection: ApiConnectionRecord,
+  agentMetadata?: ApiAgentRecord
+): ConnectedAgent {
   return {
     connectionId: connection.connectionId,
-    description: "Requests Solana wallet actions through SkillGuard policy checks.",
+    description:
+      agentMetadata?.description ??
+      "Requests Solana wallet actions through SkillGuard policy checks.",
     id: connection.agentId,
     lastSeen: connection.policy.revoked ? "revoked" : "live API",
-    name: connection.agentId === "agent-research" ? "Research Agent" : connection.agentId,
+    name: agentMetadata?.name ?? connection.agentId,
     policy: toPolicyView(connection.policy),
     rawPolicy: connection.policy,
     status: connection.policy.revoked || !connection.policy.active ? "revoked" : "active",

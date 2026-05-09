@@ -236,8 +236,8 @@ Goal: create a judge-ready story.
 Workflow A: connect and configure agent.
 
 1. User connects wallet.
-2. User connects Research Agent.
-3. User chooses `Ask every time` and max spend.
+2. User imports Research Agent by ID.
+3. User chooses `Ask every time`, max spend, daily cap, allowed protocols, and allowed mints.
 4. Agent connection/policy is visible in app.
 
 Workflow B: blocked action.

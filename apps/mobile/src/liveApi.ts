@@ -1,4 +1,8 @@
-import type { AgentPolicy, ApprovalMode } from "@skillguard/protocol";
+import type {
+  AgentPolicy,
+  ApprovalMode,
+  SkillGuardNetwork,
+} from "@skillguard/protocol";
 
 import type { ApiActionRecord, ApiConnectionRecord, SkillGuardMobileState } from "./liveState";
 import { toMobileState } from "./liveState";
@@ -25,6 +29,14 @@ interface ConnectionsResponse {
   connections: ApiConnectionRecord[];
 }
 
+interface AgentsResponse {
+  agents: Array<{
+    agentId: string;
+    description: string;
+    name: string;
+  }>;
+}
+
 interface ActionResponse {
   action: ApiActionRecord;
 }
@@ -39,11 +51,15 @@ export interface SkillGuardAgentInput {
   name: string;
 }
 
-export const SKILLGUARD_AGENT = {
-  agentId: "agent-research",
-  description: "Solana research agent that requests wallet-safe actions.",
-  name: "Research Agent",
-} satisfies SkillGuardAgentInput;
+export interface SkillGuardPolicyInput {
+  allowedMints?: AgentPolicy["allowedMints"];
+  allowedNetworks?: SkillGuardNetwork[];
+  allowedProtocols?: string[];
+  dailySpendCapAtomic?: string;
+  expiresAt?: number;
+  maxSpendAtomic?: string;
+  mode?: ApprovalMode;
+}
 
 export const DEFAULT_SKILLGUARD_API_URL =
   process?.env?.EXPO_PUBLIC_SKILLGUARD_API_URL ??
@@ -51,25 +67,26 @@ export const DEFAULT_SKILLGUARD_API_URL =
 
 export function connectionIdForWallet(
   userWallet: string,
-  agentId = SKILLGUARD_AGENT.agentId
+  agentId: string
 ): string {
   return `conn-${agentId}-${userWallet}`;
 }
 
 export function buildDefaultPolicy(
   userWallet: string,
-  agentId = SKILLGUARD_AGENT.agentId
+  agentId: string,
+  input: SkillGuardPolicyInput = {}
 ): AgentPolicy {
   return {
     active: true,
     agentId,
-    allowedMints: ["SOL", "USDC"],
-    allowedNetworks: ["solana-devnet"],
-    allowedProtocols: ["helius", "birdeye"],
-    dailySpendCapAtomic: "5000000",
-    expiresAt: 4_100_000_000,
-    maxSpendAtomic: "1000000",
-    mode: "ask_every_time",
+    allowedMints: input.allowedMints ?? ["SOL", "USDC"],
+    allowedNetworks: input.allowedNetworks ?? ["solana-devnet"],
+    allowedProtocols: input.allowedProtocols ?? ["helius", "birdeye"],
+    dailySpendCapAtomic: input.dailySpendCapAtomic ?? "5000000",
+    expiresAt: input.expiresAt ?? 4_100_000_000,
+    maxSpendAtomic: input.maxSpendAtomic ?? "1000000",
+    mode: input.mode ?? "ask_every_time",
     policyId: `policy-${agentId}-${userWallet}`,
     revoked: false,
     userWallet,
@@ -92,7 +109,8 @@ export function createSkillGuardApiClient(
 
   async function connectAgent(
     userWallet: string,
-    agent: SkillGuardAgentInput
+    agent: SkillGuardAgentInput,
+    policyInput?: SkillGuardPolicyInput
   ): Promise<ApiConnectionRecord> {
     await request<AgentResponse>("agents", {
       body: JSON.stringify(agent),
@@ -104,7 +122,7 @@ export function createSkillGuardApiClient(
       body: JSON.stringify({
         agentId: agent.agentId,
         connectionId: connectionIdForWallet(userWallet, agent.agentId),
-        policy: buildDefaultPolicy(userWallet, agent.agentId),
+        policy: buildDefaultPolicy(userWallet, agent.agentId, policyInput),
         userWallet,
       }),
       headers: { "content-type": "application/json" },
@@ -134,21 +152,19 @@ export function createSkillGuardApiClient(
       return body.action;
     },
 
-    async ensureAgentConnection(userWallet: string): Promise<ApiConnectionRecord> {
-      return connectAgent(userWallet, SKILLGUARD_AGENT);
-    },
-
     connectAgent,
 
     async loadWalletState(userWallet: string): Promise<SkillGuardMobileState> {
-      const [connectionsBody, actionsBody] = await Promise.all([
+      const [connectionsBody, actionsBody, agentsBody] = await Promise.all([
         request<ConnectionsResponse>(
           `connections?wallet=${encodeURIComponent(userWallet)}`
         ),
         request<ActionsResponse>(`actions?wallet=${encodeURIComponent(userWallet)}`),
+        request<AgentsResponse>("agents"),
       ]);
       return toMobileState({
         actions: actionsBody.actions,
+        agents: agentsBody.agents,
         connections: connectionsBody.connections,
       });
     },

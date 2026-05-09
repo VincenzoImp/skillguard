@@ -23,8 +23,8 @@ export function InboxScreen({
       <View style={styles.list}>
         {actions.length === 0 ? (
           <Text style={styles.emptyText}>
-            No live agent requests yet. Connect your wallet, then run the demo agent
-            with this wallet address.
+            No live agent requests yet. Import an agent, then let that agent submit
+            requests through the hosted SkillGuard API for this wallet.
           </Text>
         ) : (
           actions.map((action) => (

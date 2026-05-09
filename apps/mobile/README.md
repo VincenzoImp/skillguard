@@ -17,7 +17,9 @@ The current mobile slice uses live SkillGuard API state for the product screens:
 
 - connect an MWA-compatible wallet on devnet
 - show the connected wallet address
-- create or load the connected Research Agent for that wallet
+- start fresh wallets with zero connected agents
+- import an agent by ID and configure approval mode, spend limits, protocol
+  allowlist, and mint allowlist
 - edit the remote policy mode
 - review pending, blocked, approved, and rejected live agent requests
 - approve a pending request through a devnet SkillGuard `record_decision` transaction

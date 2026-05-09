@@ -112,6 +112,7 @@ function runDemoAgent(kind, apiUrl, wallet, runId) {
       env: {
         ...process.env,
         SKILLGUARD_API_URL: apiUrl,
+        SKILLGUARD_AUTO_CONNECT: "1",
         SKILLGUARD_RUN_ID: runId,
         SKILLGUARD_USER_WALLET: wallet,
       },
