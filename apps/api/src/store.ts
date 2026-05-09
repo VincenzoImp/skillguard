@@ -16,6 +16,8 @@ export interface ConnectionRecord {
 export interface ActionRecord {
   actionId: string;
   connectionId: string;
+  decisionReceiptAddress?: string | null;
+  decisionSignature?: string | null;
   manifest: ActionManifest;
   policyResult: PolicyResult | null;
   decisionStatus: DecisionStatus | null;
@@ -50,6 +52,11 @@ export class SkillGuardStore {
     return [...this.agents.values()];
   }
 
+  createAgent(agent: AgentRecord): AgentRecord {
+    this.agents.set(agent.agentId, agent);
+    return agent;
+  }
+
   getAgent(agentId: string): AgentRecord | undefined {
     return this.agents.get(agentId);
   }
@@ -61,6 +68,14 @@ export class SkillGuardStore {
 
   getConnection(connectionId: string): ConnectionRecord | undefined {
     return this.connections.get(connectionId);
+  }
+
+  listConnections(wallet?: string): ConnectionRecord[] {
+    const connections = [...this.connections.values()];
+    if (!wallet) {
+      return connections;
+    }
+    return connections.filter((connection) => connection.userWallet === wallet);
   }
 
   getConnectionForAction(action: ActionRecord): ConnectionRecord | undefined {
@@ -93,6 +108,14 @@ export class SkillGuardStore {
     return this.actions.get(actionId);
   }
 
+  listActionsForWallet(wallet: string): ActionRecord[] {
+    return [...this.actions.values()].filter((action) => action.manifest.userWallet === wallet);
+  }
+
+  listActionsForConnection(connectionId: string): ActionRecord[] {
+    return [...this.actions.values()].filter((action) => action.connectionId === connectionId);
+  }
+
   listPendingActions(wallet: string): ActionRecord[] {
     return [...this.actions.values()].filter(
       (action) => action.manifest.userWallet === wallet && action.decisionStatus === null,
@@ -109,13 +132,23 @@ export class SkillGuardStore {
     return action;
   }
 
-  storeDecision(actionId: string, status: DecisionStatus): ActionRecord | undefined {
+  storeDecision(
+    actionId: string,
+    status: DecisionStatus,
+    metadata: { receiptAddress?: string | null; signature?: string | null } = {},
+  ): ActionRecord | undefined {
     const action = this.actions.get(actionId);
     if (!action) {
       return undefined;
     }
 
     action.decisionStatus = status;
+    if (metadata.signature !== undefined) {
+      action.decisionSignature = metadata.signature;
+    }
+    if (metadata.receiptAddress !== undefined) {
+      action.decisionReceiptAddress = metadata.receiptAddress;
+    }
     return action;
   }
 }

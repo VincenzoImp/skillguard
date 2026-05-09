@@ -2,9 +2,14 @@ import { describe, expect, test } from "vitest";
 
 import { createApp } from "./routes.js";
 import { createSeededStore } from "./seed.js";
+import { SkillGuardStore } from "./store.js";
 
 function createTestApp() {
   return createApp(createSeededStore());
+}
+
+function createEmptyTestApp() {
+  return createApp(new SkillGuardStore({ actions: [], agents: [], connections: [] }));
 }
 
 async function json<T>(response: Response): Promise<T> {
@@ -75,7 +80,11 @@ describe("SkillGuard API", () => {
     const response = await app.request("/actions/action-safe-risk-report/decision", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ status: "approved" }),
+      body: JSON.stringify({
+        receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
+        signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
+        status: "approved",
+      }),
     });
     const body = await json<{ action: { actionId: string; decisionStatus: string } }>(response);
 
@@ -84,5 +93,167 @@ describe("SkillGuard API", () => {
       actionId: "action-safe-risk-report",
       decisionStatus: "approved",
     });
+  });
+
+  test("agent can be inserted, connected to a wallet, and listed by wallet", async () => {
+    const app = createEmptyTestApp();
+    const wallet = "Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx";
+
+    const agentResponse = await app.request("/agents", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-live",
+        description: "Live agent used by the hackathon flow.",
+        name: "Live Agent",
+      }),
+    });
+    expect(agentResponse.status).toBe(201);
+
+    const connectionResponse = await app.request("/connections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-live",
+        connectionId: "conn-agent-live-Dd6t",
+        policy: {
+          active: true,
+          agentId: "agent-live",
+          allowedMints: ["SOL", "USDC"],
+          allowedNetworks: ["solana-devnet"],
+          allowedProtocols: ["helius", "birdeye"],
+          dailySpendCapAtomic: "5000000",
+          expiresAt: 4_100_000_000,
+          maxSpendAtomic: "1000000",
+          mode: "ask_every_time",
+          policyId: "policy-agent-live-Dd6t",
+          revoked: false,
+          userWallet: wallet,
+        },
+        userWallet: wallet,
+      }),
+    });
+    expect(connectionResponse.status).toBe(201);
+
+    const listResponse = await app.request(`/connections?wallet=${wallet}`);
+    const body = await json<{
+      connections: Array<{ agentId: string; connectionId: string; userWallet: string }>;
+    }>(listResponse);
+
+    expect(listResponse.status).toBe(200);
+    expect(body.connections).toEqual([
+      expect.objectContaining({
+        agentId: "agent-live",
+        connectionId: "conn-agent-live-Dd6t",
+        userWallet: wallet,
+      }),
+    ]);
+  });
+
+  test("posted action is evaluated immediately and visible in wallet action feed", async () => {
+    const app = createTestApp();
+
+    const postResponse = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        connectionId: "conn-demo",
+        manifest: {
+          actionId: "action-live-safe",
+          accountsTouched: ["DemoWallet111111111111111111111111111111111"],
+          agentId: "agent-research",
+          createdAt: 1_800_000_000,
+          expiresAt: 4_100_000_000,
+          kind: "wallet_risk_report",
+          network: "solana-devnet",
+          protocols: ["helius", "birdeye"],
+          rawTransactionRef: null,
+          riskSignals: [{ code: "read_only", level: "low", message: "Read only." }],
+          schemaVersion: "skillguard.action.v1",
+          spend: [{ amountAtomic: "0", human: "0 USDC", mint: "USDC", reason: "Read only." }],
+          summary: "Live safe request.",
+          title: "Live safe request",
+          userWallet: "DemoWallet111111111111111111111111111111111",
+        },
+      }),
+    });
+    const postBody = await json<{
+      action: {
+        actionId: string;
+        decisionStatus: string | null;
+        policyResult: { status: string; reasons: string[] };
+      };
+    }>(postResponse);
+
+    expect(postResponse.status).toBe(201);
+    expect(postBody.action.policyResult.status).toBe("requires_approval");
+    expect(postBody.action.decisionStatus).toBeNull();
+
+    const feedResponse = await app.request(
+      "/actions?wallet=DemoWallet111111111111111111111111111111111",
+    );
+    const feedBody = await json<{
+      actions: Array<{ actionId: string; policyResult: { manifestHash: string } | null }>;
+    }>(feedResponse);
+
+    expect(feedResponse.status).toBe(200);
+    expect(feedBody.actions.map((action) => action.actionId)).toContain("action-live-safe");
+    expect(
+      feedBody.actions.find((action) => action.actionId === "action-live-safe")?.policyResult
+        ?.manifestHash,
+    ).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test("revoking a connection blocks unresolved actions and removes approval ability", async () => {
+    const app = createTestApp();
+
+    const revokeResponse = await app.request("/connections/conn-demo", { method: "DELETE" });
+    expect(revokeResponse.status).toBe(200);
+
+    const actionResponse = await app.request("/actions/action-safe-risk-report");
+    const actionBody = await json<{
+      action: { decisionStatus: string; policyResult: { reasons: string[]; status: string } };
+    }>(actionResponse);
+
+    expect(actionBody.action.decisionStatus).toBe("blocked");
+    expect(actionBody.action.policyResult.status).toBe("fail");
+    expect(actionBody.action.policyResult.reasons).toContain("policy_revoked");
+  });
+
+  test("approved decisions require a wallet signature and store receipt metadata", async () => {
+    const app = createTestApp();
+
+    const missingSignature = await app.request("/actions/action-safe-risk-report/decision", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: "approved" }),
+    });
+    expect(missingSignature.status).toBe(400);
+
+    const response = await app.request("/actions/action-safe-risk-report/decision", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        receiptAddress: "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
+        signature: "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
+        status: "approved",
+      }),
+    });
+    const body = await json<{
+      action: {
+        decisionReceiptAddress: string;
+        decisionSignature: string;
+        decisionStatus: string;
+      };
+    }>(response);
+
+    expect(response.status).toBe(200);
+    expect(body.action.decisionStatus).toBe("approved");
+    expect(body.action.decisionSignature).toBe(
+      "5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF",
+    );
+    expect(body.action.decisionReceiptAddress).toBe(
+      "7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z",
+    );
   });
 });
