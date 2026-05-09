@@ -714,7 +714,7 @@ describe("Vercel API handler", () => {
     expect(response.body.error).toBe("manifest_connection_mismatch");
   });
 
-  test("does not reactivate a revoked connection through the production handler path", async () => {
+  test("blocks revoked connection reimport without owner proof through the production handler path", async () => {
     const wallet = walletFor(testKeyPair(12));
     await createConnectionViaHandler({
       connectionId: "conn-live",
@@ -749,12 +749,63 @@ describe("Vercel API handler", () => {
       userWallet: wallet,
     });
 
+    expect(response.status).toBe(403);
+    expect(response.body.error).toBe("wallet_owner_proof_required");
+  });
+
+  test("reactivates a revoked connection with owner proof through the production handler path", async () => {
+    const keyPair = testKeyPair(14);
+    const wallet = walletFor(keyPair);
+    await createConnectionViaHandler({
+      connectionId: "conn-live",
+      keyPair,
+      wallet,
+    });
+    await callHandler("POST", "/api/connections/conn-live/revoke", {
+      ownerProof: revokeProofFor({
+        connectionId: "conn-live",
+        keyPair,
+        wallet,
+      }),
+    });
+
+    const policy: AgentPolicy = {
+      agentId: "agent-research",
+      active: true,
+      allowedMints: ["SOL"],
+      allowedNetworks: ["solana-devnet"],
+      allowedProtocols: ["helius", "birdeye"],
+      dailySpendCapAtomic: "50000000",
+      expiresAt: 4_100_000_000,
+      maxSpendAtomic: "10000000",
+      mode: "ask_every_time",
+      policyId: "policy-reconnect-live",
+      revoked: false,
+      userWallet: wallet,
+    };
+
+    const response = await callHandler("POST", "/api/connections", {
+      agentId: "agent-research",
+      connectionId: "conn-live",
+      ownerProof: ownerProofFor({
+        agentId: "agent-research",
+        connectionId: "conn-live",
+        keyPair,
+        policy,
+        userWallet: wallet,
+      }),
+      policy,
+      userWallet: wallet,
+    });
+
     expect(response.status).toBe(200);
     expect(response.body.connection).toMatchObject({
       connectionId: "conn-live",
       policy: {
-        active: false,
-        revoked: true,
+        active: true,
+        maxSpendAtomic: "10000000",
+        policyId: "policy-reconnect-live",
+        revoked: false,
       },
     });
   });

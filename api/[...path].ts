@@ -458,7 +458,25 @@ async function handleConnections(
         return;
       }
 
-      sendJson(res, 200, { connection: existingConnection });
+      if (existingConnection.policy.active && !existingConnection.policy.revoked) {
+        sendJson(res, 200, { connection: existingConnection });
+        return;
+      }
+
+      const ownerProofResult = verifyConnectionOwnerProof(body.ownerProof, connectionInput);
+      if (!ownerProofResult.ok) {
+        sendJson(res, 403, { error: ownerProofResult.error });
+        return;
+      }
+
+      const connection = store.updatePolicy(connectionInput.connectionId, connectionInput.policy);
+      if (!connection) {
+        notFound(res, "connection_not_found");
+        return;
+      }
+
+      reevaluateOpenActionsForConnection(store, connection.connectionId);
+      await sendPersistedJson(res, 200, { connection });
       return;
     }
 
