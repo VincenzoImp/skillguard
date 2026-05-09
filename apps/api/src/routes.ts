@@ -179,7 +179,25 @@ export function createApp(store: SkillGuardStore, options: CreateAppOptions = {}
         return c.json({ error: "connection_id_conflict" }, 409);
       }
 
-      return c.json({ connection: existingConnection }, 200);
+      if (existingConnection.policy.active && !existingConnection.policy.revoked) {
+        return c.json({ connection: existingConnection }, 200);
+      }
+
+      const ownerProofResult = verifyConnectionOwnerProof(
+        (body as { ownerProof?: unknown }).ownerProof,
+        connectionInput,
+      );
+      if (!ownerProofResult.ok) {
+        return c.json({ error: ownerProofResult.error }, 403);
+      }
+
+      const connection = store.updatePolicy(connectionInput.connectionId, connectionInput.policy);
+      if (!connection) {
+        return c.json(notFound("connection_not_found"), 404);
+      }
+
+      reevaluateOpenActionsForConnection(store, connection.connectionId);
+      return c.json({ connection }, 200);
     }
 
     const ownerProofResult = verifyConnectionOwnerProof(

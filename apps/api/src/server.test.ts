@@ -1021,7 +1021,7 @@ describe("SkillGuard API", () => {
     expect(body.error).toBe("decision_already_final");
   });
 
-  test("connection upsert does not reactivate a revoked agent", async () => {
+  test("connection upsert without owner proof does not reactivate a revoked agent", async () => {
     const app = createTestApp();
 
     const revokeResponse = await app.request("/connections/conn-seeded/revoke", {
@@ -1054,14 +1054,64 @@ describe("SkillGuard API", () => {
         userWallet: SEEDED_WALLET,
       }),
     });
+    const reconnectBody = await json<{ error: string }>(reconnectResponse);
+
+    expect(reconnectResponse.status).toBe(403);
+    expect(reconnectBody.error).toBe("wallet_owner_proof_required");
+  });
+
+  test("owner-signed connection upsert reactivates a revoked agent", async () => {
+    const app = createTestApp();
+
+    const revokeResponse = await app.request("/connections/conn-seeded/revoke", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ownerProof: seededRevokeOwnerProof() }),
+    });
+    expect(revokeResponse.status).toBe(200);
+
+    const policy: AgentPolicy = {
+      active: true,
+      agentId: "agent-research",
+      allowedMints: ["SOL"],
+      allowedNetworks: ["solana-devnet"],
+      allowedProtocols: ["helius", "birdeye"],
+      dailySpendCapAtomic: "50000000",
+      expiresAt: 4_100_000_000,
+      maxSpendAtomic: "10000000",
+      mode: "ask_every_time",
+      policyId: "policy-reimported-agent",
+      revoked: false,
+      userWallet: SEEDED_WALLET,
+    };
+
+    const reconnectResponse = await app.request("/connections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentId: "agent-research",
+        connectionId: "conn-seeded",
+        ownerProof: ownerProofFor({
+          agentId: "agent-research",
+          connectionId: "conn-seeded",
+          keyPair: SEEDED_WALLET_KEYPAIR,
+          policy,
+          userWallet: SEEDED_WALLET,
+        }),
+        policy,
+        userWallet: SEEDED_WALLET,
+      }),
+    });
     const reconnectBody = await json<{
-      connection: { policy: { active: boolean; revoked: boolean } };
+      connection: { policy: { active: boolean; maxSpendAtomic: string; policyId: string; revoked: boolean } };
     }>(reconnectResponse);
 
     expect(reconnectResponse.status).toBe(200);
     expect(reconnectBody.connection.policy).toMatchObject({
-      active: false,
-      revoked: true,
+      active: true,
+      maxSpendAtomic: "10000000",
+      policyId: "policy-reimported-agent",
+      revoked: false,
     });
   });
 
