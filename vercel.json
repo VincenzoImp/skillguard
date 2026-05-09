@@ -1,7 +1,4 @@
 {
-  "buildCommand": "npm run vercel:build",
-  "env": {
-    "VITE_BASE_PATH": "/"
-  },
+  "buildCommand": "VITE_BASE_PATH=/ npm run vercel:build",
   "outputDirectory": "apps/site/dist"
 }
