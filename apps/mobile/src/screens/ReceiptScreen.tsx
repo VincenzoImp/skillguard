@@ -33,6 +33,7 @@ export function ReceiptScreen({ actions }: ReceiptScreenProps) {
               />
             </View>
             <Text style={styles.receiptMeta}>{action.manifestHash}</Text>
+            <Text style={styles.outcomeText}>{describeOutcome(action)}</Text>
             {action.signature ? (
               <Pressable
                 accessibilityRole="link"
@@ -54,6 +55,25 @@ export function ReceiptScreen({ actions }: ReceiptScreenProps) {
   );
 }
 
+function describeOutcome(action: MobileAction): string {
+  if (action.status === "approved" && action.signature) {
+    return "Wallet-approved execution. The receipt and signed transaction can be checked on Solana Explorer.";
+  }
+  if (action.status === "approved") {
+    return "Low-risk zero-spend request auto-approved by policy. No wallet signature or SOL movement was needed.";
+  }
+  if (action.status === "rejected") {
+    return "The wallet owner rejected this request before execution.";
+  }
+  if (action.status === "blocked") {
+    return "SkillGuard blocked this request before wallet signing.";
+  }
+  if (action.status === "expired") {
+    return "The request expired before it could be approved.";
+  }
+  return "Decision recorded for this wallet.";
+}
+
 const styles = StyleSheet.create({
   emptyText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   kicker: {
@@ -71,6 +91,7 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 18,
   },
+  outcomeText: { color: colors.textSecondary, fontSize: 12, lineHeight: 18 },
   receiptMeta: { color: colors.textMuted, fontFamily: "monospace", fontSize: 12 },
   receiptRow: {
     borderTopColor: colors.border,

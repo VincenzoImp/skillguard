@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  StatusBar,
   Text,
   TextInput,
   View,
@@ -46,7 +47,6 @@ import { RESEARCH_TREASURY_ADDRESS } from "../treasury";
 import { ActionDetailScreen } from "./ActionDetailScreen";
 import { AgentsScreen } from "./AgentsScreen";
 import { InboxScreen } from "./InboxScreen";
-import { PermissionEditorScreen } from "./PermissionEditorScreen";
 import { ReceiptScreen } from "./ReceiptScreen";
 
 interface WalletConnectScreenProps {
@@ -532,7 +532,6 @@ export function WalletConnectScreen({
         <AppHeader
           addressLabel={shortAddress}
           isConnected={Boolean(account)}
-          status={status}
         />
         <ScrollView contentContainerStyle={styles.content}>
           {activeTab === "home" ? (
@@ -610,11 +609,9 @@ export function WalletConnectScreen({
 function AppHeader({
   addressLabel,
   isConnected,
-  status,
 }: {
   addressLabel: string;
   isConnected: boolean;
-  status: string;
 }) {
   return (
     <View style={styles.header}>
@@ -625,9 +622,6 @@ function AppHeader({
       />
       <View style={styles.headerCopy}>
         <Text style={styles.appName}>SkillGuard</Text>
-        <Text style={styles.statusText} numberOfLines={1}>
-          {status}
-        </Text>
       </View>
       <View style={styles.headerWallet}>
         <StatusBadge tone={isConnected ? "safe" : "warning"} label={isConnected ? "live" : "idle"} />
@@ -837,8 +831,11 @@ function AgentsPage({
 
   return (
     <View style={styles.pageStack}>
-      <AgentsScreen agents={agents} onRevoke={onRevoke} />
-      <PermissionEditorScreen agents={agents} onModeChange={onModeChange} />
+      <AgentsScreen
+        agents={agents}
+        onModeChange={onModeChange}
+        onRevoke={onRevoke}
+      />
     </View>
   );
 }
@@ -1012,6 +1009,11 @@ function PairingPage({
         mode={agentPolicyMode}
         onChange={onAgentPolicyModeChange}
       />
+      <Text style={styles.modeHelp}>
+        Allow under limits can auto-approve low-risk zero-spend requests only.
+        Spending actions, higher-risk requests, and raw transaction references
+        still open the wallet review.
+      </Text>
       <View style={styles.policyGrid}>
         <View style={styles.policyField}>
           <Text style={styles.fieldLabel}>Max spend per action (SOL)</Text>
@@ -1127,9 +1129,7 @@ function TabBar({
               {tab.label}
             </Text>
             {tab.badge ? (
-              <View style={styles.tabBadge}>
-                <Text style={styles.tabBadgeText}>{tab.badge}</Text>
-              </View>
+              <View style={styles.tabBadge} />
             ) : null}
           </Pressable>
         );
@@ -1326,7 +1326,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     paddingHorizontal: 18,
-    paddingVertical: 12,
+    paddingBottom: 12,
+    paddingTop: (StatusBar.currentHeight ?? 0) + 12,
   },
   headerCopy: { flex: 1 },
   headerWallet: { alignItems: "flex-end", gap: 6 },
@@ -1416,6 +1417,7 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 4,
   },
+  modeHelp: { color: colors.textMuted, fontSize: 12, lineHeight: 18 },
   manualPairingDivider: {
     alignItems: "center",
     flexDirection: "row",
@@ -1517,19 +1519,15 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: { color: colors.text, fontSize: 15, fontWeight: "700" },
   shell: { flex: 1 },
-  statusText: { color: colors.textSecondary, fontSize: 12, marginTop: 3 },
   tabBadge: {
-    alignItems: "center",
     backgroundColor: colors.mint,
-    borderRadius: 9,
-    minWidth: 18,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    borderRadius: 5,
+    height: 9,
     position: "absolute",
-    right: 8,
-    top: 6,
+    right: 11,
+    top: 9,
+    width: 9,
   },
-  tabBadgeText: { color: colors.mintText, fontSize: 10, fontWeight: "900" },
   tabBar: {
     backgroundColor: colors.deep,
     borderTopColor: colors.border,

@@ -37,7 +37,10 @@ the API or SDK. Wallet feeds and push-token registration are scoped by a
 short-lived wallet session token created from a Solana sign-message proof. When
 an agent creates a new pending request, the hosted API fans out an Expo push to
 registered devices for that wallet; the live inbox remains the source of truth
-and can always be refreshed manually.
+and can always be refreshed manually. `Allow under limits` is deliberately
+conservative: it can auto-approve only low-risk, zero-spend manifest-only
+requests. Any spending request, non-low-risk request, or raw transaction still
+requires wallet review.
 
 ## Architecture
 
@@ -77,10 +80,12 @@ The judge demo is a 3-minute vertical slice:
    wallet address through the API after the user-created connection exists.
 4. Pending requests arrive in the mobile inbox and, on supported builds/devices,
    as native push notifications.
-5. Unsafe requests are blocked before wallet signing.
-6. Safe requests can be approved from mobile with a real devnet SOL transfer and
-   a SkillGuard receipt transaction.
-7. User can reject requests, revoke the agent, and edit the policy mode; future requests are re-evaluated.
+5. Low-risk zero-spend requests can be auto-approved only when the user switches
+   that specific agent to `Allow under limits`.
+6. Unsafe requests are blocked before wallet signing.
+7. Spending requests can be approved from mobile with a real devnet SOL transfer
+   and a SkillGuard receipt transaction.
+8. User can reject requests, revoke the agent, and edit the policy mode; future requests are re-evaluated.
 
 See [docs/DEMO.md](docs/DEMO.md) for exact commands and spoken lines.
 

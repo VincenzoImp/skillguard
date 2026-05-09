@@ -272,6 +272,37 @@ describe("mobile live state mapping", () => {
     ]);
   });
 
+  it("labels low-risk zero-spend policy approvals as automatic receipt-only outcomes", () => {
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-auto-approved",
+          connectionId: "conn-live",
+          decisionStatus: "approved",
+          manifest,
+          policyResult: {
+            manifestHash: "hash-auto-approved",
+            reasons: [],
+            riskLevel: "low",
+            status: "pass",
+          },
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy: { ...policy, mode: "allow_under_limits" },
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.actions[0].decisionReason).toBe(
+      "Auto-approved by low-risk zero-spend policy. No wallet signature was needed."
+    );
+  });
+
   it("hides stale expired blocked outcomes created during revocation cleanup", () => {
     const state = toMobileState({
       actions: [

@@ -20,10 +20,11 @@ describe("permission presentation", () => {
       mode: "ask_every_time",
     });
     expect(cards[0].rules.map((rule) => rule.label)).toEqual([
-      "Spend limit",
+      "Per-action cap",
+      "Daily cap",
       "Network",
       "Protocols",
-      "Allowed actions",
+      "Allowed mints",
     ]);
   });
 });

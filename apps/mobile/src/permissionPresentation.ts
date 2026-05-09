@@ -22,16 +22,25 @@ export function buildPermissionCards(agents: ConnectedAgent[]): PermissionCard[]
       description: agent.description,
       mode: agent.policy.mode,
       rules: [
-        { label: "Spend limit", value: agent.policy.spendLimit },
+        { label: "Per-action cap", value: agent.policy.spendLimit },
+        { label: "Daily cap", value: `${formatLamports(agent.rawPolicy.dailySpendCapAtomic)} SOL` },
         { label: "Network", value: agent.policy.network },
         {
           label: "Protocols",
           value: agent.policy.allowedProtocols.join(", ") || "None",
         },
         {
-          label: "Allowed actions",
-          value: agent.policy.permissions.join(", ") || "None",
+          label: "Allowed mints",
+          value: agent.rawPolicy.allowedMints.join(", ") || "None",
         },
       ],
     }));
+}
+
+function formatLamports(value: string): string {
+  const lamports = BigInt(value);
+  const whole = lamports / 1_000_000_000n;
+  const fraction = lamports % 1_000_000_000n;
+  if (fraction === 0n) return whole.toString();
+  return `${whole}.${fraction.toString().padStart(9, "0").replace(/0+$/, "")}`;
 }

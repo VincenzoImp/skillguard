@@ -18,6 +18,7 @@ export function ActionDetailScreen({
   onReject,
 }: ActionDetailScreenProps) {
   const canDecide = action.status === "pending" && !isBusy;
+  const approvalImpact = describeApprovalImpact(action);
 
   return (
     <View style={styles.panel}>
@@ -36,6 +37,10 @@ export function ActionDetailScreen({
         <Info label="Spend" value={action.spend} />
         <Info label="Network" value={action.network} />
         <Info label="Manifest" value={`${action.manifestHash.slice(0, 12)}...`} />
+      </View>
+      <View style={styles.outcomeBox}>
+        <Text style={styles.outcomeLabel}>After approval</Text>
+        <Text style={styles.outcomeText}>{approvalImpact}</Text>
       </View>
       <PolicyCheckList checks={action.checks} />
       {action.decisionReason ? (
@@ -56,6 +61,20 @@ export function ActionDetailScreen({
         />
       </View>
     </View>
+  );
+}
+
+function describeApprovalImpact(action: MobileAction): string {
+  if (totalSpendAtomic(action) > 0n || action.manifest.rawTransactionRef !== null) {
+    return "Your wallet signs a transaction only after you approve. The result appears in Activity with the receipt hash and Explorer link when available.";
+  }
+  return "No funds move. If this agent is set to Allow under limits, future low-risk zero-spend requests can be auto-approved and recorded as receipt-only outcomes.";
+}
+
+function totalSpendAtomic(action: MobileAction): bigint {
+  return action.manifest.spend.reduce(
+    (total, spend) => total + BigInt(spend.amountAtomic),
+    0n
   );
 }
 
@@ -143,6 +162,16 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 18,
   },
+  outcomeBox: {
+    backgroundColor: "rgba(88,166,255,0.08)",
+    borderColor: "rgba(88,166,255,0.22)",
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 5,
+    padding: 12,
+  },
+  outcomeLabel: { color: colors.info, fontSize: 12, fontWeight: "800" },
+  outcomeText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   pressed: { transform: [{ scale: 0.99 }] },
   primaryButton: { backgroundColor: colors.mint },
   primaryText: { color: colors.mintText },

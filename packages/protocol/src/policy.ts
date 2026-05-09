@@ -93,6 +93,24 @@ export function evaluatePolicy(
     };
   }
 
+  if (totalSpendAtomic(manifest) > 0n) {
+    return {
+      status: "requires_approval",
+      reasons: ["spend_requires_wallet_approval"],
+      riskLevel: highestRisk([manifestRiskLevel(manifest), "medium"]),
+      manifestHash,
+    };
+  }
+
+  if (manifestRiskLevel(manifest) !== "low") {
+    return {
+      status: "requires_approval",
+      reasons: ["risk_requires_wallet_approval"],
+      riskLevel: highestRisk([manifestRiskLevel(manifest), "medium"]),
+      manifestHash,
+    };
+  }
+
   return {
     status: "pass",
     reasons: [],

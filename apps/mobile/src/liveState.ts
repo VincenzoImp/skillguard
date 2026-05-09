@@ -383,6 +383,20 @@ function policyReasonCheck(reason: string): PolicyCheck {
       tone: "warning",
     };
   }
+  if (reason === "spend_requires_wallet_approval") {
+    return {
+      detail: "Any request with spend must be approved in the wallet, even when the agent is under its limits.",
+      label: "Spend requires wallet approval",
+      tone: "warning",
+    };
+  }
+  if (reason === "risk_requires_wallet_approval") {
+    return {
+      detail: "Only low-risk zero-spend requests can auto-approve. This request needs wallet review.",
+      label: "Risk requires wallet approval",
+      tone: "warning",
+    };
+  }
   return {
     detail: reason,
     label: "Policy reason",
@@ -398,7 +412,7 @@ function decisionReason(
     return "Approved by wallet owner.";
   }
   if (action.decisionStatus === "approved") {
-    return "Automatically approved under policy.";
+    return "Auto-approved by low-risk zero-spend policy. No wallet signature was needed.";
   }
   if (action.decisionStatus === "rejected") {
     return "Rejected by wallet owner.";

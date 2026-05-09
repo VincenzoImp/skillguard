@@ -104,11 +104,11 @@ Permission modes:
 | Mode | Meaning |
 |---|---|
 | Ask every time | Every sensitive action creates a mobile approval request. |
-| Allow under limits | SkillGuard can auto-approve actions that match policy and do not require a fresh wallet signature. |
+| Allow under limits | SkillGuard can auto-approve low-risk zero-spend actions that match policy and do not require a fresh wallet signature. |
 | Block | Requests from this agent are rejected. |
 | Revoked | Agent connection is disabled and cannot request new actions. |
 
-Important: in the MVP, "Allow under limits" is not unlimited wallet delegation. For token-moving actions, the user still signs unless a limited vault/delegation module exists.
+Important: in the MVP, "Allow under limits" is not unlimited wallet delegation. For token-moving actions, higher-risk actions, or raw transaction references, the user still signs unless a limited vault/delegation module exists.
 
 ### 4. Agent Requests An Action
 
@@ -382,7 +382,7 @@ Recommendation:
 | TypeScript SDK wrapper | High | Useful for demo and integration story. |
 | Solana policy/receipt program | High | Required. |
 | On-chain revocation | High | Required. |
-| Auto-approval under limits | Medium | Only for safe/non-spending actions in MVP. |
+| Auto-approval under limits | Medium | Only for low-risk zero-spend actions in MVP. |
 | Automatic wallet spending by agent | Low/medium | Stretch only with vault/delegation. |
 | LI.FI route preview | Medium | Optional sponsor scene. |
 | x402 paid report | Medium | Optional bonus scene. |

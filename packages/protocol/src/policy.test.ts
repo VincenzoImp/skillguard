@@ -100,6 +100,45 @@ describe("policy engine", () => {
     expect(result.riskLevel).toBe("low");
   });
 
+  test("requires approval for spending manifests even when policy allows actions under limits", () => {
+    const paidManifest: ActionManifest = {
+      ...safeRiskReportManifest,
+      actionId: "action-paid-report",
+      spend: [
+        {
+          mint: "USDC",
+          amountAtomic: "500000",
+          human: "0.5 USDC",
+          reason: "Paid report generation",
+        },
+      ],
+    };
+
+    const result = evaluatePolicy(paidManifest, allowUnderLimitsPolicy);
+
+    expect(result.status).toBe("requires_approval");
+    expect(result.reasons).toContain("spend_requires_wallet_approval");
+  });
+
+  test("requires approval for non-low-risk zero-spend manifests under allow mode", () => {
+    const mediumRiskManifest: ActionManifest = {
+      ...safeRiskReportManifest,
+      actionId: "action-medium-risk-free",
+      riskSignals: [
+        {
+          code: "new_program_touch",
+          level: "medium",
+          message: "The agent wants to inspect an unfamiliar program path.",
+        },
+      ],
+    };
+
+    const result = evaluatePolicy(mediumRiskManifest, allowUnderLimitsPolicy);
+
+    expect(result.status).toBe("requires_approval");
+    expect(result.reasons).toContain("risk_requires_wallet_approval");
+  });
+
   test("fails when manifest spend exceeds the policy max spend", () => {
     const result = evaluatePolicy(unsafeOverspendManifest, allowUnderLimitsPolicy);
 

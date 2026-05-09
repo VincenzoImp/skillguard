@@ -8,7 +8,7 @@ import type { SkillGuardMobileState } from "./liveState";
 export type AppTabId = "home" | "inbox" | "agents" | "pairing" | "activity";
 
 export interface AppTabItem {
-  badge: string | null;
+  badge: "attention" | null;
   id: AppTabId;
   isPrimary: boolean;
   label: string;
@@ -47,10 +47,8 @@ export function buildTabItems(
   isWalletConnected: boolean
 ): AppTabItem[] {
   const summary = buildDashboardSummary(state);
-  const badges: Partial<Record<AppTabId, string>> = {
-    activity: summary.historyActions > 0 ? String(summary.historyActions) : undefined,
-    agents: summary.activeAgents > 0 ? String(summary.activeAgents) : undefined,
-    inbox: summary.pendingActions > 0 ? String(summary.pendingActions) : undefined,
+  const badges: Partial<Record<AppTabId, "attention">> = {
+    inbox: summary.pendingActions > 0 ? "attention" : undefined,
   };
 
   return (["home", "inbox", "agents", "pairing", "activity"] as AppTabId[]).map(

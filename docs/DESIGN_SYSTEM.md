@@ -273,7 +273,7 @@ Controls:
 
 Rule:
 
-- If `Allow under limits` is selected, show: "Token-moving actions still require wallet signing in this MVP."
+- If `Allow under limits` is selected, show: "Auto-approval applies only to low-risk zero-spend requests. Any spend, higher-risk request, or raw transaction still requires wallet signing."
 
 ### Action Request Card
 
@@ -362,8 +362,8 @@ For revocation:
 
 For auto-allow:
 
-- MVP auto-allow only applies to safe/non-spending actions or receipt-only flows
-- token-moving actions still require wallet signing unless a future delegation module is added
+- MVP auto-allow only applies to low-risk zero-spend actions or receipt-only flows
+- token-moving, higher-risk, or raw transaction actions still require wallet signing unless a future delegation module is added
 
 ## Voice And Copy
 

@@ -26,7 +26,7 @@ describe("mobile app navigation model", () => {
     ]);
   });
 
-  it("surfaces inbox and agent counts in the tab bar", () => {
+  it("uses a compact attention dot only for actionable inbox work", () => {
     const tabs = buildTabItems(
       {
         ...baseState,
@@ -69,9 +69,9 @@ describe("mobile app navigation model", () => {
       true
     );
 
-    expect(tabs.find((tab) => tab.id === "inbox")?.badge).toBe("1");
-    expect(tabs.find((tab) => tab.id === "agents")?.badge).toBe("1");
-    expect(tabs.find((tab) => tab.id === "activity")?.badge).toBe("1");
+    expect(tabs.find((tab) => tab.id === "inbox")?.badge).toBe("attention");
+    expect(tabs.find((tab) => tab.id === "agents")?.badge).toBeNull();
+    expect(tabs.find((tab) => tab.id === "activity")?.badge).toBeNull();
     expect(tabs.find((tab) => tab.id === "home")?.isPrimary).toBe(true);
   });
 

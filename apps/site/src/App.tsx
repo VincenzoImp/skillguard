@@ -86,14 +86,14 @@ const demoSteps: Array<{
 }> = [
   {
     label: "Free scan",
-    title: "Read-only wallet scan reaches approval",
-    text: "The research agent submits a zero-spend wallet scan. The user receives the request and can approve it from the inbox.",
+    title: "Zero-spend scan can auto-approve",
+    text: "When the agent is set to Allow under limits, the low-risk read-only scan is approved without a wallet signature. In Ask every time mode, it still lands in Inbox.",
     tone: "safe",
   },
   {
     label: "Paid report",
-    title: "0.001 SOL moves with the receipt",
-    text: "A safe paid report signs one devnet transaction: SOL transfer plus SkillGuard receipt.",
+    title: "0.001 SOL still needs the wallet",
+    text: "Any spending request requires explicit wallet approval, then signs one devnet transaction: SOL transfer plus SkillGuard receipt.",
     tone: "violet",
   },
   {
@@ -115,6 +115,7 @@ const architectureNodes = [
 ];
 
 const permissionRows = [
+  ["Mode", "Ask every time / auto low-risk zero-spend"],
   ["Spend cap", "0.01 SOL per action"],
   ["Daily cap", "0.05 SOL"],
   ["Network", "Solana devnet only"],
@@ -226,8 +227,8 @@ function DemoPage({ phoneDemoProps }: { phoneDemoProps: PhoneDemoProps }) {
       <section className="grid items-center gap-8 rounded-2xl border border-border-subtle bg-bg-900/70 p-5 sm:p-7 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,0.72fr)]">
         <SectionHeader
           kicker="90s demo"
-          title="Pair the agent, receive the push, approve SOL, then watch policy block the overspend."
-          text="This is the judge path: one wallet, one real research agent loop, one Android approval center, one devnet proof trail."
+          title="Pair the agent, optionally receive push, approve SOL, then watch policy block the overspend."
+          text="This is the judge path: one wallet, one real research agent loop, one Android approval center, one optional push channel, one devnet proof trail."
         />
         <PhoneDemo {...phoneDemoProps} />
       </section>
@@ -319,7 +320,7 @@ function HeroCopy() {
       </h1>
       <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg">
         {firewallHero.subhead} SkillGuard gives every Solana agent a permissioned path to wallet actions:
-        manifest, policy check, mobile approval, push notification, revocation, and auditable receipt.
+        manifest, policy check, mobile approval, push-capable notification, revocation, and auditable receipt.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <HeroButton to="/demo" icon={Smartphone}>
@@ -414,8 +415,8 @@ function DemoSection() {
     <section id="demo" className="scroll-mt-28">
       <SectionHeader
         kicker="Demo"
-        title="The judge sees real agent requests, push delivery, SOL movement, and policy blocking."
-        text="The demo proves the product in under three minutes: free scan approval, paid 0.001 SOL report, blocked 0.05 SOL upgrade, then revocation."
+        title="The judge sees real agent requests, wallet approval, auto-approval, and policy blocking."
+        text="The demo proves the product in under three minutes: pair the agent by QR, show a low-risk zero-spend auto-approval path, approve or reject a 0.001 SOL report, block a 0.05 SOL upgrade, then revoke the agent."
       />
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {demoSteps.map((step) => (
@@ -438,7 +439,7 @@ function ArchitectureSection() {
       <SectionHeader
         kicker="Architecture"
         title="A public repo with one vertical path from agent request to wallet proof."
-        text="Each component is deliberately small: agent manifest, hosted policy API, push delivery, Android approval, Mobile Wallet Adapter signing, and devnet receipt."
+        text="Each component is deliberately small: agent manifest, hosted policy API, push-capable delivery, Android approval, Mobile Wallet Adapter signing, and devnet receipt."
       />
       <div className="mt-8 rounded-2xl border border-border-subtle bg-bg-900/76 p-5">
         <div className="grid gap-3 md:grid-cols-7">
@@ -656,6 +657,7 @@ function SecuritySection() {
           tone="safe"
           items={[
             "Policies are evaluated before SkillGuard-mediated requests reach approval.",
+            "Auto-approval is limited to low-risk zero-spend manifest-only requests.",
             "Agents do not receive user private keys.",
             "Revocation blocks future SkillGuard requests from that agent.",
             "Receipts can link a decision to a manifest hash.",
@@ -808,7 +810,6 @@ function PhoneDemo({
               <img src={iconMark} alt="" className="h-9 w-9 rounded-lg" />
               <div>
                 <p className="text-sm font-semibold">SkillGuard</p>
-                <p className="text-xs text-text-muted">Solana devnet</p>
               </div>
             </div>
             <span
@@ -836,7 +837,7 @@ function PhoneDemo({
 
             <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Permission policy</p>
+                <p className="text-sm font-semibold">Policy for this agent</p>
                 <button
                   type="button"
                   className="rounded-md border border-brand-violet/30 px-2.5 py-1 text-xs font-semibold text-brand-violet transition hover:bg-brand-violet/10"

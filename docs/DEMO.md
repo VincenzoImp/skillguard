@@ -48,8 +48,10 @@ Before running those commands, import `agent-research` in the mobile app by
 opening `https://skillguard-sol.vercel.app/developers` and scanning the
 Research Agent pairing QR from the app's `Pair` tab. The QR only fills the
 agent identity; the wallet owner still reviews the policy and signs the import
-challenge. Keep the default conservative policy: ask every time, `0.01 SOL`
-max spend per action, `0.05 SOL` daily cap, `helius,birdeye`, and `SOL`.
+challenge. Keep the default conservative policy for the first pass: ask every
+time, `0.01 SOL` max spend per action, `0.05 SOL` daily cap, `helius,birdeye`,
+and `SOL`. To demonstrate auto-approval, switch only this agent to `Allow under
+limits`; only low-risk zero-spend requests can auto-approve.
 
 If camera access is unavailable, use the manual fallback and paste:
 
@@ -89,7 +91,8 @@ npm --prefix apps/research-agent run submit:revoked
 "This agent is asking to use my wallet."
 "SkillGuard checks it against my policy before I sign anything."
 "This one is blocked because it exceeds my limit."
-"This one is safe, so I approve it from mobile."
+"Low-risk zero-spend requests can auto-approve, but spending still needs my wallet."
+"This one spends SOL, so I approve it from mobile."
 "The decision is now recorded as a Solana devnet receipt."
 "Now I revoke the agent, and future requests are blocked."
 ```
@@ -112,11 +115,14 @@ SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
   npm --prefix apps/research-agent run agent:loop
 ```
 
-The loop first submits a free wallet scan. Approve it from `Inbox` or by
-tapping the notification, then wait for the next request. The second request is
-a paid report under the default `0.01 SOL` max and can be approved. The third
-request is a subscription upgrade over the max and is blocked before wallet
-signing. Say: "This one is blocked because it exceeds my limit."
+The loop first submits a free wallet scan. With `Ask every time`, approve it
+from `Inbox` or by tapping the notification. With `Allow under limits`, the same
+low-risk zero-spend request is auto-approved and appears in `Activity` as
+receipt-only.
+The second request is a paid report under the default `0.01 SOL` max and still
+requires wallet approval. The third request is a subscription upgrade over the
+max and is blocked before wallet signing. Say: "This one is blocked because it
+exceeds my limit."
 
 ## Scene 3: Safe Request
 
@@ -158,4 +164,6 @@ user-controlled approval center. Wallet feeds are loaded through a short-lived
 signed wallet session, so arbitrary callers cannot read another wallet's inbox
 through the public API. Native Expo push notifications are implemented as a
 delivery channel for pending requests; the authenticated live inbox remains the
-source of truth.
+source of truth. Auto-approval is intentionally narrow: low-risk zero-spend
+manifest-only requests can pass under policy, while any spend, higher-risk
+request, or raw transaction still requires explicit wallet approval.
