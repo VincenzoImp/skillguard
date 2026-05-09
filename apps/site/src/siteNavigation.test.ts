@@ -3,19 +3,19 @@ import { describe, expect, it } from "vitest";
 import { firewallHero, siteRoutes } from "./siteNavigation";
 
 describe("siteNavigation", () => {
-  it("defines the Vercel deep-link routes promised by the submission plan", () => {
+  it("defines the public product routes for judges and developers", () => {
     expect(siteRoutes.map((route) => route.path)).toEqual([
       "/",
       "/demo",
-      "/architecture",
+      "/how-it-works",
       "/developers",
-      "/about",
     ]);
   });
 
-  it("keeps the public pitch focused on the wallet firewall framing", () => {
-    expect(firewallHero.title).toBe("The firewall between AI agents and your Solana wallet.");
-    expect(firewallHero.primaryCta).toBe("Watch 90s demo");
-    expect(firewallHero.secondaryCta).toBe("Integrate an agent");
+  it("keeps the public pitch focused on the agent wallet-control gap", () => {
+    expect(firewallHero.title).toBe("Let AI agents use your wallet without handing them your wallet.");
+    expect(firewallHero.subhead).toMatch(/transaction firewall/i);
+    expect(firewallHero.primaryCta).toBe("Open the 3-minute demo");
+    expect(firewallHero.secondaryCta).toBe("See how it works");
   });
 });

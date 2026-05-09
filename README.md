@@ -277,13 +277,18 @@ future limited delegation module is added.
 
 ## Public Site
 
-The project site lives in `apps/site` and is the visual source of truth for the mobile UI, README screenshots, pitch walkthroughs, and public homepage.
+The project site lives in `apps/site` and is the public product narrative for
+judges and developers. It frames SkillGuard as a wallet firewall for onchain AI
+agents: allow safe automation, ask for sensitive consent, block dangerous
+requests, and revoke agent access.
 
 ```bash
 npm --prefix apps/site run dev -- --host 0.0.0.0
 ```
 
-It includes the public pitch, problem statement, architecture, demo flow, developer SDK snippet, security boundary, roadmap, and brand system.
+It includes the public pitch, three-minute demo framing, how-it-works flow,
+developer SDK snippet, live API surface, and security boundary. The complete
+video handoff package lives in `demo-package/`.
 
 ## Hackathon Scope
 
@@ -308,6 +313,7 @@ apps/
   api/          SkillGuard API, policy engine, webhooks
   research-agent/   Sample agent that integrates with SkillGuard
   site/        Public project site and visual source of truth
+demo-package/  Video script, storyboard, app capture guide, and agent prompts
 programs/
   skillguard/   Anchor program for agent connections, policies, receipts
 packages/
@@ -332,6 +338,7 @@ assets/
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Demo](docs/DEMO.md)
+- [Video Handoff Package](demo-package/README.md)
 - [Submission Checklist](docs/SUBMISSION.md)
 - [Design System](docs/DESIGN_SYSTEM.md)
 - [Vercel Deployment](docs/VERCEL.md)

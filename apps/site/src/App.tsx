@@ -34,46 +34,50 @@ const repositoryUrl = "https://github.com/VincenzoImp/skillguard";
 const programId = "HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam";
 
 const proofPoints = [
-  ["Manifest", "Canonical JSON hash"],
-  ["Policy", "Spend, protocol, network, expiry"],
-  ["Mobile", "Approve, reject, revoke"],
-  ["Receipt", "Anchor account proof"],
+  ["Allow", "Safe zero-spend actions"],
+  ["Ask", "Spending needs consent"],
+  ["Block", "Overspend never reaches signing"],
+  ["Revoke", "Cut agent access anytime"],
 ];
 
 const problemCards = [
   {
     icon: WalletCards,
-    title: "Agents can request wallet actions",
-    text: "Solana Skills and Agent Kit make protocol actions easier to automate, but the user still needs a clear signing boundary.",
+    title: "Agents need wallet power to be useful",
+    text: "Research, trading, routing, payments, and reporting agents eventually need to act with real funds, not just suggest what a user should do.",
   },
   {
     icon: ShieldAlert,
-    title: "Wallet impact is hard to read",
-    text: "A transaction can hide spend, protocol touches, expiry, and risk context unless the request is normalized first.",
+    title: "Direct wallet access is too risky",
+    text: "Giving an agent a signer, a funded wallet, or broad wallet permissions can turn one bad prompt, bug, or exploit into lost funds.",
   },
   {
     icon: LockKeyhole,
-    title: "Revocation needs to be visible",
-    text: "Users need one place to see active agents, edit limits, and cut access before the next request is accepted.",
+    title: "Manual approval kills autonomy",
+    text: "If every small action needs a human signature, the agent stops being autonomous. Users need granular consent, not all-or-nothing control.",
   },
 ];
 
 const solutionSteps = [
   {
-    title: "Manifest",
-    text: "Agents submit an ActionManifest instead of handling user keys.",
+    title: "Pair",
+    text: "The wallet owner connects an agent by QR and imports its public identity.",
   },
   {
-    title: "Policy",
-    text: "SkillGuard evaluates spend, protocol allowlists, expiry, network, and revocation.",
+    title: "Configure",
+    text: "The user sets protocol allowlists, spend caps, daily limits, network, expiry, and approval mode.",
   },
   {
-    title: "Mobile approval",
-    text: "The user reviews wallet impact and signs only after approving.",
+    title: "Filter",
+    text: "Each agent request is normalized into a manifest and classified as allow, ask, or block.",
   },
   {
-    title: "Solana receipt",
-    text: "The program records compact proof: policy, manifest hash, decision, and optional execution hash.",
+    title: "Sign",
+    text: "Sensitive actions reach the wallet only after the user approves from the mobile control center.",
+  },
+  {
+    title: "Prove",
+    text: "The decision is stored as a Solana devnet receipt tied to the manifest hash.",
   },
 ];
 
@@ -85,20 +89,20 @@ const demoSteps: Array<{
 }> = [
   {
     label: "Free scan",
-    title: "Zero-spend scan can auto-approve",
-    text: "When the agent is set to Allow under limits, the low-risk read-only scan is approved without a wallet signature. In Ask every time mode, it still lands in Inbox.",
+    title: "Safe work can proceed automatically",
+    text: "A read-only wallet risk scan has no spend and no raw transaction. In Allow under limits mode, SkillGuard can approve it without interrupting the user.",
     tone: "safe",
   },
   {
     label: "Paid report",
-    title: "0.001 SOL still needs the wallet",
-    text: "Any spending request requires explicit wallet approval, then signs one devnet transaction: SOL transfer plus SkillGuard receipt.",
+    title: "Spending still needs consent",
+    text: "A paid research report asks for 0.001 SOL. SkillGuard routes it to the mobile app and the wallet signs only after explicit approval.",
     tone: "violet",
   },
   {
     label: "Blocked",
-    title: "Subscription upgrade is stopped",
-    text: "A 0.05 SOL upgrade exceeds the user's 0.01 SOL action limit and is blocked before wallet signing.",
+    title: "Dangerous requests never reach the wallet",
+    text: "A 0.05 SOL upgrade exceeds the user's 0.01 SOL per-action limit and is blocked before any signature prompt appears.",
     tone: "danger",
   },
 ];
@@ -191,6 +195,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<HomePage phoneDemoProps={phoneDemoProps} />} />
           <Route path="/demo" element={<DemoPage phoneDemoProps={phoneDemoProps} />} />
+          <Route path="/how-it-works" element={<ArchitecturePage />} />
           <Route path="/architecture" element={<ArchitecturePage />} />
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -225,9 +230,9 @@ function DemoPage({ phoneDemoProps }: { phoneDemoProps: PhoneDemoProps }) {
     <>
       <section className="grid items-center gap-8 rounded-2xl border border-border-subtle bg-bg-900/70 p-5 sm:p-7 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,0.72fr)]">
         <SectionHeader
-          kicker="90s demo"
-          title="Pair the agent, optionally receive push, approve SOL, then watch policy block the overspend."
-          text="This is the judge path: one wallet, one real research agent loop, one Android approval center, one optional push channel, one devnet proof trail."
+          kicker="3-minute demo"
+          title="One agent, one wallet, three outcomes: allow, ask, block."
+          text="The recording path shows the full wallet-firewall story: pair Research Agent, approve a paid report from mobile, block an overspend, then revoke the agent."
         />
         <PhoneDemo {...phoneDemoProps} />
       </section>
@@ -309,19 +314,18 @@ function HeroCopy() {
         <img src={iconMark} alt="SkillGuard logo" className="h-12 w-12 rounded-lg" />
         <span className="font-display text-2xl font-bold text-text-primary">SkillGuard</span>
       </div>
-      <StatusPill icon={ShieldCheck}>Wallet firewall for Solana agents</StatusPill>
+      <StatusPill icon={ShieldCheck}>Wallet firewall for onchain AI agents</StatusPill>
       <h1 className="mt-5 font-display text-4xl font-bold leading-[1.03] text-text-primary sm:text-5xl lg:text-6xl">
         {firewallHero.title}
       </h1>
       <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg">
-        {firewallHero.subhead} SkillGuard gives every Solana agent a permissioned path to wallet actions:
-        manifest, policy check, mobile approval, push-capable notification, revocation, and auditable receipt.
+        {firewallHero.subhead}
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <HeroButton to="/demo" icon={Smartphone}>
           {firewallHero.primaryCta}
         </HeroButton>
-        <HeroButton to="/developers" icon={Code2} muted>
+        <HeroButton to="/how-it-works" icon={ShieldCheck} muted>
           {firewallHero.secondaryCta}
         </HeroButton>
       </div>
@@ -342,21 +346,21 @@ function ProofStrip() {
     <section className="grid gap-3 md:grid-cols-3">
       <ProofCard
         icon={Radio}
-        label="Current state"
-        value="Hosted vertical slice implemented"
-        text="Protocol, API, SDK, autonomous research agent, mobile approval app, Vercel site, and Anchor tests are wired into the precommit gate."
+        label="Core gap"
+        value="Agents can act. Users need control."
+        text="SkillGuard lets agents request wallet actions without receiving private keys or unrestricted spending authority."
       />
       <ProofCard
         icon={FileCheck2}
-        label="Program ID"
-        value={programId}
-        text="Deployed on devnet with ProgramData 3sFMAGAUY2KwcE9PsM1peQisLkzXWfAjsqXHZR9aZ3By."
+        label="Demo proof"
+        value="Real Android + devnet receipt"
+        text={`Mobile Wallet Adapter signs decisions and the Anchor receipt program is deployed at ${programId}.`}
       />
       <ProofCard
         icon={LockKeyhole}
-        label="Boundary"
-        value="No custody, no private keys"
-        text="Agents submit manifests and wait for user decisions. Token-moving actions still require wallet signing."
+        label="Safety model"
+        value="Allow, ask, block, revoke"
+        text="Safe zero-spend actions can pass under policy. Spending and sensitive actions need consent. Violations are blocked."
       />
     </section>
   );
@@ -366,9 +370,9 @@ function ProblemSection() {
   return (
     <section id="problem" className="scroll-mt-28">
       <SectionHeader
-        kicker="Problem"
-        title="Two existing wallet options are bad: hand over a key, or sign every micro-action yourself."
-        text="Solana Skills and agent frameworks make action creation easier. SkillGuard adds the missing firewall between those agents and wallet signing."
+        kicker="Need"
+        title="Onchain agents are useful only when they can act. That is also when they become risky."
+        text="The hard part is not generating an action. It is giving an AI agent access to a wallet with real funds without turning that agent into a silent signer."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {problemCards.map((card) => (
@@ -384,10 +388,10 @@ function SolutionSection() {
     <section className="scroll-mt-28" id="solution">
       <SectionHeader
         kicker="Solution"
-        title="A simple loop: manifest -> policy -> mobile approval -> receipt."
-        text="SkillGuard is intentionally narrow. It protects mediated agent flows, explains requests clearly, and produces proof for the decisions users make."
+        title="SkillGuard is the permission layer between the agent and wallet signing."
+        text="Agents can keep operating, but every request passes through wallet-owned policy. The result is simple: allow safe automation, ask for sensitive approval, block dangerous actions."
       />
-      <div className="mt-8 grid gap-3 lg:grid-cols-4">
+      <div className="mt-8 grid gap-3 lg:grid-cols-5">
         {solutionSteps.map((step, index) => (
           <div key={step.title} className="relative rounded-xl border border-border-subtle bg-surface-900/68 p-5">
             <div className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-mint/12 text-sm font-bold text-brand-mint">
@@ -410,8 +414,8 @@ function DemoSection() {
     <section id="demo" className="scroll-mt-28">
       <SectionHeader
         kicker="Demo"
-        title="The judge sees real agent requests, wallet approval, auto-approval, and policy blocking."
-        text="The demo proves the product in under three minutes: pair the agent by QR, show a low-risk zero-spend auto-approval path, approve or reject a 0.001 SOL report, block a 0.05 SOL upgrade, then revoke the agent."
+        title="The demo is built around the exact struggle: useful autonomy without uncontrolled wallet access."
+        text="Research Agent is allowed to request work with the user's wallet, but SkillGuard decides whether the request is safe to auto-allow, sensitive enough to ask, or dangerous enough to block."
       />
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {demoSteps.map((step) => (
@@ -421,7 +425,7 @@ function DemoSection() {
       <div className="mt-5 rounded-xl border border-border-subtle bg-bg-900/80 p-5">
         <p className="text-sm font-semibold text-text-primary">Primary demo command</p>
         <pre className="mt-3 overflow-x-auto rounded-lg border border-border-subtle bg-bg-950 p-4 font-mono text-sm text-brand-mint">
-          <code>{"export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>\nnpm --prefix apps/research-agent run agent:loop"}</code>
+          <code>{"scripts/live-demo.sh <connected-mobile-wallet-address>"}</code>
         </pre>
       </div>
     </section>
@@ -432,9 +436,9 @@ function ArchitectureSection() {
   return (
     <section id="architecture" className="scroll-mt-28">
       <SectionHeader
-        kicker="Architecture"
-        title="A public repo with one vertical path from agent request to wallet proof."
-        text="Each component is deliberately small: agent manifest, hosted policy API, push-capable delivery, Android approval, Mobile Wallet Adapter signing, and devnet receipt."
+        kicker="How it works"
+        title="SkillGuard filters signing access the way a firewall filters network access."
+        text="The agent never receives the wallet key. It submits a signed request; SkillGuard checks the wallet-owned policy; mobile collects consent when needed; Solana records the decision."
       />
       <div className="mt-8 rounded-2xl border border-border-subtle bg-bg-900/76 p-5">
         <div className="grid gap-3 md:grid-cols-7">
@@ -478,8 +482,8 @@ function DeveloperSection() {
     <section id="developers" className="scroll-mt-28">
       <SectionHeader
         kicker="Developers"
-        title="Agents integrate by submitting one manifest and waiting for a decision."
-        text="SkillGuard is designed to sit after Solana Skills, Agent Kit, wallet MCPs, or any custom agent worker. The agent never receives the user's private key."
+        title="Any agent can integrate by requesting permission instead of owning the signer."
+        text="SkillGuard fits after Solana Skills, Agent Kit, wallet MCPs, or custom agent workers. The integration surface is deliberately small: submit a manifest, wait for allow/ask/block, receive a decision and receipt."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
@@ -573,8 +577,8 @@ function LiveApiSection() {
     <section id="api" className="scroll-mt-28">
       <SectionHeader
         kicker="Live API"
-        title="The hosted project is a product site and an agent API."
-        text="Agents, the Android app, and local demo scripts can all target the same Vercel domain. The health response exposes whether the hosted API is using durable KV/Upstash storage or temporary memory."
+        title="The public site is also the hosted permission API."
+        text="The Android app, Research Agent, and demo scripts all target the same Vercel API. This is the connective layer that turns agent requests into wallet-owned decisions."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">

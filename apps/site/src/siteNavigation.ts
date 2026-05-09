@@ -1,19 +1,19 @@
 export type SiteRoute = {
   label: string;
-  path: "/" | "/demo" | "/architecture" | "/developers" | "/about";
+  path: "/" | "/demo" | "/how-it-works" | "/developers";
 };
 
 export const siteRoutes: SiteRoute[] = [
   { label: "Home", path: "/" },
   { label: "Demo", path: "/demo" },
-  { label: "Architecture", path: "/architecture" },
+  { label: "How it works", path: "/how-it-works" },
   { label: "Developers", path: "/developers" },
-  { label: "About", path: "/about" },
 ];
 
 export const firewallHero = {
-  title: "The firewall between AI agents and your Solana wallet.",
-  subhead: "Agents ask. Policies filter. You approve. Solana records the proof.",
-  primaryCta: "Watch 90s demo",
-  secondaryCta: "Integrate an agent",
+  title: "Let AI agents use your wallet without handing them your wallet.",
+  subhead:
+    "SkillGuard is a transaction firewall for onchain AI agents: pair agents, set wallet permissions, auto-allow safe actions, require consent for sensitive ones, block dangerous requests, and revoke access anytime.",
+  primaryCta: "Open the 3-minute demo",
+  secondaryCta: "See how it works",
 };

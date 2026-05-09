@@ -2,6 +2,10 @@
 
 Target length: under 3 minutes.
 
+The complete video handoff for an external AI presentation/video agent lives in
+`demo-package/`. Use that folder for the final animated HTML presentation,
+voiceover script, shot list, app recording guide, and export checklist.
+
 ## Full Local Script
 
 ```bash
