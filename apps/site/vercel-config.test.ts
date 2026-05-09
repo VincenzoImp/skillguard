@@ -25,6 +25,7 @@ describe("vercel config", () => {
       "../../api/connections/[connectionId].ts",
       "../../api/connections/[connectionId]/policy.ts",
       "../../api/connections/[connectionId]/revoke.ts",
+      "../../api/smoke-runs/[runId].ts",
     ];
 
     for (const route of requiredRoutes) {
