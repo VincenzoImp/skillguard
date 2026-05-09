@@ -101,7 +101,7 @@ npm --prefix apps/demo-agent run submit:revoked
 For a hosted API, build/run the mobile app with:
 
 ```bash
-EXPO_PUBLIC_SKILLGUARD_API_URL=https://<your-skillguard-api-host> npm --prefix apps/mobile run android
+EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-xi.vercel.app/api npm --prefix apps/mobile run android
 ```
 
 Build a local debug-signed Android APK:
@@ -283,6 +283,7 @@ Submission blockers still to close:
 Verified submission proofs:
 
 - Public project site: `https://vincenzoimp.github.io/skillguard/`
+- Vercel production site/API: `https://skillguard-xi.vercel.app/`, `https://skillguard-xi.vercel.app/api`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Mobile Wallet Adapter `record_decision` signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
 - Standalone local Android APK: `build/mobile/skillguard-standalone-debugsigned.apk`
@@ -290,3 +291,5 @@ Verified submission proofs:
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Final owner-controlled upload keystore generated outside git and used for the current release APK.
 - GitHub Pages deployment workflow: `.github/workflows/deploy-site.yml`
+- Vercel deployment workflow: `.github/workflows/deploy-vercel.yml`
+- Hosted API durable storage expects Vercel KV or Upstash Redis env vars documented in `docs/VERCEL.md`.

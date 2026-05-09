@@ -48,6 +48,14 @@ export class SkillGuardStore {
     }
   }
 
+  toSnapshot(): StoreSnapshot {
+    return {
+      actions: [...this.actions.values()],
+      agents: [...this.agents.values()],
+      connections: [...this.connections.values()],
+    };
+  }
+
   listAgents(): AgentRecord[] {
     return [...this.agents.values()];
   }

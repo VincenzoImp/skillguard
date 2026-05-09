@@ -5,9 +5,10 @@ import {
 } from "@skillguard/protocol";
 
 import { SkillGuardStore } from "./store.js";
+import type { StoreSnapshot } from "./store.js";
 
-export function createSeededStore(): SkillGuardStore {
-  return new SkillGuardStore({
+export function createSeededSnapshot(): StoreSnapshot {
+  return {
     agents: [
       {
         agentId: "agent-research",
@@ -39,5 +40,9 @@ export function createSeededStore(): SkillGuardStore {
         decisionStatus: null,
       },
     ],
-  });
+  };
+}
+
+export function createSeededStore(): SkillGuardStore {
+  return new SkillGuardStore(createSeededSnapshot());
 }

@@ -1,17 +1,454 @@
-import { handle } from "@hono/node-server/vercel";
-import { Hono } from "hono";
+import type { ActionManifest, AgentPolicy, DecisionStatus } from "@skillguard/protocol";
+import { evaluatePolicy } from "@skillguard/protocol";
 
-import { createApp } from "../apps/api/src/routes.js";
 import { createSeededStore } from "../apps/api/src/seed.js";
-import type { SkillGuardStore } from "../apps/api/src/store.js";
+import { SkillGuardStore } from "../apps/api/src/store.js";
+import type { StoreSnapshot } from "../apps/api/src/store.js";
 
 declare global {
   // eslint-disable-next-line no-var
   var skillguardStore: SkillGuardStore | undefined;
 }
 
-const store = (globalThis.skillguardStore ??= createSeededStore());
-const api = createApp(store);
-const app = new Hono().route("/api", api);
+type VercelRequest = AsyncIterable<string | Uint8Array> & {
+  body?: unknown;
+  method?: string;
+  url?: string;
+};
 
-export default handle(app);
+interface VercelResponse {
+  end(body: string): void;
+  setHeader(name: string, value: string): void;
+  statusCode: number;
+}
+
+type JsonRecord = Record<string, unknown>;
+
+const STORE_KEY = "skillguard:store:v1";
+
+let store = globalThis.skillguardStore ?? createSeededStore();
+
+function envValue(name: string): string | undefined {
+  const runtime = globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  };
+  const value = runtime.process?.env?.[name];
+  return value && value.trim().length > 0 ? value : undefined;
+}
+
+function redisConfig(): { token: string; url: string } | null {
+  const url = envValue("UPSTASH_REDIS_REST_URL") ?? envValue("KV_REST_API_URL");
+  const token = envValue("UPSTASH_REDIS_REST_TOKEN") ?? envValue("KV_REST_API_TOKEN");
+  return url && token ? { token, url: url.replace(/\/$/, "") } : null;
+}
+
+function storageMode(): "memory" | "upstash" {
+  return redisConfig() ? "upstash" : "memory";
+}
+
+async function redisCommand<T>(command: unknown[]): Promise<T> {
+  const config = redisConfig();
+  if (!config) {
+    throw new Error("redis_not_configured");
+  }
+
+  const response = await fetch(config.url, {
+    body: JSON.stringify(command),
+    headers: {
+      authorization: `Bearer ${config.token}`,
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+  const payload = (await response.json()) as { error?: string; result?: T };
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error ?? `redis_http_${response.status}`);
+  }
+  return payload.result as T;
+}
+
+async function loadStore(): Promise<void> {
+  if (!redisConfig()) {
+    store = globalThis.skillguardStore ?? createSeededStore();
+    globalThis.skillguardStore = store;
+    return;
+  }
+
+  const raw = await redisCommand<string | null>(["GET", STORE_KEY]);
+  if (raw) {
+    store = new SkillGuardStore(JSON.parse(raw) as StoreSnapshot);
+    return;
+  }
+
+  store = createSeededStore();
+  await persistStore();
+}
+
+async function persistStore(): Promise<void> {
+  if (!redisConfig()) {
+    globalThis.skillguardStore = store;
+    return;
+  }
+
+  await redisCommand<string>(["SET", STORE_KEY, JSON.stringify(store.toSnapshot())]);
+}
+
+function hasText(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isDecisionStatus(value: unknown): value is DecisionStatus {
+  return (
+    value === "approved" || value === "rejected" || value === "blocked" || value === "expired"
+  );
+}
+
+function decisionStatusForPolicy(result: ReturnType<typeof evaluatePolicy>): DecisionStatus | null {
+  if (result.status === "fail") return "blocked";
+  if (result.status === "pass") return "approved";
+  return null;
+}
+
+function sendJson(res: VercelResponse, status: number, payload: unknown): void {
+  res.statusCode = status;
+  res.setHeader("content-type", "application/json; charset=utf-8");
+  res.end(JSON.stringify(payload));
+}
+
+function notFound(res: VercelResponse, message = "not_found"): void {
+  sendJson(res, 404, { error: message });
+}
+
+function normalizePath(req: VercelRequest): string[] {
+  const url = new URL(req.url ?? "/", "https://skillguard.local");
+  const withoutApi = url.pathname.replace(/^\/api\/?/, "");
+  if (!withoutApi) return [];
+  return withoutApi.split("/").filter(Boolean).map((segment) => decodeURIComponent(segment));
+}
+
+function queryValue(req: VercelRequest, key: string): string | undefined {
+  const url = new URL(req.url ?? "/", "https://skillguard.local");
+  return url.searchParams.get(key) ?? undefined;
+}
+
+async function readJson(req: VercelRequest): Promise<JsonRecord> {
+  if (req.body !== undefined) {
+    if (typeof req.body === "string") {
+      return req.body.trim() ? (JSON.parse(req.body) as JsonRecord) : {};
+    }
+    return req.body as JsonRecord;
+  }
+
+  const decoder = new TextDecoder();
+  let raw = "";
+  for await (const chunk of req) {
+    raw += typeof chunk === "string" ? chunk : decoder.decode(chunk, { stream: true });
+  }
+  raw += decoder.decode();
+
+  const trimmed = raw.trim();
+  return trimmed ? (JSON.parse(trimmed) as JsonRecord) : {};
+}
+
+async function jsonBody(req: VercelRequest, res: VercelResponse): Promise<JsonRecord | null> {
+  try {
+    return await readJson(req);
+  } catch {
+    sendJson(res, 400, { error: "invalid_json" });
+    return null;
+  }
+}
+
+function reevaluateOpenActionsForConnection(connectionId: string): void {
+  const connection = store.getConnection(connectionId);
+  if (!connection) {
+    return;
+  }
+
+  for (const action of store.listActionsForConnection(connectionId)) {
+    if (action.decisionStatus !== null) {
+      continue;
+    }
+
+    const result = evaluatePolicy(action.manifest, connection.policy);
+    store.storeEvaluation(action.actionId, result);
+    const status = decisionStatusForPolicy(result);
+    if (status !== null) {
+      store.storeDecision(action.actionId, status);
+    }
+  }
+}
+
+async function handleAgents(req: VercelRequest, res: VercelResponse, segments: string[]): Promise<void> {
+  if (req.method === "GET" && segments.length === 1) {
+    sendJson(res, 200, { agents: store.listAgents() });
+    return;
+  }
+
+  if (req.method === "POST" && segments.length === 1) {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    if (!hasText(body.agentId) || !hasText(body.description) || !hasText(body.name)) {
+      sendJson(res, 400, { error: "invalid_agent" });
+      return;
+    }
+
+    const agent = store.createAgent({
+      agentId: body.agentId,
+      description: body.description,
+      name: body.name,
+    });
+    sendJson(res, 201, { agent });
+    return;
+  }
+
+  if (req.method === "GET" && segments.length === 2) {
+    const agent = store.getAgent(segments[1]);
+    if (!agent) {
+      notFound(res, "agent_not_found");
+      return;
+    }
+
+    sendJson(res, 200, { agent });
+    return;
+  }
+
+  notFound(res);
+}
+
+async function handleConnections(
+  req: VercelRequest,
+  res: VercelResponse,
+  segments: string[],
+): Promise<void> {
+  if (req.method === "GET" && segments.length === 1) {
+    sendJson(res, 200, { connections: store.listConnections(queryValue(req, "wallet")) });
+    return;
+  }
+
+  if (req.method === "POST" && segments.length === 1) {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    const agentId = hasText(body.agentId) ? body.agentId : "";
+    if (!store.getAgent(agentId)) {
+      notFound(res, "agent_not_found");
+      return;
+    }
+
+    const connection = store.createConnection({
+      agentId,
+      connectionId: String(body.connectionId),
+      policy: body.policy as AgentPolicy,
+      userWallet: String(body.userWallet),
+    });
+    sendJson(res, 201, { connection });
+    return;
+  }
+
+  if (req.method === "PATCH" && segments.length === 3 && segments[2] === "policy") {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    const connection = store.updatePolicy(segments[1], body as Partial<AgentPolicy>);
+    if (!connection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    reevaluateOpenActionsForConnection(connection.connectionId);
+    sendJson(res, 200, { connection });
+    return;
+  }
+
+  if (req.method === "POST" && segments.length === 3 && segments[2] === "revoke") {
+    const connection = store.revokeConnection(segments[1]);
+    if (!connection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    reevaluateOpenActionsForConnection(connection.connectionId);
+    sendJson(res, 200, { connection });
+    return;
+  }
+
+  if (req.method === "DELETE" && segments.length === 2) {
+    const connection = store.revokeConnection(segments[1]);
+    if (!connection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    reevaluateOpenActionsForConnection(connection.connectionId);
+    sendJson(res, 200, { connection });
+    return;
+  }
+
+  notFound(res);
+}
+
+async function handleActions(req: VercelRequest, res: VercelResponse, segments: string[]): Promise<void> {
+  if (req.method === "GET" && segments.length === 1) {
+    const wallet = queryValue(req, "wallet");
+    if (!wallet) {
+      sendJson(res, 400, { error: "wallet_query_required" });
+      return;
+    }
+
+    sendJson(res, 200, { actions: store.listActionsForWallet(wallet) });
+    return;
+  }
+
+  if (req.method === "GET" && segments.length === 2 && segments[1] === "pending") {
+    const wallet = queryValue(req, "wallet");
+    if (!wallet) {
+      sendJson(res, 400, { error: "wallet_query_required" });
+      return;
+    }
+
+    sendJson(res, 200, { actions: store.listPendingActions(wallet) });
+    return;
+  }
+
+  if (req.method === "POST" && segments.length === 1) {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    const connectionId = String(body.connectionId);
+    const connection = store.getConnection(connectionId);
+    if (!connection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    const manifest = body.manifest as ActionManifest;
+    const policyResult = evaluatePolicy(manifest, connection.policy);
+    const action = store.createAction({
+      actionId: manifest.actionId,
+      connectionId,
+      decisionStatus: decisionStatusForPolicy(policyResult),
+      manifest,
+      policyResult,
+    });
+
+    sendJson(res, 201, { action });
+    return;
+  }
+
+  if (req.method === "GET" && segments.length === 2) {
+    const action = store.getAction(segments[1]);
+    if (!action) {
+      notFound(res, "action_not_found");
+      return;
+    }
+
+    sendJson(res, 200, { action });
+    return;
+  }
+
+  if (req.method === "POST" && segments.length === 3 && segments[2] === "evaluate") {
+    const action = store.getAction(segments[1]);
+    if (!action) {
+      notFound(res, "action_not_found");
+      return;
+    }
+
+    const connection = store.getConnectionForAction(action);
+    if (!connection) {
+      notFound(res, "connection_not_found");
+      return;
+    }
+
+    const result = evaluatePolicy(action.manifest, connection.policy);
+    store.storeEvaluation(action.actionId, result);
+    sendJson(res, 200, { result });
+    return;
+  }
+
+  if (req.method === "POST" && segments.length === 3 && segments[2] === "decision") {
+    const body = await jsonBody(req, res);
+    if (!body) return;
+
+    if (!isDecisionStatus(body.status)) {
+      sendJson(res, 400, { error: "invalid_decision_status" });
+      return;
+    }
+
+    if (body.status === "approved" && (!hasText(body.signature) || !hasText(body.receiptAddress))) {
+      sendJson(res, 400, { error: "approved_decision_requires_receipt" });
+      return;
+    }
+
+    const currentAction = store.getAction(segments[1]);
+    if (!currentAction) {
+      notFound(res, "action_not_found");
+      return;
+    }
+    if (currentAction.decisionStatus === "blocked" && body.status === "approved") {
+      sendJson(res, 409, { error: "blocked_action_cannot_be_approved" });
+      return;
+    }
+
+    const action = store.storeDecision(segments[1], body.status, {
+      receiptAddress: hasText(body.receiptAddress) ? body.receiptAddress : null,
+      signature: hasText(body.signature) ? body.signature : null,
+    });
+    if (!action) {
+      notFound(res, "action_not_found");
+      return;
+    }
+
+    sendJson(res, 200, { action });
+    return;
+  }
+
+  notFound(res);
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const shouldPersist = req.method !== "GET";
+  let storeLoaded = false;
+
+  try {
+    await loadStore();
+    storeLoaded = true;
+    const segments = normalizePath(req);
+
+    if (req.method === "GET" && segments.length === 1 && segments[0] === "health") {
+      sendJson(res, 200, {
+        ok: true,
+        service: "skillguard-api",
+        storage: storageMode(),
+      });
+      return;
+    }
+
+    if (segments[0] === "agents") {
+      await handleAgents(req, res, segments);
+      return;
+    }
+
+    if (segments[0] === "connections") {
+      await handleConnections(req, res, segments);
+      return;
+    }
+
+    if (segments[0] === "actions") {
+      await handleActions(req, res, segments);
+      return;
+    }
+
+    notFound(res);
+  } catch (error) {
+    console.error(error);
+    sendJson(res, 500, { error: "internal_error" });
+  } finally {
+    if (shouldPersist && storeLoaded) {
+      await persistStore().catch((error: unknown) => {
+        console.error(error);
+      });
+    }
+  }
+}
