@@ -5,10 +5,12 @@ tests. It is a real client of the SkillGuard API, not preloaded mobile state.
 
 Capabilities:
 
-- request wallet-risk report approval
-- request unsafe overspend action for block demo
-- request LI.FI route preview if enabled
-- receive approval/rejection callbacks
+- run an autonomous wallet-risk loop against a real connected wallet
+- submit a free wallet scan, wait for the user's decision, then submit a paid
+  report under the default SOL policy
+- submit an unsafe subscription upgrade that is blocked by policy before wallet
+  signing
+- poll SkillGuard decisions without ever receiving the user's private key
 
 ## Commands
 
@@ -29,10 +31,10 @@ Agent ID: agent-research
 Display name: Research Agent
 Allowed purpose: Solana research agent that requests wallet-safe actions.
 Mode: Ask every time
-Max spend per action: 1
-Daily cap: 5
+Max spend per action: 0.01 SOL
+Daily cap: 0.05 SOL
 Allowed protocols: helius,birdeye
-Allowed mints: SOL,USDC
+Allowed mints: SOL
 Agent public key: 9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
 ```
 
@@ -40,6 +42,9 @@ Agent public key: 9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
 export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
+npm run agent:loop
+
+# Lower-level smoke commands remain available:
 npm run submit:unsafe
 npm run submit:safe
 npm run submit:revoked

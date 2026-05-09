@@ -30,7 +30,7 @@ export const roadmapItems: RoadmapItem[] = [
     step: "4",
     title: "Public project site",
     status: "done",
-    note: "GitHub Pages is live at vincenzoimp.github.io/skillguard with project-path assets.",
+    note: "Vercel is the canonical public site and API surface at skillguard-sol.vercel.app.",
   },
   {
     step: "5",

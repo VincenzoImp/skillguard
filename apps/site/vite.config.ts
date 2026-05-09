@@ -7,7 +7,7 @@ type BuildEnv = {
 };
 
 export function getBasePath(env: BuildEnv = runtimeEnv()) {
-  return env.VITE_BASE_PATH ?? "/skillguard/";
+  return env.VITE_BASE_PATH ?? "/";
 }
 
 function runtimeEnv(): BuildEnv {

@@ -4,7 +4,7 @@ Status: current public product definition.
 
 ## Thesis
 
-SkillGuard is the permission layer for Solana agents.
+SkillGuard is the firewall between AI agents and a Solana wallet.
 
 Users connect AI agents to SkillGuard, set wallet permissions, receive mobile notifications when agents want to act, approve or reject actions, and keep verifiable on-chain receipts of every decision.
 
@@ -377,7 +377,7 @@ Recommendation:
 | Connected agents list | High | Required. |
 | Permission editor | High | Required in simple form. |
 | In-app pending requests | High | Required. |
-| Push notifications | Medium | Nice-to-have; polling/feed is enough for MVP. |
+| Push notifications | Medium | Implemented as Expo push delivery; authenticated inbox refresh remains source of truth. |
 | Agent API | High | Required. |
 | TypeScript SDK wrapper | High | Useful for demo and integration story. |
 | Solana policy/receipt program | High | Required. |

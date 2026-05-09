@@ -50,6 +50,16 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   },
   {
     method: "POST",
+    path: "/api/wallets/:wallet/push-token",
+    description: "Register a wallet-scoped Expo push token with wallet-session auth.",
+  },
+  {
+    method: "DELETE",
+    path: "/api/wallets/:wallet/push-token",
+    description: "Remove a device push token for logout or device migration.",
+  },
+  {
+    method: "POST",
     path: "/api/actions",
     description: "Submit a signed ActionManifest for policy evaluation.",
   },
@@ -76,10 +86,10 @@ export const liveApiCurlExamples = [
     command: `curl ${liveApiBaseUrl}/health`,
   },
   {
-    title: "Submit safe demo action",
+    title: "Run autonomous research-agent loop",
     command: `export SKILLGUARD_API_URL=${liveApiBaseUrl}
 export SKILLGUARD_USER_WALLET=<connected-wallet>
-npm --prefix apps/research-agent run submit:safe`,
+npm --prefix apps/research-agent run agent:loop`,
   },
   {
     title: "Run Android against hosted API",

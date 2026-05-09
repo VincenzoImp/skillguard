@@ -11,8 +11,8 @@ This file separates what is locally verified from what still requires an externa
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Final Android upload keystore: generated outside git under owner-controlled local secret storage.
 - Public project site source: `apps/site`
-- Public project site URL: `https://vincenzoimp.github.io/skillguard/`
-- GitHub Pages workflow: `.github/workflows/deploy-site.yml`
+- Public project site/API URL: `https://skillguard-sol.vercel.app/`
+- Vercel deployment: connected Git integration from `main`
 - Demo script: `docs/DEMO.md`
 
 ## Final Local Gate
@@ -35,7 +35,8 @@ These require an account, credential, or human review:
 
 1. Record the under-3-minute demo using `docs/DEMO.md`.
 2. Add the public site URL to the hackathon submission.
-3. Submit to the Solana Mobile dApp Store if the publisher portal is available in time.
+3. Add the unlisted demo video URL to this file, the README, and the public site after recording.
+4. Solana Mobile dApp Store submission is explicitly out of scope for the hackathon package because publisher review/KYC timing is not controllable before deadline.
 
 Completed owner-held secret step:
 
@@ -43,8 +44,10 @@ Completed owner-held secret step:
 
 ## Video Arc
 
-1. Open with the site hero: SkillGuard is a permission layer for Solana agents.
-2. Show unsafe request: policy blocks spend before wallet prompt.
-3. Show safe request: mobile approval records a devnet receipt.
-4. Show revocation: future agent requests fail policy.
-5. End with SDK snippet: agents integrate without receiving user private keys.
+1. Open with the site hero: SkillGuard is the firewall between AI agents and a Solana wallet.
+2. Pair `agent-research`, sign the wallet-owner challenge, and show the default `0.01 SOL` policy.
+3. Run `npm --prefix apps/research-agent run agent:loop`; show push/inbox delivery for the free scan.
+4. Approve the `0.001 SOL` paid report and show one devnet transaction with SOL transfer plus SkillGuard receipt.
+5. Show the `0.05 SOL` subscription upgrade blocked before wallet signing.
+6. Revoke the agent and show future requests denied.
+7. End with the SDK/API route: agents integrate without receiving user private keys.

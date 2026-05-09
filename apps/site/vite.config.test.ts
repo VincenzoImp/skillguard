@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import config, { getBasePath } from "./vite.config";
 
 describe("vite config", () => {
-  it("builds asset URLs under the GitHub Pages project path", () => {
-    expect(config.base).toBe("/skillguard/");
+  it("builds asset URLs from the Vercel domain root by default", () => {
+    expect(config.base).toBe("/");
   });
 
-  it("allows Vercel builds to serve assets from the domain root", () => {
-    expect(getBasePath({ VITE_BASE_PATH: "/" })).toBe("/");
+  it("still allows an explicit base path override for previews", () => {
+    expect(getBasePath({ VITE_BASE_PATH: "/preview/" })).toBe("/preview/");
   });
 });

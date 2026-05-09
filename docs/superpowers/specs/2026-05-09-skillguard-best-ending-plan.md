@@ -1,7 +1,7 @@
 # SkillGuard Best Ending Plan
 
 Date: 2026-05-09
-Status: Draft, ready for user review.
+Status: Executed through implementable repo changes; video recording and hackathon form submission remain human-owned external steps.
 Supersedes: `2026-05-09-research-agent-demo-loop-design.md` (its loop section is folded into Phase 1 of this plan).
 
 ## Goal
@@ -150,17 +150,17 @@ Rewrite `docs/DEMO.md` to match the video script: exact commands, exact taps, ex
 
 Goal: when a judge clicks the site link, they see a product, not a side project.
 
-### 2.1 Remove GitHub Pages, Vercel-only
+### 2.1 Remove legacy static-site workflow, Vercel-only
 
-The repo currently deploys to both GitHub Pages and Vercel. The Vercel domain is the production canonical surface and hosts the API; GH Pages is redundant and confuses the proof set.
+The repo previously had a static-site-only deploy path in addition to Vercel. The Vercel domain is the production canonical surface and hosts the API; the duplicate deploy path is redundant and confuses the proof set.
 
 Concrete changes:
 
-- Delete `.github/workflows/deploy-site.yml`.
+- Delete the obsolete static-site workflow under `.github/workflows/`.
 - `apps/site/vite.config.ts`: drop the `/skillguard/` base path, default to `/`.
 - `apps/site/vite.config.test.ts` and `vercel-config.test.ts`: update base-path expectations.
-- `vercel.json`: drop the `VITE_BASE_PATH=/` override (no longer needed) and add SPA rewrite for client-side routing: `{ "rewrites": [{ "source": "/((?!api/).*)", "destination": "/" }] }`.
-- Strip references to `https://vincenzoimp.github.io/skillguard/` from `README.md`, `docs/SUBMISSION.md`, `docs/ROADMAP.md`, `docs/PRODUCT.md`, `docs/VERCEL.md`, `scripts/precommit-check.sh`, `scripts/submission-check.sh`, `apps/site/src/submissionStatus.ts`.
+- `vercel.json`: drop the root-base environment override (no longer needed) and add SPA rewrite for client-side routing: `{ "rewrites": [{ "source": "/((?!api/).*)", "destination": "/" }] }`.
+- Strip references to the old static-site URL from `README.md`, `docs/SUBMISSION.md`, `docs/ROADMAP.md`, `docs/PRODUCT.md`, `docs/VERCEL.md`, `scripts/precommit-check.sh`, `scripts/submission-check.sh`, `apps/site/src/submissionStatus.ts`.
 
 ### 2.2 Multi-page site on Vercel
 
@@ -258,7 +258,7 @@ The whole plan is done when:
 - They click GitHub: README opens with Pitch + Submission proofs at the top.
 - The hackathon submission form has all proof URLs filled in.
 - Colosseum application is submitted.
-- No GitHub Pages link anywhere in the repo or docs.
+- No legacy static-site link anywhere in the repo or active docs.
 - The operator can install the APK on a fresh device, pair the agent, run the loop, receive pushes, approve/reject/revoke, all without consulting docs beyond `docs/DEMO.md`.
 
 ## Out of scope (deferred to future iterations)

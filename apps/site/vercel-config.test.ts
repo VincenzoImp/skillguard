@@ -4,15 +4,30 @@ import { describe, expect, it } from "vitest";
 
 type VercelConfig = {
   buildCommand?: string;
+  rewrites?: Array<{
+    destination: string;
+    source: string;
+  }>;
 };
 
 describe("vercel config", () => {
-  it("sets the site base path explicitly during the Vercel build", () => {
+  it("builds the site without a project-path base override", () => {
     const config = JSON.parse(
       readFileSync(resolve(__dirname, "../../vercel.json"), "utf8"),
     ) as VercelConfig;
 
-    expect(config.buildCommand).toContain("VITE_BASE_PATH=/");
+    expect(config.buildCommand).toBe("npm run vercel:build");
+  });
+
+  it("rewrites non-API routes to the site shell", () => {
+    const config = JSON.parse(
+      readFileSync(resolve(__dirname, "../../vercel.json"), "utf8"),
+    ) as VercelConfig;
+
+    expect(config.rewrites).toContainEqual({
+      destination: "/",
+      source: "/((?!api/).*)",
+    });
   });
 
   it("defines explicit production API function entries for nested routes", () => {

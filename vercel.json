@@ -1,4 +1,10 @@
 {
-  "buildCommand": "VITE_BASE_PATH=/ npm run vercel:build",
-  "outputDirectory": "apps/site/dist"
+  "buildCommand": "npm run vercel:build",
+  "outputDirectory": "apps/site/dist",
+  "rewrites": [
+    {
+      "destination": "/",
+      "source": "/((?!api/).*)"
+    }
+  ]
 }

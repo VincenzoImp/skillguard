@@ -43,7 +43,7 @@ SkillGuard should feel like a wallet-grade control surface for AI agents:
 Core product line:
 
 ```text
-The permission layer for Solana agents.
+The firewall between AI agents and your Solana wallet.
 ```
 
 ## Asset Analysis

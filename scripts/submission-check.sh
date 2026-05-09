@@ -10,7 +10,6 @@ cd "$ROOT_DIR"
 PROGRAM_ID="HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam"
 MWA_SIGNATURE="5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF"
 REPOSITORY_URL="https://github.com/VincenzoImp/skillguard.git"
-PUBLIC_SITE_URL="https://vincenzoimp.github.io/skillguard/"
 VERCEL_SITE_URL="https://skillguard-sol.vercel.app/"
 
 check_file() {
@@ -78,20 +77,14 @@ check_apk_endpoint() {
 echo "==> Submission source checks"
 check_text "$PROGRAM_ID" README.md
 check_text "$MWA_SIGNATURE" README.md
-check_text "$PUBLIC_SITE_URL" README.md
 check_text "$VERCEL_SITE_URL" README.md
-check_text "$PUBLIC_SITE_URL" docs/SUBMISSION.md
-check_text "$PUBLIC_SITE_URL" docs/ROADMAP.md
 check_text "SKILLGUARD_ANDROID_BUILD_PROFILE=release" README.md
 check_text "build/mobile/skillguard.apk" README.md
-check_text ".github/workflows/deploy-site.yml" README.md
 check_text "KV_REST_API_URL" docs/VERCEL.md
 check_text "connected Git integration" README.md
 check_text "Final owner-controlled upload keystore generated outside git" README.md
 check_text "Target length: under 3 minutes." docs/DEMO.md
 check_text "password manager backup of the final upload keystore and signing env" docs/ROADMAP.md
-check_file ".github/workflows/deploy-site.yml" \
-  "Restore the GitHub Pages deployment workflow."
 
 echo
 echo "==> Submission artifact checks"

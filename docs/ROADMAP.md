@@ -294,8 +294,7 @@ Required assets:
 - [x] architecture diagram in README
 - [x] source links and sponsor integration notes in docs
 - [x] local submission checklist and checker
-- [x] GitHub Pages deployment workflow for project site
-- [x] public hosted site: `https://vincenzoimp.github.io/skillguard/`
+- [x] public Vercel site/API: `https://skillguard-sol.vercel.app/`
 
 Current package status:
 
@@ -314,8 +313,9 @@ Ready locally:
   release signing pipeline writes the same canonical APK path when signing env is loaded
   final owner-controlled upload keystore generated outside git
   password manager backup of the final upload keystore and signing env completed by owner
-  GitHub Pages deployment workflow: .github/workflows/deploy-site.yml
-  public hosted site: https://vincenzoimp.github.io/skillguard/
+  public hosted site/API: https://skillguard-sol.vercel.app/
+  wallet-scoped Expo push-token registration and pending-action fanout
+  autonomous research-agent loop: npm --prefix apps/research-agent run agent:loop
   local demo orchestration
   hosted API smoke command: node scripts/hosted-smoke.mjs
 

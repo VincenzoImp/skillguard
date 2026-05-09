@@ -19,23 +19,17 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
+import { BrowserRouter, Link, NavLink, Route, Routes } from "react-router-dom";
 import iconMark from "../../../assets/brand/icon.png";
 import wordmark from "../../../assets/brand/wordmark.png";
 import { liveApiBaseUrl, liveApiCurlExamples, liveApiEndpoints, liveSiteUrl } from "./liveApi";
+import { firewallHero, siteRoutes } from "./siteNavigation";
 import { roadmapItems, type RoadmapStatus } from "./submissionStatus";
 
 type Decision = "pending" | "approved" | "rejected" | "revoked";
 
 const repositoryUrl = "https://github.com/VincenzoImp/skillguard";
 const programId = "HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam";
-
-const navItems = [
-  ["Problem", "#problem"],
-  ["Architecture", "#architecture"],
-  ["Demo", "#demo"],
-  ["Developers", "#developers"],
-  ["API", "#api"],
-];
 
 const proofPoints = [
   ["Manifest", "Canonical JSON hash"],
@@ -88,22 +82,22 @@ const demoSteps: Array<{
   tone: "danger" | "safe" | "violet";
 }> = [
   {
-    label: "Unsafe",
-    title: "Overspend request is blocked",
-    text: "The research agent proposes a request above the user's USDC limit. SkillGuard returns `spend_exceeds_max` before signing.",
-    tone: "danger",
-  },
-  {
-    label: "Safe",
-    title: "Read-only request reaches approval",
-    text: "The agent requests a wallet-risk snapshot. The mobile UI shows zero spend and the user can approve.",
+    label: "Free scan",
+    title: "Read-only wallet scan reaches approval",
+    text: "The research agent submits a zero-spend wallet scan. The user receives the request and can approve it from the inbox.",
     tone: "safe",
   },
   {
-    label: "Revoked",
-    title: "Future requests are denied",
-    text: "After revocation, the same agent fails policy evaluation with revoked and inactive-policy reasons.",
+    label: "Paid report",
+    title: "0.001 SOL moves with the receipt",
+    text: "A safe paid report signs one devnet transaction: SOL transfer plus SkillGuard receipt.",
     tone: "violet",
+  },
+  {
+    label: "Blocked",
+    title: "Subscription upgrade is stopped",
+    text: "A 0.05 SOL upgrade exceeds the user's 0.01 SOL action limit and is blocked before wallet signing.",
+    tone: "danger",
   },
 ];
 
@@ -118,10 +112,10 @@ const architectureNodes = [
 ];
 
 const permissionRows = [
-  ["Spend cap", "12 USDC per action"],
-  ["Daily cap", "40 USDC"],
+  ["Spend cap", "0.01 SOL per action"],
+  ["Daily cap", "0.05 SOL"],
   ["Network", "Solana devnet only"],
-  ["Protocols", "Jupiter, Helius"],
+  ["Protocols", "Helius, Birdeye"],
   ["Expiry", "24 hours"],
 ];
 
@@ -162,70 +156,137 @@ const resourceLinks = [
   {
     title: "Demo video",
     text: "Final recording slot for the 3-minute judge walkthrough.",
-    href: "#demo",
+    href: "/demo",
     status: "pending",
   },
 ];
 
 function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
+  );
+}
+
+function AppShell() {
   const [decision, setDecision] = useState<Decision>("pending");
   const decisionCopy = getDecisionCopy(decision);
   const DecisionIcon = decisionCopy.icon;
+  const phoneDemoProps = {
+    decision,
+    setDecision,
+    decisionCopy,
+    DecisionIcon,
+  };
 
   return (
     <main className="min-h-screen overflow-hidden bg-bg-950 text-text-primary">
       <div className="grid-mask pointer-events-none fixed inset-0 opacity-45" />
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-20 px-4 py-6 sm:px-6 lg:px-8">
         <Header />
-
-        <section className="relative min-h-[760px] overflow-hidden rounded-2xl border border-border-subtle bg-bg-900/70 px-4 py-8 sm:px-7 lg:min-h-[700px] lg:px-10">
-          <div className="section-grid pointer-events-none absolute inset-0" />
-          <div className="relative z-10 grid min-h-[680px] items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,0.72fr)]">
-            <HeroCopy />
-            <PhoneDemo
-              decision={decision}
-              setDecision={setDecision}
-              decisionCopy={decisionCopy}
-              DecisionIcon={DecisionIcon}
-            />
-          </div>
-        </section>
-
-        <ProofStrip />
-        <ProblemSection />
-        <SolutionSection />
-        <DemoSection />
-        <ArchitectureSection />
-        <DeveloperSection />
-        <LiveApiSection />
-        <SecuritySection />
-        <BrandSystemSection />
-        <RoadmapSection />
-        <ResourceSection />
+        <Routes>
+          <Route path="/" element={<HomePage phoneDemoProps={phoneDemoProps} />} />
+          <Route path="/demo" element={<DemoPage phoneDemoProps={phoneDemoProps} />} />
+          <Route path="/architecture" element={<ArchitecturePage />} />
+          <Route path="/developers" element={<DevelopersPage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Routes>
       </div>
     </main>
+  );
+}
+
+type PhoneDemoProps = Parameters<typeof PhoneDemo>[0];
+
+function HomePage({ phoneDemoProps }: { phoneDemoProps: PhoneDemoProps }) {
+  return (
+    <>
+      <section className="relative min-h-[760px] overflow-hidden rounded-2xl border border-border-subtle bg-bg-900/70 px-4 py-8 sm:px-7 lg:min-h-[700px] lg:px-10">
+        <div className="section-grid pointer-events-none absolute inset-0" />
+        <div className="relative z-10 grid min-h-[680px] items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,0.72fr)]">
+          <HeroCopy />
+          <PhoneDemo {...phoneDemoProps} />
+        </div>
+      </section>
+
+      <ProofStrip />
+      <ProblemSection />
+      <SolutionSection />
+    </>
+  );
+}
+
+function DemoPage({ phoneDemoProps }: { phoneDemoProps: PhoneDemoProps }) {
+  return (
+    <>
+      <section className="grid items-center gap-8 rounded-2xl border border-border-subtle bg-bg-900/70 p-5 sm:p-7 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,0.72fr)]">
+        <SectionHeader
+          kicker="90s demo"
+          title="Pair the agent, receive the push, approve SOL, then watch policy block the overspend."
+          text="This is the judge path: one wallet, one real research agent loop, one Android approval center, one devnet proof trail."
+        />
+        <PhoneDemo {...phoneDemoProps} />
+      </section>
+      <DemoSection />
+    </>
+  );
+}
+
+function ArchitecturePage() {
+  return (
+    <>
+      <ArchitectureSection />
+      <SecuritySection />
+    </>
+  );
+}
+
+function DevelopersPage() {
+  return (
+    <>
+      <DeveloperSection />
+      <LiveApiSection />
+    </>
+  );
+}
+
+function AboutPage() {
+  return (
+    <>
+      <BrandSystemSection />
+      <RoadmapSection />
+      <ResourceSection />
+    </>
   );
 }
 
 function Header() {
   return (
     <header className="sticky top-4 z-40 flex items-center justify-between gap-4 rounded-xl border border-border-subtle bg-bg-950/88 px-3 py-3 backdrop-blur-xl sm:px-4">
-      <a href="#top" className="flex items-center gap-3">
+      <Link to="/" className="flex items-center gap-3">
         <img src={iconMark} alt="SkillGuard icon" className="h-10 w-10 rounded-lg" />
         <div>
           <p className="text-sm font-semibold text-text-primary">SkillGuard</p>
-          <p className="text-xs text-text-muted">Permission layer for Solana agents</p>
+          <p className="text-xs text-text-muted">Wallet firewall for Solana agents</p>
         </div>
-      </a>
+      </Link>
       <nav className="hidden items-center gap-1 lg:flex">
-        {navItems.map(([label, href]) => (
-          <a
-            key={label}
-            href={href}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-800 hover:text-text-primary"
+        {siteRoutes.map((route) => (
+          <NavLink
+            key={route.path}
+            to={route.path}
+            end={route.path === "/"}
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-medium transition ${
+                isActive
+                  ? "bg-brand-mint/10 text-brand-mint"
+                  : "text-text-secondary hover:bg-surface-800 hover:text-text-primary"
+              }`
+            }
           >
-            {label}
-          </a>
+            {route.label}
+          </NavLink>
         ))}
       </nav>
       <a
@@ -243,29 +304,26 @@ function Header() {
 
 function HeroCopy() {
   return (
-    <div
-      id="top"
-      className="max-w-3xl"
-    >
+    <div className="max-w-3xl">
       <img
         src={wordmark}
         alt="SkillGuard wordmark"
         className="mb-8 max-h-24 w-auto max-w-full rounded-lg border border-border-subtle bg-bg-950/80 p-4"
       />
-      <StatusPill icon={ShieldCheck}>The permission layer for Solana agents</StatusPill>
+      <StatusPill icon={ShieldCheck}>Wallet firewall for Solana agents</StatusPill>
       <h1 className="mt-5 font-display text-4xl font-bold leading-[1.03] text-text-primary sm:text-5xl lg:text-6xl">
-        Agents ask. Users approve. Solana records the decision.
+        {firewallHero.title}
       </h1>
       <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg">
-        SkillGuard gives every Solana agent a permissioned path to wallet actions:
-        manifest, policy check, mobile approval, revocation, and an auditable receipt.
+        {firewallHero.subhead} SkillGuard gives every Solana agent a permissioned path to wallet actions:
+        manifest, policy check, mobile approval, push notification, revocation, and auditable receipt.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
-        <HeroButton href="#demo" icon={Smartphone}>
-          Watch the demo flow
+        <HeroButton to="/demo" icon={Smartphone}>
+          {firewallHero.primaryCta}
         </HeroButton>
-        <HeroButton href="#developers" icon={Code2} muted>
-          Integrate an agent
+        <HeroButton to="/developers" icon={Code2} muted>
+          {firewallHero.secondaryCta}
         </HeroButton>
       </div>
       <div className="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
@@ -286,8 +344,8 @@ function ProofStrip() {
       <ProofCard
         icon={Radio}
         label="Current state"
-        value="Local vertical slice implemented"
-        text="Protocol, API, SDK, research-agent, mobile demo, site, and Anchor tests are wired into the precommit gate."
+        value="Hosted vertical slice implemented"
+        text="Protocol, API, SDK, autonomous research agent, mobile approval app, Vercel site, and Anchor tests are wired into the precommit gate."
       />
       <ProofCard
         icon={FileCheck2}
@@ -310,8 +368,8 @@ function ProblemSection() {
     <section id="problem" className="scroll-mt-28">
       <SectionHeader
         kicker="Problem"
-        title="Solana agents are becoming powerful before users have a control surface."
-        text="The strongest hackathon wedge is not another agent tool. It is the permission layer between agent skills and wallet signing."
+        title="Two existing wallet options are bad: hand over a key, or sign every micro-action yourself."
+        text="Solana Skills and agent frameworks make action creation easier. SkillGuard adds the missing firewall between those agents and wallet signing."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {problemCards.map((card) => (
@@ -353,8 +411,8 @@ function DemoSection() {
     <section id="demo" className="scroll-mt-28">
       <SectionHeader
         kicker="Demo"
-        title="The judge sees three outcomes, not a generic dashboard."
-        text="The demo proves the product in under three minutes: blocked overspend, approved safe request, revoked agent."
+        title="The judge sees real agent requests, push delivery, SOL movement, and policy blocking."
+        text="The demo proves the product in under three minutes: free scan approval, paid 0.001 SOL report, blocked 0.05 SOL upgrade, then revocation."
       />
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {demoSteps.map((step) => (
@@ -362,9 +420,9 @@ function DemoSection() {
         ))}
       </div>
       <div className="mt-5 rounded-xl border border-border-subtle bg-bg-900/80 p-5">
-        <p className="text-sm font-semibold text-text-primary">Local demo command</p>
+        <p className="text-sm font-semibold text-text-primary">Primary demo command</p>
         <pre className="mt-3 overflow-x-auto rounded-lg border border-border-subtle bg-bg-950 p-4 font-mono text-sm text-brand-mint">
-          <code>{". scripts/dev-env.sh\nscripts/dev-demo.sh"}</code>
+          <code>{"export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>\nnpm --prefix apps/research-agent run agent:loop"}</code>
         </pre>
       </div>
     </section>
@@ -376,8 +434,8 @@ function ArchitectureSection() {
     <section id="architecture" className="scroll-mt-28">
       <SectionHeader
         kicker="Architecture"
-        title="A public repo with one vertical path from agent request to receipt."
-        text="Each component is deliberately small so the demo can be inspected, tested, and explained."
+        title="A public repo with one vertical path from agent request to wallet proof."
+        text="Each component is deliberately small: agent manifest, hosted policy API, push delivery, Android approval, Mobile Wallet Adapter signing, and devnet receipt."
       />
       <div className="mt-8 rounded-2xl border border-border-subtle bg-bg-900/76 p-5">
         <div className="grid gap-3 md:grid-cols-7">
@@ -422,7 +480,7 @@ function DeveloperSection() {
       <SectionHeader
         kicker="Developers"
         title="Agents integrate by submitting one manifest and waiting for a decision."
-        text="SkillGuard is designed to sit after Solana Skills, Agent Kit, wallet MCPs, or any custom agent worker."
+        text="SkillGuard is designed to sit after Solana Skills, Agent Kit, wallet MCPs, or any custom agent worker. The agent never receives the user's private key."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
@@ -599,7 +657,7 @@ function RoadmapSection() {
       <SectionHeader
         kicker="Roadmap"
         title="The core proof is local; the remaining gates are account-owned."
-        text="MWA signing, devnet receipts, release signing, the final upload key, password-manager backup, and the public project site are in place. Final publication now depends on video recording and the submission form."
+        text="MWA signing, devnet receipts, release signing, the final upload key, password-manager backup, Vercel site/API, push registration, and the research-agent loop are in place. Final publication now depends on video recording and the submission form."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {roadmapItems.map(({ step, title, status, note }) => (
@@ -636,7 +694,7 @@ function ResourceSection() {
       <SectionHeader
         kicker="Submission links"
         title="Everything points to one public project repo."
-        text="These links are ready to become the final hackathon submission surface as soon as the repository is made public."
+        text="These links are the final hackathon submission surface: repo, Vercel site/API, docs, brand assets, and the video slot."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {resourceLinks.map((link) => (
@@ -699,7 +757,7 @@ function PhoneDemo({
                 <div>
                   <p className="text-sm font-semibold">Research Agent</p>
                   <p className="mt-1 text-xs leading-5 text-text-secondary">
-                    Requests a Jupiter route and Helius/Birdeye wallet-risk context.
+                    Requests Helius/Birdeye wallet-risk context and paid SOL reports.
                   </p>
                 </div>
                 <span className="rounded-md bg-brand-blue/10 px-2 py-1 text-xs font-semibold text-brand-blue">
@@ -733,13 +791,13 @@ function PhoneDemo({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold">Wallet impact</p>
-                  <p className="mt-1 text-xs text-text-secondary">Estimated spend: 8.42 USDC</p>
+                  <p className="mt-1 text-xs text-text-secondary">Estimated spend: 0.001 SOL</p>
                 </div>
                 <ChevronRight className={`h-4 w-4 ${decisionCopy.tone}`} />
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
                 <Metric label="Policy" value={decision === "revoked" ? "Fail" : "Pass"} tone={decisionCopy.tone} />
-                <Metric label="Cap" value="12 USDC" tone="text-brand-blue" />
+                <Metric label="Cap" value="0.01 SOL" tone="text-brand-blue" />
                 <Metric label="Risk" value="Medium" tone="text-status-warning" />
               </div>
             </div>
@@ -917,26 +975,41 @@ function BoundaryCard({
 
 function HeroButton({
   href,
+  to,
   icon: Icon,
   children,
   muted = false,
 }: {
-  href: string;
+  href?: string;
+  to?: string;
   icon: LucideIcon;
   children: ReactNode;
   muted?: boolean;
 }) {
+  const className = muted
+    ? "inline-flex h-11 items-center gap-2 rounded-lg border border-border-subtle bg-surface-900 px-4 text-sm font-semibold text-text-primary transition hover:border-brand-blue/40 hover:bg-surface-800"
+    : "approval-gradient inline-flex h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-bg-950 transition hover:brightness-110";
+  const content = (
+    <>
+      <Icon className="h-4 w-4" />
+      {children}
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <a
       href={href}
-      className={
-        muted
-          ? "inline-flex h-11 items-center gap-2 rounded-lg border border-border-subtle bg-surface-900 px-4 text-sm font-semibold text-text-primary transition hover:border-brand-blue/40 hover:bg-surface-800"
-          : "approval-gradient inline-flex h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-bg-950 transition hover:brightness-110"
-      }
+      className={className}
     >
-      <Icon className="h-4 w-4" />
-      {children}
+      {content}
     </a>
   );
 }

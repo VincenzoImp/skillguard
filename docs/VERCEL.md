@@ -22,9 +22,10 @@ Create a Vercel project from this repository and keep the repository root as the
 Vercel root directory. The committed `vercel.json` uses:
 
 ```text
-buildCommand: VITE_BASE_PATH=/ npm run vercel:build
+buildCommand: npm run vercel:build
 outputDirectory: apps/site/dist
 API function: api/[...path].ts
+SPA rewrite: /((?!api/).*) -> /
 ```
 
 ## Vercel Git Deploy
@@ -55,6 +56,16 @@ UPSTASH_REDIS_REST_URL=<Upstash Redis REST URL>
 UPSTASH_REDIS_REST_TOKEN=<Upstash Redis REST token>
 ```
 
+Optional Expo push env var:
+
+```text
+EXPO_ACCESS_TOKEN=<Expo access token for future push receipt verification>
+```
+
+The current API push sender can fan out Expo notifications without this token.
+The token is documented so receipt verification can be enabled without changing
+the deployment contract.
+
 Verify the runtime storage mode:
 
 ```bash
@@ -84,7 +95,7 @@ After deployment, configure clients:
 export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
 export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
-npm --prefix apps/research-agent run submit:safe
+npm --prefix apps/research-agent run agent:loop
 
 EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
   npm --prefix apps/mobile run android

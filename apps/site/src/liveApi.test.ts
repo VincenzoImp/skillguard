@@ -17,6 +17,8 @@ describe("liveApi", () => {
       "POST /api/connections",
       "PATCH /api/connections/:connectionId/policy",
       "POST /api/connections/:connectionId/revoke",
+      "POST /api/wallets/:wallet/push-token",
+      "DELETE /api/wallets/:wallet/push-token",
       "POST /api/actions",
       "GET /api/actions?wallet=<wallet>",
       "POST /api/actions/:actionId/evaluate",

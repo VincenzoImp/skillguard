@@ -13,7 +13,7 @@ Agent proposes Solana action -> SkillGuard evaluates policy -> user approves/rej
 The project should not be pitched as wallet-wide protection for every possible signing path. The credible pitch is stronger and more defensible:
 
 ```text
-The permission layer for Solana agents.
+The firewall between AI agents and your Solana wallet.
 ```
 
 This is a good hackathon project because it joins three visible needs:
@@ -157,7 +157,7 @@ The project does not make sense if it tries to implement all of these in the MVP
 - universal transaction firewall
 - full autonomous wallet delegation
 - mainnet token spending
-- production push notifications
+- push receipt verification and delivery analytics
 - full dApp Store submission
 - cross-chain LI.FI execution
 - x402 monetization

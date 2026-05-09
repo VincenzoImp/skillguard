@@ -17,7 +17,6 @@ fi
 API_URL="${SKILLGUARD_API_URL:-http://localhost:8787}"
 SITE_HOST="${SKILLGUARD_SITE_HOST:-127.0.0.1}"
 SITE_PORT="${SKILLGUARD_SITE_PORT:-5173}"
-RUN_PREFIX="${SKILLGUARD_RUN_ID:-local-demo}"
 
 pids=()
 
@@ -52,32 +51,23 @@ wallet_value="${SKILLGUARD_USER_WALLET:-$wallet_placeholder}"
 cat <<EOF
 ==> Agent request commands
 Connect the wallet in the Android app, copy the full wallet address, then run
-the commands below in a third terminal while this script keeps API and site alive.
-Run them one-by-one during the demo; do not revoke before approving the safe
-request, because revocation intentionally blocks all still-pending actions.
+the command below in a third terminal while this script keeps API and site alive.
+Import and approve the Research Agent pairing first; the loop then submits the
+free scan, paid 0.001 SOL report, and blocked 0.05 SOL upgrade in sequence.
 
   export SKILLGUARD_API_URL="$API_URL"
   export SKILLGUARD_USER_WALLET="$wallet_value"
-  npm --prefix apps/research-agent run submit:unsafe
-  npm --prefix apps/research-agent run submit:safe
-  npm --prefix apps/research-agent run submit:revoked
+  npm --prefix apps/research-agent run agent:loop
 
-The mobile app can refresh after each command. Unsafe and revoked requests are
-blocked by policy; the safe request can be approved and recorded on devnet.
+The mobile app can refresh if push delivery is unavailable. The paid request can
+be approved and recorded on devnet; the upgrade is blocked before wallet signing.
 EOF
 
 if [ "${SKILLGUARD_AUTORUN_AGENT:-0}" = "1" ] && [ -n "${SKILLGUARD_USER_WALLET:-}" ]; then
-  echo "==> Research agent wallet: ${SKILLGUARD_USER_WALLET}"
-
-  echo "==> Research agent: unsafe request"
+  echo "==> Starting research-agent loop for wallet: ${SKILLGUARD_USER_WALLET}"
   env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_USER_WALLET="$SKILLGUARD_USER_WALLET" \
-    SKILLGUARD_RUN_ID="${RUN_PREFIX}-unsafe" npm --prefix apps/research-agent run submit:unsafe
-
-  echo "==> Research agent: safe request"
-  env SKILLGUARD_API_URL="$API_URL" SKILLGUARD_USER_WALLET="$SKILLGUARD_USER_WALLET" \
-    SKILLGUARD_RUN_ID="${RUN_PREFIX}-safe" npm --prefix apps/research-agent run submit:safe
-
-  echo "==> Autoran unsafe and safe requests only. Run submit:revoked after approving or rejecting the safe request."
+    npm --prefix apps/research-agent run agent:loop &
+  pids+=("$!")
 fi
 
 echo "==> Demo services are running. Press Ctrl-C to stop API and site."

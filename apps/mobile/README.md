@@ -9,6 +9,8 @@ Android-first Expo app for wallet connection, agent permissions, action approval
 - React 19
 - Solana Mobile Wallet Adapter through `@wallet-ui/react-native-web3js`
 - `@solana/web3.js` for the current mobile wallet flow
+- `expo-notifications`, `expo-device`, and `expo-constants` for native push
+  registration and notification tap routing
 - `react-native-quick-crypto`, `react-native-get-random-values`, and `buffer` for Solana-compatible runtime primitives
 
 ## Current Screens
@@ -34,6 +36,8 @@ The product flows are:
 - start fresh wallets with zero connected agents
 - create a short-lived wallet session through Solana sign-message before
   reading wallet-specific connections or actions
+- register an Expo push token for the connected wallet session when native
+  notifications are available
 - import an agent by pairing link or ID, sign a wallet-owner challenge, and
   configure approval mode, spend limits, protocol allowlist, and mint allowlist
 - edit the remote policy mode
@@ -42,7 +46,14 @@ The product flows are:
 - post approval metadata back to the API with transaction signature and receipt address
 - reject a pending request through the API with wallet-owner proof
 - revoke the connected agent through the API with wallet-owner proof and block future requests
+- tap a native notification to refresh the live inbox and select the referenced
+  action
 - show decision receipts, manifest hashes, and Explorer links when signatures exist
+
+Push notifications are a delivery channel only. The app always reloads the
+authenticated live API feed before showing a notification-selected request, and
+manual refresh remains the fallback for emulators, builds without notification
+permission, or devices where Expo push is unavailable.
 
 ## Commands
 

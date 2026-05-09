@@ -2,7 +2,11 @@
 
 ![SkillGuard wordmark](assets/brand/wordmark.png)
 
-SkillGuard is the permission layer for Solana agents: agents request wallet actions, user policies evaluate them, the user approves from mobile, and the decision can be proven with a Solana receipt.
+> The firewall between AI agents and your Solana wallet.
+
+SkillGuard lets Solana agents ask for wallet actions without receiving private
+keys: policies filter each manifest, the user approves from mobile, and Solana
+records the proof.
 
 ## Problem
 
@@ -29,10 +33,11 @@ The hosted API is the public integration surface for agents and third-party
 apps. A fresh mobile wallet has no agents and no inbox items. The user first
 imports an agent with a pairing link or agent ID, signs a wallet-owner challenge,
 and only then can that connected agent submit manifests for that wallet through
-the API or SDK. Wallet feeds are read through a short-lived wallet session token
-created from a Solana sign-message proof. The current MVP uses live API refresh
-in the mobile app; native push notifications are intentionally left as a
-post-MVP hardening step.
+the API or SDK. Wallet feeds and push-token registration are scoped by a
+short-lived wallet session token created from a Solana sign-message proof. When
+an agent creates a new pending request, the hosted API fans out an Expo push to
+registered devices for that wallet; the live inbox remains the source of truth
+and can always be refreshed manually.
 
 ## Architecture
 
@@ -54,10 +59,10 @@ Core workspaces:
 
 - `packages/protocol`: shared manifest types, canonical hashing, fixtures, policy engine
 - `packages/sdk`: TypeScript client for agent developers
-- `apps/api`: public API for agents, connections, policy evaluation, wallet decisions, smoke cleanup, and connection revocation
-- `apps/research-agent`: sample research agent implementation with deterministic safe, unsafe, and revoked action flows for a real connected wallet address
+- `apps/api`: public API for agents, connections, policy evaluation, push-token registration, wallet decisions, smoke cleanup, and connection revocation
+- `apps/research-agent`: real autonomous research-agent loop for a connected wallet address
 - `apps/mobile`: Android approval app using live API state and the SkillGuard design system
-- `apps/site`: public project site and canonical visual reference
+- `apps/site`: Vercel multi-page public project site, API docs, and canonical visual reference
 - `programs/skillguard`: Anchor program for user profiles, agent policies, revocation, and receipts
 
 ## Demo Flow
@@ -68,11 +73,14 @@ The judge demo is a 3-minute vertical slice:
 2. The wallet starts with zero agents; user imports `agent-research`, reviews
    the pairing metadata, signs the wallet-owner challenge, and configures spend,
    protocol, mint, and approval limits.
-3. Research agent submits requests for that wallet address through the API after the
-   user-created connection exists.
-4. Unsafe requests are blocked before wallet signing.
-5. Safe requests can be approved from mobile and recorded as devnet receipts.
-6. User can reject requests, revoke the agent, and edit the policy mode; future requests are re-evaluated.
+3. Research agent runs the autonomous demo loop and submits requests for that
+   wallet address through the API after the user-created connection exists.
+4. Pending requests arrive in the mobile inbox and, on supported builds/devices,
+   as native push notifications.
+5. Unsafe requests are blocked before wallet signing.
+6. Safe requests can be approved from mobile with a real devnet SOL transfer and
+   a SkillGuard receipt transaction.
+7. User can reject requests, revoke the agent, and edit the policy mode; future requests are re-evaluated.
 
 See [docs/DEMO.md](docs/DEMO.md) for exact commands and spoken lines.
 
@@ -110,10 +118,10 @@ Agent ID: agent-research
 Display name: Research Agent
 Allowed purpose: Solana research agent that requests wallet-safe actions.
 Mode: Ask every time
-Max spend per action: 1
-Daily cap: 5
+Max spend per action: 0.01 SOL
+Daily cap: 0.05 SOL
 Allowed protocols: helius,birdeye
-Allowed mints: SOL,USDC
+Allowed mints: SOL
 Agent public key: 9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
 ```
 
@@ -133,6 +141,9 @@ npm --prefix apps/api run dev
 
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+npm --prefix apps/research-agent run agent:loop
+
+# Lower-level smoke commands remain available:
 npm --prefix apps/research-agent run submit:unsafe
 npm --prefix apps/research-agent run submit:safe
 npm --prefix apps/research-agent run submit:revoked
@@ -323,16 +334,12 @@ For local Solana and Android commands on the verified macOS/Homebrew setup:
 ## Status
 
 Core MVP is implemented locally: shared protocol, API, Anchor receipt program,
-mobile approval app with live API state, research agent, TypeScript SDK, and local
-demo orchestration all run behind the precommit gate.
-
-Submission blockers still to close:
-
-- demo video and final screenshots
+mobile approval app with live API state and push registration, autonomous
+research-agent loop, TypeScript SDK, and Vercel public site/API all run behind
+the precommit gate.
 
 Verified submission proofs:
 
-- Public project site: `https://vincenzoimp.github.io/skillguard/`
 - Vercel production site/API: `https://skillguard-sol.vercel.app/`, `https://skillguard-sol.vercel.app/api`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Mobile Wallet Adapter `record_decision` signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
@@ -340,7 +347,6 @@ Verified submission proofs:
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
 - Final owner-controlled upload keystore generated outside git and ready for the canonical release APK.
 - Password manager backup of the final upload keystore and signing env is complete.
-- GitHub Pages deployment workflow: `.github/workflows/deploy-site.yml`
 - Vercel deploy: connected Git integration for `https://skillguard-sol.vercel.app/`
 - Hosted API durable storage expects Vercel KV or Upstash Redis env vars documented in `docs/VERCEL.md`.
 - Hosted API smoke: `node scripts/hosted-smoke.mjs`

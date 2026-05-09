@@ -38,17 +38,22 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
 
 export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
-npm --prefix apps/research-agent run submit:unsafe
-npm --prefix apps/research-agent run submit:safe
-npm --prefix apps/research-agent run submit:revoked
+npm --prefix apps/research-agent run agent:loop
 ```
 
 The wallet address must be the exact address shown in the Android app after
 Mobile Wallet Adapter connection. The research agent never receives the private key.
 Before running those commands, import `agent-research` in the mobile app with
 the pairing link below, sign the wallet-owner challenge, and keep the default
-conservative policy: ask every time, 1 USDC max spend per action, 5 USDC daily
-cap, `helius,birdeye`, and `SOL,USDC`.
+conservative policy: ask every time, `0.01 SOL` max spend per action,
+`0.05 SOL` daily cap, `helius,birdeye`, and `SOL`.
+
+The APK registers an Expo push token after the wallet session is signed. On a
+physical Android build with notification permission enabled, pending agent
+requests appear as native notifications. Tapping a notification opens the
+SkillGuard inbox with that action selected. If push delivery is unavailable for
+the local build or device, use the app's `Refresh` action; the live API feed is
+the source of truth.
 
 ```text
 skillguard://pair?agentId=agent-research&name=Research%20Agent&description=Solana%20research%20agent%20that%20requests%20wallet-safe%20actions.&protocols=helius,birdeye&publicKey=9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
@@ -64,6 +69,9 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 \
 
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+npm --prefix apps/research-agent run agent:loop
+
+# Lower-level smoke commands remain available:
 npm --prefix apps/research-agent run submit:unsafe
 npm --prefix apps/research-agent run submit:safe
 npm --prefix apps/research-agent run submit:revoked
@@ -95,25 +103,21 @@ Run:
 
 ```bash
 SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
-  npm --prefix apps/research-agent run submit:unsafe
+  npm --prefix apps/research-agent run agent:loop
 ```
 
-Open `Inbox` and refresh. Show the unsafe request and the `spend_exceeds_max`
-policy reason. The wallet is not asked to sign blocked actions.
-Say: "This one is blocked because it exceeds my limit."
+The loop first submits a free wallet scan. Approve it from `Inbox` or by
+tapping the notification, then wait for the next request. The second request is
+a paid report under the default `0.01 SOL` max and can be approved. The third
+request is a subscription upgrade over the max and is blocked before wallet
+signing. Say: "This one is blocked because it exceeds my limit."
 
 ## Scene 3: Safe Request
 
-Run:
-
-```bash
-SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
-  npm --prefix apps/research-agent run submit:safe
-```
-
-Refresh `Inbox`, open the safe request, show zero spend, approve it through the
-wallet, then move to `Activity` and open the devnet SkillGuard receipt
-transaction.
+Open the pending paid report, show the requested `0.001 SOL` spend, approve it
+through the wallet, then move to `Activity` and open the devnet SkillGuard
+receipt transaction. The mobile approval transaction includes the SOL transfer
+and the SkillGuard `record_decision` receipt.
 
 ## Scene 4: Revoke Agent
 
@@ -143,5 +147,6 @@ an agent, sets the policy, and can revoke or edit that policy later. Agents use
 the hosted API or SDK to submit wallet action manifests; the mobile app is the
 user-controlled approval center. Wallet feeds are loaded through a short-lived
 signed wallet session, so arbitrary callers cannot read another wallet's inbox
-through the public API. The MVP uses live API refresh, not native push
-notifications.
+through the public API. Native Expo push notifications are implemented as a
+delivery channel for pending requests; the authenticated live inbox remains the
+source of truth.
