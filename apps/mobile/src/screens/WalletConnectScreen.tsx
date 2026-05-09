@@ -25,6 +25,10 @@ import {
   buildTabItems,
   recommendedInitialTab,
 } from "../appNavigation";
+import {
+  approvalFundingIssue,
+  requiredApprovalLamports,
+} from "../approvalFunding";
 import { signAndSubmitApprovalTransaction } from "../approvalTransactionSender";
 import { buildApprovalTransaction } from "../buildApprovalTransaction";
 import { StatusBadge } from "../components/StatusBadge";
@@ -44,7 +48,11 @@ import {
   selectAction,
 } from "../liveState";
 import type { PolicyMode, SkillGuardMobileState } from "../liveState";
+import { latestReceiptSignature } from "../receiptRecovery";
 import {
+  ACTION_RECEIPT_ACCOUNT_SPACE,
+  AGENT_CONNECTION_ACCOUNT_SPACE,
+  USER_PROFILE_ACCOUNT_SPACE,
   buildSkillGuardApprovalInstructions,
   deriveSkillGuardAccounts,
   skillGuardBytes32,
@@ -387,26 +395,70 @@ export function WalletConnectScreen({
         ]);
 
       if (actionReceiptInfo) {
-        setStatus("SkillGuard receipt already exists for this action");
+        const receiptSignatures = await connection.getSignaturesForAddress(
+          skillGuardAccounts.actionReceipt,
+          { limit: 1 },
+          "confirmed"
+        );
+        const recoveredSignature = latestReceiptSignature(receiptSignatures);
+        if (!recoveredSignature) {
+          setStatus(
+            "SkillGuard receipt exists, but no devnet signature was found yet. Refresh and retry."
+          );
+          return;
+        }
+        await apiClient.approveAction(
+          actionToApprove.id,
+          actionToApprove.connectionId,
+          recoveredSignature,
+          skillGuardAccounts.actionReceipt.toBase58(),
+          userWallet,
+          signMessage
+        );
+        await refreshWalletState(userWallet);
+        setActiveTab("activity");
+        setStatus("Recovered existing SkillGuard receipt from devnet");
         return;
       }
 
       const latestBlockhash = await connection.getLatestBlockhash("confirmed");
+      const receiptInstructions = buildSkillGuardApprovalInstructions({
+        actionId: actionToApprove.id,
+        agentId: actionToApprove.agentId,
+        includeConnectAgent: agentConnectionInfo === null,
+        includeCreateUserProfile: userProfileInfo === null,
+        manifestHash: actionToApprove.manifestHash,
+        owner: activeAccount.publicKey,
+        policyResult: actionToApprove.policyResultSummary,
+      });
       const transaction = buildApprovalTransaction({
         blockhash: latestBlockhash.blockhash,
         manifest: actionToApprove.manifest,
         owner: activeAccount.publicKey,
-        receiptInstructions: buildSkillGuardApprovalInstructions({
-          actionId: actionToApprove.id,
-          agentId: actionToApprove.agentId,
-          includeConnectAgent: agentConnectionInfo === null,
-          includeCreateUserProfile: userProfileInfo === null,
-          manifestHash: actionToApprove.manifestHash,
-          owner: activeAccount.publicKey,
-          policyResult: actionToApprove.policyResultSummary,
-        }),
+        receiptInstructions,
         treasuryAddress: RESEARCH_TREASURY_ADDRESS,
       });
+      const [balanceLamports, feeResponse, rentLamports] = await Promise.all([
+        connection.getBalance(activeAccount.publicKey, "confirmed"),
+        connection.getFeeForMessage(transaction.compileMessage(), "confirmed"),
+        requiredReceiptRentLamports({
+          includeActionReceipt: true,
+          includeAgentConnection: agentConnectionInfo === null,
+          includeUserProfile: userProfileInfo === null,
+        }),
+      ]);
+      const fundingIssue = approvalFundingIssue({
+        availableLamports: balanceLamports,
+        required: requiredApprovalLamports({
+          feeLamports: feeResponse.value ?? 10_000,
+          manifest: actionToApprove.manifest,
+          rentLamports,
+        }),
+      });
+      if (fundingIssue) {
+        setStatus(fundingIssue);
+        return;
+      }
 
       setStatus("Requesting wallet signature");
       const txSignature = await signAndSubmitApprovalTransaction({
@@ -431,6 +483,28 @@ export function WalletConnectScreen({
     } finally {
       setIsBusy(false);
     }
+  }
+
+  async function requiredReceiptRentLamports({
+    includeActionReceipt,
+    includeAgentConnection,
+    includeUserProfile,
+  }: {
+    includeActionReceipt: boolean;
+    includeAgentConnection: boolean;
+    includeUserProfile: boolean;
+  }) {
+    const spaces = [
+      includeUserProfile ? USER_PROFILE_ACCOUNT_SPACE : null,
+      includeAgentConnection ? AGENT_CONNECTION_ACCOUNT_SPACE : null,
+      includeActionReceipt ? ACTION_RECEIPT_ACCOUNT_SPACE : null,
+    ].filter((space): space is number => space !== null);
+    const rentValues = await Promise.all(
+      spaces.map((space) =>
+        connection.getMinimumBalanceForRentExemption(space, "confirmed")
+      )
+    );
+    return rentValues.reduce((total, value) => total + value, 0);
   }
 
   async function handleRejectSelected() {

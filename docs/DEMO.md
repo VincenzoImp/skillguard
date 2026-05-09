@@ -42,6 +42,12 @@ Research Agent pairing QR, waits until the app shows the imported agent, and
 only then starts the autonomous request loop. The research agent never receives
 the user's private key.
 
+Fund the demo wallet with at least `0.01 SOL` on devnet before the paid request.
+The second approval is a real devnet transaction: it pays the `0.001 SOL`
+research quota, creates a new on-chain receipt account, and pays the network fee.
+If the balance is too low, the APK now stops before wallet signing and shows the
+required amount.
+
 The QR only fills the agent identity; the wallet owner still reviews the policy
 and signs the import challenge. Keep the default conservative policy for the
 first pass: ask every time, `0.01 SOL` max spend per action, `0.05 SOL` daily

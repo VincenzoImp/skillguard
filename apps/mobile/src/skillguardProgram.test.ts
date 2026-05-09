@@ -1,9 +1,12 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { describe, expect, test } from "vitest";
 import {
+  ACTION_RECEIPT_ACCOUNT_SPACE,
+  AGENT_CONNECTION_ACCOUNT_SPACE,
   DECISION_APPROVED,
   RECORD_DECISION_DISCRIMINATOR,
   SKILLGUARD_PROGRAM_ID,
+  USER_PROFILE_ACCOUNT_SPACE,
   buildSkillGuardApprovalInstructions,
   deriveSkillGuardAccounts,
   skillGuardBytes32,
@@ -12,6 +15,12 @@ import {
 const owner = new PublicKey("Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx");
 
 describe("skillguard mobile program helpers", () => {
+  test("exports Anchor account spaces used for devnet funding preflight", () => {
+    expect(USER_PROFILE_ACCOUNT_SPACE).toBe(41);
+    expect(AGENT_CONNECTION_ACCOUNT_SPACE).toBe(75);
+    expect(ACTION_RECEIPT_ACCOUNT_SPACE).toBe(179);
+  });
+
   test("derives the same PDAs as the Anchor program seeds", () => {
     const agentIdHash = skillGuardBytes32("agent", "agent-research");
     const actionIdHash = skillGuardBytes32("action", "action-safe-risk-report");

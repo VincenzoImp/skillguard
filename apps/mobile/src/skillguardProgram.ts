@@ -11,6 +11,10 @@ export const SKILLGUARD_PROGRAM_ID = new PublicKey(
 );
 
 export const DECISION_APPROVED = 1;
+export const USER_PROFILE_ACCOUNT_SPACE = 8 + 32 + 1;
+export const AGENT_CONNECTION_ACCOUNT_SPACE = 8 + 32 + 32 + 1 + 1 + 1;
+export const ACTION_RECEIPT_ACCOUNT_SPACE =
+  8 + 32 + 32 + 32 + 32 + 1 + 1 + 32 + 8 + 1;
 
 export const CREATE_USER_PROFILE_DISCRIMINATOR = Object.freeze([
   9, 214, 142, 184, 153, 65, 50, 174,
