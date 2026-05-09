@@ -4,6 +4,40 @@ import { safeRiskReportManifest } from "@skillguard/protocol";
 import { createSkillGuardClient } from "./client.js";
 
 describe("demo agent client", () => {
+  it("inserts the demo agent and wallet connection before live submissions", async () => {
+    const calls: Array<{ body?: string; method?: string; url: string }> = [];
+    const fetch = async (url: string | URL, init?: RequestInit) => {
+      calls.push({
+        body: typeof init?.body === "string" ? init.body : undefined,
+        method: init?.method,
+        url: url.toString(),
+      });
+      return jsonResponse({ ok: true });
+    };
+
+    const client = createSkillGuardClient({
+      apiUrl: "http://localhost:8787",
+      connectionId: "conn-agent-research-Wallet111",
+      fetch,
+    });
+
+    await client.ensureAgentConnection("Wallet111");
+
+    expect(calls.map((call) => `${call.method} ${call.url}`)).toEqual([
+      "POST http://localhost:8787/agents",
+      "POST http://localhost:8787/connections",
+    ]);
+    expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
+      agentId: "agent-research",
+      name: "Research Agent",
+    });
+    expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({
+      agentId: "agent-research",
+      connectionId: "conn-agent-research-Wallet111",
+      userWallet: "Wallet111",
+    });
+  });
+
   it("posts an action manifest and asks the API to evaluate it", async () => {
     const calls: Array<{ body?: string; method?: string; url: string }> = [];
     const fetch = async (url: string | URL, init?: RequestInit) => {

@@ -8,7 +8,8 @@ export type DemoActionKind = "safe" | "unsafe" | "revoked";
 
 export function createDemoManifest(
   kind: DemoActionKind,
-  runId = String(Date.now())
+  runId = String(Date.now()),
+  userWallet: string
 ): ActionManifest {
   const normalizedRunId = runId.replace(/[^a-zA-Z0-9_-]/g, "-");
 
@@ -16,7 +17,9 @@ export function createDemoManifest(
     return {
       ...unsafeOverspendManifest,
       actionId: `action-demo-unsafe-${normalizedRunId}`,
+      accountsTouched: [userWallet],
       title: "Swap 2 USDC through Jupiter",
+      userWallet,
     };
   }
 
@@ -24,15 +27,19 @@ export function createDemoManifest(
     return {
       ...safeRiskReportManifest,
       actionId: `action-demo-revoked-${normalizedRunId}`,
+      accountsTouched: [userWallet],
       summary:
         "The agent submits this request after revocation so SkillGuard can block it.",
       title: "Request after revocation",
+      userWallet,
     };
   }
 
   return {
     ...safeRiskReportManifest,
     actionId: `action-demo-safe-${normalizedRunId}`,
+    accountsTouched: [userWallet],
     title: "Generate wallet risk receipt",
+    userWallet,
   };
 }

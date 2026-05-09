@@ -1,21 +1,29 @@
 import { createDemoManifest, type DemoActionKind } from "./actions.js";
-import { createSkillGuardClient } from "./client.js";
+import { connectionIdForWallet, createSkillGuardClient } from "./client.js";
 
 const DEFAULT_API_URL = "http://localhost:8787";
-const DEFAULT_CONNECTION_ID = "conn-demo";
 
 async function main() {
   const kind = parseKind(process.argv[2]);
+  const userWallet = process.env.SKILLGUARD_USER_WALLET;
+  if (!userWallet) {
+    throw new Error("Set SKILLGUARD_USER_WALLET to the connected mobile wallet address.");
+  }
+
+  const connectionId =
+    process.env.SKILLGUARD_CONNECTION_ID ?? connectionIdForWallet(userWallet);
   const client = createSkillGuardClient({
     apiUrl: process.env.SKILLGUARD_API_URL ?? DEFAULT_API_URL,
-    connectionId: process.env.SKILLGUARD_CONNECTION_ID ?? DEFAULT_CONNECTION_ID,
+    connectionId,
   });
+
+  await client.ensureAgentConnection(userWallet);
 
   if (kind === "revoked") {
     await client.revokeConnection();
   }
 
-  const manifest = createDemoManifest(kind, process.env.SKILLGUARD_RUN_ID);
+  const manifest = createDemoManifest(kind, process.env.SKILLGUARD_RUN_ID, userWallet);
   const submitted = await client.submitAction(manifest);
 
   console.log(
