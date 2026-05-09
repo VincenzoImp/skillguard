@@ -24,12 +24,14 @@ import {
   parseAgentRecord,
   parseConnectionRecord,
   parsePolicyPatch,
+  parsePushTokenBody,
 } from "../apps/api/src/validation.js";
 import {
   createWalletSessionToken,
   hashWalletSessionToken,
   walletSessionExpiresAt,
 } from "../apps/api/src/walletSession.js";
+import { sendExpoPushNotifications } from "../apps/api/src/push.js";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -134,6 +136,7 @@ function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
     actions: snapshot.actions,
     agents: snapshot.agents,
     connections: snapshot.connections,
+    pushTokens: snapshot.pushTokens ?? [],
     walletSessions: snapshot.walletSessions ?? [],
   };
   if (isSeededSnapshot(snapshotWithSessions)) {
@@ -166,6 +169,9 @@ function sanitizeProductionSnapshot(snapshot: StoreSnapshot): {
     actions: sanitized.actions,
     agents,
     connections: sanitized.connections,
+    pushTokens: snapshotWithSessions.pushTokens.filter(
+      (pushToken) => pushToken.userWallet !== "DemoWallet111111111111111111111111111111111"
+    ),
     walletSessions: snapshotWithSessions.walletSessions,
   };
 
@@ -561,6 +567,84 @@ async function handleConnections(
   notFound(res);
 }
 
+async function handleWallets(
+  req: VercelRequest,
+  res: VercelResponse,
+  segments: string[],
+): Promise<void> {
+  if (segments.length !== 3 || segments[2] !== "push-token") {
+    notFound(res);
+    return;
+  }
+
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    notFound(res);
+    return;
+  }
+
+  const wallet = segments[1];
+  const sessionError = walletSessionError(req, wallet);
+  if (sessionError) {
+    sendJson(res, 401, { error: sessionError });
+    return;
+  }
+
+  const body = await jsonBody(req, res);
+  if (!body) return;
+
+  const pushToken = parsePushTokenBody(body);
+  if (!pushToken) {
+    sendJson(res, 400, { error: "invalid_push_token" });
+    return;
+  }
+
+  if (req.method === "POST") {
+    store.addPushToken(wallet, pushToken.token);
+    await sendPersistedJson(res, 201, { pushTokens: store.listPushTokens(wallet) });
+    return;
+  }
+
+  store.removePushToken(wallet, pushToken.token);
+  await sendPersistedJson(res, 200, { pushTokens: store.listPushTokens(wallet) });
+}
+
+async function pushPendingActionNotification(action: {
+  actionId: string;
+  decisionStatus: DecisionStatus | null;
+  manifest: {
+    title: string;
+    userWallet: string;
+  };
+}, agentName: string): Promise<void> {
+  if (action.decisionStatus !== null) {
+    return;
+  }
+
+  const tokens = store.listPushTokens(action.manifest.userWallet);
+  if (tokens.length === 0) {
+    return;
+  }
+
+  try {
+    const result = await sendExpoPushNotifications({
+      message: {
+        body: action.manifest.title,
+        data: {
+          actionId: action.actionId,
+          kind: "new_action",
+        },
+        title: agentName,
+      },
+      tokens,
+    });
+    for (const token of result.deadTokens) {
+      store.removePushToken(action.manifest.userWallet, token);
+    }
+  } catch {
+    // Push is only a delivery channel; the action feed remains the source of truth.
+  }
+}
+
 async function handleActions(req: VercelRequest, res: VercelResponse, segments: string[]): Promise<void> {
   if (req.method === "GET" && segments.length === 1) {
     const wallet = queryValue(req, "wallet");
@@ -642,6 +726,7 @@ async function handleActions(req: VercelRequest, res: VercelResponse, segments: 
       manifest,
       policyResult,
     });
+    await pushPendingActionNotification(action, agent.name);
 
     await sendPersistedJson(res, 201, { action });
     return;
@@ -786,6 +871,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     if (segments[0] === "connections") {
       await handleConnections(req, res, segments);
+      return;
+    }
+
+    if (segments[0] === "wallets") {
+      await handleWallets(req, res, segments);
       return;
     }
 

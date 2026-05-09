@@ -31,10 +31,16 @@ export interface WalletSessionRecord {
   userWallet: string;
 }
 
+export interface PushTokenRecord {
+  token: string;
+  userWallet: string;
+}
+
 export interface StoreSnapshot {
   agents: AgentRecord[];
   connections: ConnectionRecord[];
   actions: ActionRecord[];
+  pushTokens?: PushTokenRecord[];
   walletSessions?: WalletSessionRecord[];
 }
 
@@ -48,6 +54,7 @@ export class SkillGuardStore {
   private readonly agents = new Map<string, AgentRecord>();
   private readonly connections = new Map<string, ConnectionRecord>();
   private readonly actions = new Map<string, ActionRecord>();
+  private readonly pushTokens = new Map<string, Set<string>>();
   private readonly walletSessions = new Map<string, WalletSessionRecord>();
 
   constructor(snapshot: StoreSnapshot) {
@@ -66,13 +73,25 @@ export class SkillGuardStore {
     for (const session of snapshot.walletSessions ?? []) {
       this.walletSessions.set(session.sessionId, session);
     }
+
+    for (const pushToken of snapshot.pushTokens ?? []) {
+      this.addPushToken(pushToken.userWallet, pushToken.token);
+    }
   }
 
   toSnapshot(): StoreSnapshot {
+    const pushTokens: PushTokenRecord[] = [];
+    for (const [userWallet, tokens] of this.pushTokens) {
+      for (const token of tokens) {
+        pushTokens.push({ token, userWallet });
+      }
+    }
+
     return {
       actions: [...this.actions.values()],
       agents: [...this.agents.values()],
       connections: [...this.connections.values()],
+      pushTokens,
       walletSessions: [...this.walletSessions.values()],
     };
   }
@@ -207,6 +226,27 @@ export class SkillGuardStore {
     return deleted;
   }
 
+  addPushToken(userWallet: string, token: string): void {
+    const existing = this.pushTokens.get(userWallet) ?? new Set<string>();
+    existing.add(token);
+    this.pushTokens.set(userWallet, existing);
+  }
+
+  removePushToken(userWallet: string, token: string): void {
+    const existing = this.pushTokens.get(userWallet);
+    if (!existing) {
+      return;
+    }
+    existing.delete(token);
+    if (existing.size === 0) {
+      this.pushTokens.delete(userWallet);
+    }
+  }
+
+  listPushTokens(userWallet: string): string[] {
+    return [...(this.pushTokens.get(userWallet) ?? [])];
+  }
+
   deleteSmokeRunArtifacts(runId: string, wallet: string): SmokeRunDeletionResult {
     const deletedConnectionAgentIds = new Set<string>();
     let actions = 0;
@@ -242,6 +282,8 @@ export class SkillGuardStore {
         this.walletSessions.delete(sessionId);
       }
     }
+
+    this.pushTokens.delete(wallet);
 
     return { actions, agents, connections };
   }

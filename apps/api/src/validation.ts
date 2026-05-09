@@ -120,6 +120,16 @@ export function parsePolicyPatch(value: unknown): Partial<AgentPolicy> | null {
   return Object.keys(next).length > 0 ? next : null;
 }
 
+export function parsePushTokenBody(value: unknown): { token: string } | null {
+  if (!isRecord(value) || !hasText(value.token)) {
+    return null;
+  }
+  if (!/^ExponentPushToken\[[^\]]+\]$/.test(value.token)) {
+    return null;
+  }
+  return { token: value.token };
+}
+
 export function manifestMatchesConnection(
   manifest: ActionManifest,
   connection: ConnectionRecord,

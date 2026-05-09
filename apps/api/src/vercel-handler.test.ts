@@ -412,6 +412,53 @@ describe("Vercel API handler", () => {
     });
   });
 
+  test("retains durable push tokens while loading production storage", async () => {
+    const keyPair = testKeyPair(43);
+    const wallet = walletFor(keyPair);
+    const connectionId = "conn-live-push-durable";
+    let stored: string | null = JSON.stringify({
+      ...snapshotForConnection({ connectionId, wallet }),
+      pushTokens: [{ token: "ExponentPushToken[durable-device]", userWallet: wallet }],
+    } satisfies StoreSnapshot);
+    const pushBodies: Array<{ to: string }> = [];
+    process.env.KV_REST_API_TOKEN = "test-token";
+    process.env.KV_REST_API_URL = "https://redis.test";
+    globalThis.fetch = async (input, init) => {
+      if (String(input).includes("redis.test")) {
+        const command = JSON.parse(String(init?.body)) as [string, ...unknown[]];
+        if (command[0] === "GET") {
+          return jsonRedisResponse(stored);
+        }
+        if (command[0] === "SET") {
+          stored = String(command[2]);
+          return jsonRedisResponse("OK");
+        }
+      }
+
+      pushBodies.push(JSON.parse(String(init?.body)) as { to: string });
+      return new Response(JSON.stringify({ data: [{ status: "ok" }] }), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      });
+    };
+
+    const manifest = pendingActionManifest({
+      actionId: "action-vercel-durable-push",
+      wallet,
+    });
+    const response = await callHandler("POST", "/api/actions", {
+      agentProof: agentProofFor({ connectionId, manifest }),
+      connectionId,
+      manifest,
+    });
+
+    expect(response.status).toBe(201);
+    expect(pushBodies).toMatchObject([{ to: "ExponentPushToken[durable-device]" }]);
+    expect(JSON.parse(stored ?? "{}")).toMatchObject({
+      pushTokens: [{ token: "ExponentPushToken[durable-device]", userWallet: wallet }],
+    });
+  });
+
   test("cleanup endpoint removes only smoke run artifacts", async () => {
     const wallet = "SmokeWalletCleanup111";
     const runId = "smoke-cleanup-1";
@@ -509,6 +556,129 @@ describe("Vercel API handler", () => {
 
     expect(allowed.status).toBe(200);
     expect((allowed.body.connections as Array<{ userWallet: string }>)[0]?.userWallet).toBe(wallet);
+  });
+
+  test("registers and removes production push tokens only with a wallet session", async () => {
+    const keyPair = testKeyPair(41);
+    const wallet = walletFor(keyPair);
+    const blocked = await callHandler("POST", `/api/wallets/${wallet}/push-token`, {
+      token: "ExponentPushToken[blocked]",
+    });
+    expect(blocked).toEqual({
+      body: { error: "wallet_session_required" },
+      status: 401,
+    });
+
+    const sessionToken = await createWalletSessionViaHandler({ keyPair, wallet });
+    const registered = await callHandler(
+      "POST",
+      `/api/wallets/${wallet}/push-token`,
+      { token: "ExponentPushToken[live-device]" },
+      undefined,
+      { "x-skillguard-wallet-session": sessionToken },
+    );
+    expect(registered).toEqual({
+      body: { pushTokens: ["ExponentPushToken[live-device]"] },
+      status: 201,
+    });
+
+    const removed = await callHandler(
+      "DELETE",
+      `/api/wallets/${wallet}/push-token`,
+      { token: "ExponentPushToken[live-device]" },
+      undefined,
+      { "x-skillguard-wallet-session": sessionToken },
+    );
+    expect(removed).toEqual({
+      body: { pushTokens: [] },
+      status: 200,
+    });
+  });
+
+  test("pushes pending production actions to registered wallet devices", async () => {
+    const keyPair = testKeyPair(42);
+    const wallet = walletFor(keyPair);
+    const connectionId = `conn-agent-research-${wallet}`;
+    const pushBodies: Array<{ to: string }> = [];
+    globalThis.fetch = async (_input, init) => {
+      const body = JSON.parse(String(init?.body)) as { to: string };
+      pushBodies.push(body);
+      const isDead = body.to === "ExponentPushToken[dead-device]";
+      return new Response(
+        JSON.stringify({
+          data: [
+            isDead
+              ? {
+                  details: { error: "DeviceNotRegistered" },
+                  status: "error",
+                }
+              : { status: "ok" },
+          ],
+        }),
+        { headers: { "content-type": "application/json" }, status: 200 },
+      );
+    };
+
+    await createConnectionViaHandler({ connectionId, keyPair, wallet });
+    const sessionToken = await createWalletSessionViaHandler({ keyPair, wallet });
+    for (const token of ["ExponentPushToken[live-device]", "ExponentPushToken[dead-device]"]) {
+      const response = await callHandler(
+        "POST",
+        `/api/wallets/${wallet}/push-token`,
+        { token },
+        undefined,
+        { "x-skillguard-wallet-session": sessionToken },
+      );
+      expect(response.status).toBe(201);
+    }
+
+    const manifest = pendingActionManifest({
+      actionId: "action-vercel-push-live",
+      wallet,
+    });
+    const response = await callHandler("POST", "/api/actions", {
+      agentProof: agentProofFor({ connectionId, manifest }),
+      connectionId,
+      manifest,
+    });
+
+    expect(response.status).toBe(201);
+    expect(pushBodies).toEqual([
+      {
+        body: "Vercel secure request",
+        data: {
+          actionId: "action-vercel-push-live",
+          kind: "new_action",
+        },
+        sound: "default",
+        title: "Research Agent",
+        to: "ExponentPushToken[live-device]",
+      },
+      {
+        body: "Vercel secure request",
+        data: {
+          actionId: "action-vercel-push-live",
+          kind: "new_action",
+        },
+        sound: "default",
+        title: "Research Agent",
+        to: "ExponentPushToken[dead-device]",
+      },
+    ]);
+
+    const secondManifest = pendingActionManifest({
+      actionId: "action-vercel-push-live-2",
+      wallet,
+    });
+    await callHandler("POST", "/api/actions", {
+      agentProof: agentProofFor({
+        connectionId,
+        manifest: secondManifest,
+      }),
+      connectionId,
+      manifest: secondManifest,
+    });
+    expect(pushBodies.at(-1)?.to).toBe("ExponentPushToken[live-device]");
   });
 
   test("rejects action manifests that do not match the connection wallet", async () => {
@@ -908,6 +1078,32 @@ function snapshotForConnection({
         userWallet: wallet,
       },
     ],
+  };
+}
+
+function pendingActionManifest({
+  actionId,
+  wallet,
+}: {
+  actionId: string;
+  wallet: string;
+}): ActionManifest {
+  return {
+    actionId,
+    accountsTouched: [wallet],
+    agentId: "agent-research",
+    createdAt: 1_800_000_000,
+    expiresAt: 4_100_000_000,
+    kind: "wallet_risk_report",
+    network: "solana-devnet",
+    protocols: ["helius"],
+    rawTransactionRef: null,
+    riskSignals: [{ code: "manual_review", level: "medium", message: "Needs approval." }],
+    schemaVersion: "skillguard.action.v1",
+    spend: [{ amountAtomic: "1000000", human: "0.001 SOL", mint: "SOL", reason: "Paid report." }],
+    summary: "Pending wallet request.",
+    title: "Vercel secure request",
+    userWallet: wallet,
   };
 }
 

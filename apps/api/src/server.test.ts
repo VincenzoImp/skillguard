@@ -480,6 +480,40 @@ describe("SkillGuard API", () => {
     expect(actions.status).toBe(200);
   });
 
+  test("push token registration requires a wallet session and can remove tokens", async () => {
+    const walletKeyPair = testKeyPair(31);
+    const wallet = walletFor(walletKeyPair);
+    const store = new SkillGuardStore({ actions: [], agents: [], connections: [] });
+    const app = createApp(store);
+    const token = "ExponentPushToken[token-1]";
+
+    const blocked = await app.request(`/wallets/${wallet}/push-token`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    expect(blocked.status).toBe(401);
+
+    const headers = await walletSessionHeaders({ app, wallet, walletKeyPair });
+    const registered = await app.request(`/wallets/${wallet}/push-token`, {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+
+    expect(registered.status).toBe(201);
+    expect(store.listPushTokens(wallet)).toEqual([token]);
+
+    const removed = await app.request(`/wallets/${wallet}/push-token`, {
+      method: "DELETE",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+
+    expect(removed.status).toBe(200);
+    expect(store.listPushTokens(wallet)).toEqual([]);
+  });
+
   test("connection creation rejects requests without wallet owner proof", async () => {
     const app = createEmptyTestApp();
     const wallet = "Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx";
@@ -598,6 +632,68 @@ describe("SkillGuard API", () => {
       feedBody.actions.find((action) => action.actionId === "action-live-safe")?.policyResult
         ?.manifestHash,
     ).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test("action creation pushes pending requests to registered wallet devices", async () => {
+    const store = new SkillGuardStore({ actions: [], agents: [], connections: [] });
+    const pushes: Array<{ body: string; data: Record<string, unknown>; title: string; tokens: string[] }> = [];
+    const app = createApp(store, {
+      pushNotifications: async ({ message, tokens }) => {
+        pushes.push({ ...message, tokens });
+        return { deadTokens: ["ExponentPushToken[dead]"], sent: 1 };
+      },
+    });
+    const { agentId, agentKeyPair, connectionId, wallet } = await createLiveConnection({ app });
+    store.addPushToken(wallet, "ExponentPushToken[live]");
+    store.addPushToken(wallet, "ExponentPushToken[dead]");
+    const manifest = liveManifest({ agentId, wallet });
+
+    const response = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentProof: agentProofFor({ agentId, connectionId, keyPair: agentKeyPair, manifest }),
+        connectionId,
+        manifest,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(pushes).toEqual([
+      {
+        body: "Live secure request",
+        data: { actionId: "action-live-secure", kind: "new_action" },
+        title: "Live Agent",
+        tokens: ["ExponentPushToken[live]", "ExponentPushToken[dead]"],
+      },
+    ]);
+    expect(store.listPushTokens(wallet)).toEqual(["ExponentPushToken[live]"]);
+  });
+
+  test("action creation still succeeds when push delivery fails", async () => {
+    const store = new SkillGuardStore({ actions: [], agents: [], connections: [] });
+    const app = createApp(store, {
+      pushNotifications: async () => {
+        throw new Error("expo_unavailable");
+      },
+    });
+    const { agentId, agentKeyPair, connectionId, wallet } = await createLiveConnection({ app });
+    store.addPushToken(wallet, "ExponentPushToken[live]");
+    const manifest = liveManifest({ actionId: "action-push-failure", agentId, wallet });
+
+    const response = await app.request("/actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        agentProof: agentProofFor({ agentId, connectionId, keyPair: agentKeyPair, manifest }),
+        connectionId,
+        manifest,
+      }),
+    });
+    const body = await json<{ action: { actionId: string } }>(response);
+
+    expect(response.status).toBe(201);
+    expect(body.action.actionId).toBe("action-push-failure");
   });
 
   test("action creation rejects requests without an agent signature proof", async () => {

@@ -19,12 +19,25 @@ import {
   parseAgentRecord,
   parseConnectionRecord,
   parsePolicyPatch,
+  parsePushTokenBody,
 } from "./validation.js";
 import {
   createWalletSessionToken,
   hashWalletSessionToken,
   walletSessionExpiresAt,
 } from "./walletSession.js";
+import { sendExpoPushNotifications, type ExpoPushMessage } from "./push.js";
+
+interface PushNotificationsInput {
+  message: ExpoPushMessage;
+  tokens: string[];
+}
+
+interface CreateAppOptions {
+  pushNotifications?: (
+    input: PushNotificationsInput
+  ) => Promise<{ deadTokens: string[]; sent: number }>;
+}
 
 function notFound(message: string) {
   return { error: message };
@@ -78,8 +91,12 @@ async function readOptionalJson(c: { req: { json(): Promise<unknown> } }): Promi
   }
 }
 
-export function createApp(store: SkillGuardStore): Hono {
+export function createApp(store: SkillGuardStore, options: CreateAppOptions = {}): Hono {
   const app = new Hono();
+  const pushNotifications =
+    options.pushNotifications ??
+    ((input: PushNotificationsInput) =>
+      sendExpoPushNotifications({ message: input.message, tokens: input.tokens }));
 
   app.get("/health", (c) => c.json({ ok: true, service: "skillguard-api" }));
 
@@ -175,6 +192,46 @@ export function createApp(store: SkillGuardStore): Hono {
 
     const connection = store.createConnection(connectionInput);
     return c.json({ connection }, 201);
+  });
+
+  app.post("/wallets/:wallet/push-token", async (c) => {
+    const wallet = c.req.param("wallet");
+    const sessionError = walletSessionError(
+      store,
+      wallet,
+      c.req.header("x-skillguard-wallet-session"),
+    );
+    if (sessionError) {
+      return c.json({ error: sessionError }, 401);
+    }
+
+    const body = parsePushTokenBody(await c.req.json());
+    if (!body) {
+      return c.json({ error: "invalid_push_token" }, 400);
+    }
+
+    store.addPushToken(wallet, body.token);
+    return c.json({ pushTokens: store.listPushTokens(wallet) }, 201);
+  });
+
+  app.delete("/wallets/:wallet/push-token", async (c) => {
+    const wallet = c.req.param("wallet");
+    const sessionError = walletSessionError(
+      store,
+      wallet,
+      c.req.header("x-skillguard-wallet-session"),
+    );
+    if (sessionError) {
+      return c.json({ error: sessionError }, 401);
+    }
+
+    const body = parsePushTokenBody(await c.req.json());
+    if (!body) {
+      return c.json({ error: "invalid_push_token" }, 400);
+    }
+
+    store.removePushToken(wallet, body.token);
+    return c.json({ pushTokens: store.listPushTokens(wallet) });
   });
 
   app.get("/connections", (c) => {
@@ -308,6 +365,27 @@ export function createApp(store: SkillGuardStore): Hono {
       policyResult,
       decisionStatus: decisionStatusForPolicy(policyResult),
     });
+
+    if (action.decisionStatus === null) {
+      const tokens = store.listPushTokens(action.manifest.userWallet);
+      if (tokens.length > 0) {
+        try {
+          const result = await pushNotifications({
+            message: {
+              body: action.manifest.title,
+              data: { actionId: action.actionId, kind: "new_action" },
+              title: agent.name,
+            },
+            tokens,
+          });
+          for (const token of result.deadTokens) {
+            store.removePushToken(action.manifest.userWallet, token);
+          }
+        } catch {
+          // Push is an additive delivery channel; the action feed remains source of truth.
+        }
+      }
+    }
 
     return c.json({ action }, 201);
   });
