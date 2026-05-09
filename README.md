@@ -141,6 +141,7 @@ npm --prefix apps/api run dev
 
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
 npm --prefix apps/research-agent run agent:loop
 
 # Lower-level smoke commands remain available:

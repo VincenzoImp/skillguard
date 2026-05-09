@@ -7,6 +7,7 @@ describe("local demo launcher", () => {
     const script = readFileSync("scripts/dev-demo.sh", "utf8");
 
     assert.match(script, /npm --prefix apps\/research-agent run agent:loop/);
+    assert.match(script, /SKILLGUARD_AGENT_PRIVATE_KEY_B58/);
     assert.doesNotMatch(script, /SKILLGUARD_AUTORUN_AGENT[^]*submit:safe/);
     assert.doesNotMatch(script, /SKILLGUARD_AUTORUN_AGENT[^]*submit:unsafe/);
   });

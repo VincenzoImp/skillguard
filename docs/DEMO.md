@@ -38,6 +38,7 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api \
 
 export SKILLGUARD_API_URL=https://skillguard-sol.vercel.app/api
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
 npm --prefix apps/research-agent run agent:loop
 ```
 
@@ -69,6 +70,7 @@ EXPO_PUBLIC_SKILLGUARD_API_URL=http://10.0.2.2:8787 \
 
 export SKILLGUARD_API_URL=http://localhost:8787
 export SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address>
+export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager>
 npm --prefix apps/research-agent run agent:loop
 
 # Lower-level smoke commands remain available:
@@ -125,11 +127,14 @@ Revoke Research Agent in mobile, then run:
 
 ```bash
 SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
-  npm --prefix apps/research-agent run submit:revoked
+SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager> \
+  npm --prefix apps/research-agent run agent:loop
 ```
 
 Open `Agents`, revoke Research Agent, then show in `Inbox` that the future
-request is blocked because the policy is inactive/revoked.
+request is blocked because the policy is inactive/revoked. If the loop is
+already running when you revoke, wait for the next cycle; it exits cleanly after
+`policy_revoked`.
 
 ## Scene 5: Developer Integration
 
