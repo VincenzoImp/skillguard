@@ -22,7 +22,7 @@ Create a Vercel project from this repository and keep the repository root as the
 Vercel root directory. The committed `vercel.json` uses:
 
 ```text
-buildCommand: npm run vercel:build
+buildCommand: VITE_BASE_PATH=/ npm run vercel:build
 outputDirectory: apps/site/dist
 API function: api/[...path].ts
 ```
