@@ -6,11 +6,9 @@ import {
   Code2,
   Database,
   ExternalLink,
-  FileCheck2,
   Globe2,
   LockKeyhole,
   QrCode,
-  Radio,
   Server,
   ShieldAlert,
   ShieldCheck,
@@ -25,14 +23,13 @@ import { BrowserRouter, Link, NavLink, Route, Routes } from "react-router-dom";
 import iconMark from "../../../assets/brand/icon.png";
 import { liveApiBaseUrl, liveApiCurlExamples, liveApiEndpoints, liveSiteUrl } from "./liveApi";
 import { researchAgentPairing, researchAgentPairingLink } from "./pairing";
+import { defaultPhoneDemoTab, phoneDemoTabs, type PhoneDemoTabId } from "./phoneDemoModel";
 import { firewallHero, siteRoutes } from "./siteNavigation";
 import { roadmapItems, type RoadmapStatus } from "./submissionStatus";
 
 type Decision = "pending" | "approved" | "rejected" | "revoked";
 
 const repositoryUrl = "https://github.com/VincenzoImp/skillguard";
-const programId = "HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam";
-
 const proofPoints = [
   ["Allow", "Safe zero-spend actions"],
   ["Ask", "Spending needs consent"],
@@ -88,21 +85,27 @@ const demoSteps: Array<{
   tone: "danger" | "safe" | "violet";
 }> = [
   {
-    label: "Free scan",
-    title: "Safe work can proceed automatically",
-    text: "A read-only wallet risk scan has no spend and no raw transaction. In Allow under limits mode, SkillGuard can approve it without interrupting the user.",
+    label: "1. Pair",
+    title: "Import Research Agent by QR",
+    text: "The wallet owner scans the pairing QR, reviews limits, and signs one permission grant for that agent.",
     tone: "safe",
   },
   {
-    label: "Paid report",
-    title: "Spending still needs consent",
-    text: "A paid research report asks for 0.001 SOL. SkillGuard routes it to the mobile app and the wallet signs only after explicit approval.",
+    label: "2. Ask",
+    title: "Approve the 0.001 SOL report",
+    text: "The agent requests a paid report. SkillGuard sends it to mobile and the wallet signs only after approval.",
     tone: "violet",
   },
   {
-    label: "Blocked",
-    title: "Dangerous requests never reach the wallet",
-    text: "A 0.05 SOL upgrade exceeds the user's 0.01 SOL per-action limit and is blocked before any signature prompt appears.",
+    label: "3. Block",
+    title: "Stop the 0.05 SOL upgrade",
+    text: "The request exceeds the per-action cap, so it is denied before any wallet signature prompt can appear.",
+    tone: "danger",
+  },
+  {
+    label: "4. Revoke",
+    title: "Cut off future requests",
+    text: "The user revokes the agent. New requests from that identity are denied for this wallet.",
     tone: "danger",
   },
 ];
@@ -115,15 +118,6 @@ const architectureNodes = [
   "Android app",
   "Mobile Wallet Adapter",
   "Anchor receipt program",
-];
-
-const permissionRows = [
-  ["Mode", "Ask every time / auto low-risk zero-spend"],
-  ["Spend cap", "0.01 SOL per action"],
-  ["Daily cap", "0.05 SOL"],
-  ["Network", "Solana devnet only"],
-  ["Protocols", "Helius, Birdeye"],
-  ["Expiry", "24 hours"],
 ];
 
 const receiptEvents = [
@@ -194,7 +188,7 @@ function AppShell() {
         <Header />
         <Routes>
           <Route path="/" element={<HomePage phoneDemoProps={phoneDemoProps} />} />
-          <Route path="/demo" element={<DemoPage phoneDemoProps={phoneDemoProps} />} />
+          <Route path="/demo" element={<DemoPage />} />
           <Route path="/how-it-works" element={<ArchitecturePage />} />
           <Route path="/architecture" element={<ArchitecturePage />} />
           <Route path="/developers" element={<DevelopersPage />} />
@@ -218,26 +212,15 @@ function HomePage({ phoneDemoProps }: { phoneDemoProps: PhoneDemoProps }) {
         </div>
       </section>
 
-      <ProofStrip />
       <ProblemSection />
       <SolutionSection />
     </>
   );
 }
 
-function DemoPage({ phoneDemoProps }: { phoneDemoProps: PhoneDemoProps }) {
+function DemoPage() {
   return (
-    <>
-      <section className="grid items-center gap-8 rounded-2xl border border-border-subtle bg-bg-900/70 p-5 sm:p-7 lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,0.72fr)]">
-        <SectionHeader
-          kicker="3-minute demo"
-          title="One agent, one wallet, three outcomes: allow, ask, block."
-          text="The recording path shows the full wallet-firewall story: pair Research Agent, approve a paid report from mobile, block an overspend, then revoke the agent."
-        />
-        <PhoneDemo {...phoneDemoProps} />
-      </section>
-      <DemoSection />
-    </>
+    <DemoSection />
   );
 }
 
@@ -310,10 +293,6 @@ function Header() {
 function HeroCopy() {
   return (
     <div className="max-w-3xl">
-      <div className="mb-8 inline-flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-950/80 p-3">
-        <img src={iconMark} alt="SkillGuard logo" className="h-12 w-12 rounded-lg" />
-        <span className="font-display text-2xl font-bold text-text-primary">SkillGuard</span>
-      </div>
       <StatusPill icon={ShieldCheck}>Wallet firewall for onchain AI agents</StatusPill>
       <h1 className="mt-5 font-display text-4xl font-bold leading-[1.03] text-text-primary sm:text-5xl lg:text-6xl">
         {firewallHero.title}
@@ -338,31 +317,6 @@ function HeroCopy() {
         ))}
       </div>
     </div>
-  );
-}
-
-function ProofStrip() {
-  return (
-    <section className="grid gap-3 md:grid-cols-3">
-      <ProofCard
-        icon={Radio}
-        label="Core gap"
-        value="Agents can act. Users need control."
-        text="SkillGuard lets agents request wallet actions without receiving private keys or unrestricted spending authority."
-      />
-      <ProofCard
-        icon={FileCheck2}
-        label="Demo proof"
-        value="Real Android + devnet receipt"
-        text={`Mobile Wallet Adapter signs decisions and the Anchor receipt program is deployed at ${programId}.`}
-      />
-      <ProofCard
-        icon={LockKeyhole}
-        label="Safety model"
-        value="Allow, ask, block, revoke"
-        text="Safe zero-spend actions can pass under policy. Spending and sensitive actions need consent. Violations are blocked."
-      />
-    </section>
   );
 }
 
@@ -413,11 +367,11 @@ function DemoSection() {
   return (
     <section id="demo" className="scroll-mt-28">
       <SectionHeader
-        kicker="Demo"
-        title="The demo is built around the exact struggle: useful autonomy without uncontrolled wallet access."
-        text="Research Agent is allowed to request work with the user's wallet, but SkillGuard decides whether the request is safe to auto-allow, sensitive enough to ask, or dangerous enough to block."
+        kicker="Demo runbook"
+        title="A three-minute proof that an agent can act without owning the wallet."
+        text="Record this exact path in the Android app: pair Research Agent by QR, approve one 0.001 SOL request, block the 0.05 SOL overspend, then revoke the agent."
       />
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {demoSteps.map((step) => (
           <DemoCard key={step.title} {...step} />
         ))}
@@ -802,14 +756,16 @@ function PhoneDemo({
   decisionCopy: ReturnType<typeof getDecisionCopy>;
   DecisionIcon: typeof CircleDot;
 }) {
+  const [activeTab, setActiveTab] = useState<PhoneDemoTabId>(defaultPhoneDemoTab);
+
   return (
-    <div className="mx-auto w-full max-w-[430px]">
-      <div className="rounded-[34px] border border-white/10 bg-black p-3 shadow-[0_34px_95px_rgba(0,0,0,0.5)]">
-        <div className="overflow-hidden rounded-[26px] border border-border-subtle bg-bg-900">
-          <div className="flex items-center justify-between border-b border-border-subtle px-5 pb-4 pt-7">
+    <div className="mx-auto w-full max-w-[356px]">
+      <div className="rounded-[40px] border border-white/10 bg-black p-2 shadow-[0_34px_95px_rgba(0,0,0,0.48)]">
+        <div className="flex h-[690px] max-h-[calc(100vh-7rem)] min-h-[620px] flex-col overflow-hidden rounded-[32px] border border-border-subtle bg-bg-900">
+          <div className="flex items-center justify-between border-b border-border-subtle px-4 pb-3 pt-5">
             <div className="flex items-center gap-3">
-              <img src={iconMark} alt="" className="h-9 w-9 rounded-lg" />
-              <p className="text-sm font-semibold">SkillGuard</p>
+              <img src={iconMark} alt="" className="h-8 w-8 rounded-lg" />
+              <p className="text-base font-extrabold tracking-[0]">SkillGuard</p>
             </div>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${decisionCopy.border} ${decisionCopy.background} ${decisionCopy.tone}`}
@@ -819,135 +775,40 @@ function PhoneDemo({
             </span>
           </div>
 
-          <div className="space-y-4 p-4">
-            <div className="rounded-xl border border-border-subtle bg-bg-950/70 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-                Inbox
-              </p>
-              <div className="mt-3 rounded-lg border border-border-subtle bg-surface-900 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">Generate weekly wallet risk PDF</p>
-                    <p className="mt-1 text-xs leading-5 text-text-secondary">
-                      Research Agent wants to spend 0.001 SOL and record a SkillGuard receipt.
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-md border px-2 py-1 text-xs font-semibold ${decisionCopy.border} ${decisionCopy.background} ${decisionCopy.tone}`}
-                  >
-                    {decisionCopy.label}
-                  </span>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                  <PolicyMini label="Network" value="devnet" tone="text-brand-blue" />
-                  <PolicyMini label="Spend" value="0.001 SOL" tone="text-text-primary" />
-                  <PolicyMini label="Risk" value="medium" tone="text-status-warning" />
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Policy for this agent</p>
-                <button
-                  type="button"
-                  className="rounded-md border border-brand-violet/30 px-2.5 py-1 text-xs font-semibold text-brand-violet transition hover:bg-brand-violet/10"
-                  onClick={() => setDecision("revoked")}
-                >
-                  Revoke
-                </button>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg border border-border-subtle bg-bg-950 p-1 text-center text-[11px] font-semibold">
-                {["Ask", "Allow", "Block"].map((mode) => (
-                  <span
-                    key={mode}
-                    className={`rounded-md px-2 py-2 ${
-                      mode === "Ask"
-                        ? "bg-brand-mint text-bg-950"
-                        : "text-text-secondary"
-                    }`}
-                  >
-                    {mode}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-3 space-y-2">
-                {permissionRows.map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="text-text-muted">{label}</span>
-                    <span className="font-medium text-text-primary">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={`rounded-lg border p-4 ${decisionCopy.border} ${decisionCopy.background}`}>
-              <p className="text-sm font-semibold">After approval</p>
-              <p className="mt-1 text-xs leading-5 text-text-secondary">
-                The wallet signs one devnet transaction only after approval. The Activity tab
-                shows the receipt hash and Explorer link.
-              </p>
-              <div className="mt-3 space-y-2">
-                {[
-                  "Network allowed: solana-devnet",
-                  "Spend under per-action cap",
-                  "Wallet approval required for SOL movement",
-                ].map((check) => (
-                  <div key={check} className="flex gap-2 text-xs text-text-secondary">
-                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-mint" />
-                    <span>{check}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setDecision("rejected")}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-status-danger/40 text-sm font-semibold text-status-danger transition hover:bg-status-danger/10"
-              >
-                <XCircle className="h-4 w-4" />
-                Reject
-              </button>
-              <button
-                type="button"
-                onClick={() => setDecision("approved")}
-                className="approval-gradient inline-flex h-11 items-center justify-center gap-2 rounded-lg text-sm font-semibold text-bg-950 transition hover:brightness-110"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Approve
-              </button>
-            </div>
-
-            <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
-              <p className="text-sm font-semibold">Activity</p>
-              <div className="mt-3 space-y-3">
-                {receiptEvents.map((event, index) => (
-                  <div key={event} className="flex gap-3 text-xs text-text-secondary">
-                    <span className="mt-1 h-2 w-2 rounded-full bg-brand-mint" />
-                    <div>
-                      <p>{event}</p>
-                      <p className="mt-1 font-mono text-[11px] text-text-muted">sg_{index + 1}_9x8f...dev</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            {activeTab === "home" ? (
+              <PhoneHomeScreen decision={decision} onOpenInbox={() => setActiveTab("inbox")} onOpenPair={() => setActiveTab("pair")} />
+            ) : null}
+            {activeTab === "inbox" ? (
+              <PhoneInboxScreen
+                DecisionIcon={DecisionIcon}
+                decisionCopy={decisionCopy}
+                onApprove={() => setDecision("approved")}
+                onReject={() => setDecision("rejected")}
+              />
+            ) : null}
+            {activeTab === "agents" ? (
+              <PhoneAgentsScreen onRevoke={() => setDecision("revoked")} />
+            ) : null}
+            {activeTab === "pair" ? <PhonePairScreen /> : null}
+            {activeTab === "activity" ? <PhoneActivityScreen decision={decision} /> : null}
           </div>
-          <div className="grid grid-cols-5 border-t border-border-subtle bg-bg-950 px-2 py-2 text-[10px] font-semibold text-text-muted">
-            {["Home", "Inbox", "Agents", "Pair", "Activity"].map((tab) => (
-              <div
-                key={tab}
-                className={`relative rounded-lg py-2 text-center ${
-                  tab === "Inbox" ? "bg-surface-800 text-brand-mint" : ""
+
+          <div className="grid grid-cols-5 gap-1 border-t border-border-subtle bg-bg-950 px-2 pb-2 pt-2 text-[10px] font-extrabold text-text-muted">
+            {phoneDemoTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative min-h-12 rounded-lg px-1 text-center transition ${
+                  tab.id === activeTab ? "bg-surface-800 text-text-primary" : "hover:bg-surface-900"
                 }`}
               >
-                {tab}
-                {tab === "Inbox" && decision === "pending" ? (
-                  <span className="absolute right-3 top-2 h-1.5 w-1.5 rounded-full bg-brand-mint" />
+                {tab.label}
+                {tab.id === "inbox" && activeTab !== "inbox" && decision === "pending" ? (
+                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-mint" />
                 ) : null}
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -956,20 +817,344 @@ function PhoneDemo({
   );
 }
 
-function PolicyMini({
+function PhoneHomeScreen({
+  decision,
+  onOpenInbox,
+  onOpenPair,
+}: {
+  decision: Decision;
+  onOpenInbox: () => void;
+  onOpenPair: () => void;
+}) {
+  const pendingCount = decision === "pending" ? "1" : "0";
+  const blockedCount = decision === "revoked" || decision === "rejected" ? "1" : "0";
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border-subtle bg-surface-900 p-4">
+        <div className="flex gap-2">
+          <PhoneBadge tone="info">devnet</PhoneBadge>
+          <PhoneBadge tone="info">live api</PhoneBadge>
+        </div>
+        <p className="mt-4 text-2xl font-extrabold leading-tight">
+          {decision === "pending" ? "1 request needs review." : "Your wallet is guarded."}
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <PhoneMetric label="Pending" value={pendingCount} tone="warning" />
+        <PhoneMetric label="Agents" value="1" tone="safe" />
+        <PhoneMetric label="Blocked" value={blockedCount} tone="danger" />
+        <PhoneMetric label="History" value={decision === "pending" ? "0" : "1"} tone="info" />
+      </div>
+      <PhonePanel label="Wallet">
+        <p className="mt-1 text-xl font-extrabold">13hF...op4Q</p>
+        <button
+          type="button"
+          className="mt-4 h-11 rounded-lg bg-brand-mint px-4 text-sm font-extrabold text-bg-950"
+        >
+          Refresh
+        </button>
+      </PhonePanel>
+      <div className="grid grid-cols-2 gap-2">
+        <PhoneQuickAction body="Open approval queue" disabled={decision !== "pending"} label="Review" onClick={onOpenInbox} />
+        <PhoneQuickAction body="Scan QR or paste fallback" label="Pair" onClick={onOpenPair} />
+      </div>
+    </div>
+  );
+}
+
+function PhoneInboxScreen({
+  DecisionIcon,
+  decisionCopy,
+  onApprove,
+  onReject,
+}: {
+  DecisionIcon: typeof CircleDot;
+  decisionCopy: ReturnType<typeof getDecisionCopy>;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-bold uppercase text-text-muted">Inbox</p>
+        <p className="mt-1 text-xl font-extrabold">Agent requests</p>
+      </div>
+      <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-base font-extrabold leading-5">Generate weekly wallet risk report</p>
+          <span
+            className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${decisionCopy.border} ${decisionCopy.background} ${decisionCopy.tone}`}
+          >
+            {decisionCopy.label}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-5 text-text-secondary">
+          Research Agent wants to spend 0.001 SOL and record a SkillGuard receipt.
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <PhoneInfoCell label="Network" value="devnet" />
+          <PhoneInfoCell label="Spend" value="0.001 SOL" />
+          <PhoneInfoCell label="Risk" value="medium" />
+        </div>
+      </div>
+      <div className={`rounded-lg border p-4 ${decisionCopy.border} ${decisionCopy.background}`}>
+        <p className="flex items-center gap-2 text-sm font-extrabold">
+          <DecisionIcon className="h-4 w-4" />
+          Wallet review required
+        </p>
+        <div className="mt-3 space-y-2">
+          {[
+            "Network allowed: solana-devnet",
+            "Spend under per-action cap",
+            "SOL movement requires wallet approval",
+          ].map((check) => (
+            <div key={check} className="flex gap-2 text-xs text-text-secondary">
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-mint" />
+              <span>{check}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={onReject}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-status-danger/40 text-sm font-extrabold text-status-danger transition hover:bg-status-danger/10"
+        >
+          <XCircle className="h-4 w-4" />
+          Reject
+        </button>
+        <button
+          type="button"
+          onClick={onApprove}
+          className="approval-gradient inline-flex h-11 items-center justify-center gap-2 rounded-lg text-sm font-extrabold text-bg-950 transition hover:brightness-110"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          Approve
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PhoneAgentsScreen({ onRevoke }: { onRevoke: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border-subtle bg-surface-900 p-4">
+        <p className="text-xs font-bold uppercase text-text-muted">Connected agents</p>
+        <p className="mt-2 text-sm leading-5 text-text-secondary">
+          Each card controls one agent only. Revoked agents are hidden and cannot submit new wallet requests.
+        </p>
+      </div>
+      <div className="rounded-lg border border-border-subtle bg-bg-900 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-base font-extrabold">Research Agent</p>
+            <p className="mt-1 text-sm leading-5 text-text-secondary">
+              Wallet risk checks through SkillGuard.
+            </p>
+          </div>
+          <PhoneBadge tone="safe">Active</PhoneBadge>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <PhoneInfoCell label="Network" value="solana-devnet" />
+          <PhoneInfoCell label="Last seen" value="now" />
+        </div>
+        <div className="mt-4 border-t border-border-subtle pt-4">
+          <p className="text-sm font-extrabold">Policy for this agent</p>
+          <p className="mt-1 text-xs leading-5 text-text-secondary">
+            Auto-approval applies only to low-risk zero-spend requests.
+          </p>
+          <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg border border-border-subtle bg-bg-950 p-1 text-center text-[10px] font-extrabold">
+            {["Ask every time", "Allow under limits", "Block"].map((mode, index) => (
+              <span
+                key={mode}
+                className={`rounded-md px-1 py-2 ${index === 0 ? "bg-brand-mint text-bg-950" : "text-text-secondary"}`}
+              >
+                {mode}
+              </span>
+            ))}
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <PhoneInfoCell label="Max spend" value="0.01 SOL" />
+            <PhoneInfoCell label="Daily cap" value="0.05 SOL" />
+            <PhoneInfoCell label="Protocols" value="Helius, Birdeye" />
+            <PhoneInfoCell label="Expiry" value="24h" />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onRevoke}
+          className="mt-4 h-11 w-full rounded-lg border border-status-danger/40 text-sm font-extrabold text-status-danger transition hover:bg-status-danger/10"
+        >
+          Revoke agent
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PhonePairScreen() {
+  return (
+    <div className="space-y-4">
+      <PhonePanel label="Pair agent">
+        <p className="mt-1 text-sm leading-5 text-text-secondary">
+          Scan a trusted agent QR. Importing still requires your wallet signature.
+        </p>
+      </PhonePanel>
+      <div className="rounded-xl border border-brand-mint/25 bg-brand-mint/10 p-4">
+        <p className="text-lg font-extrabold">Scan pairing QR</p>
+        <div className="mt-4 flex h-40 items-center justify-center rounded-xl border border-brand-mint/35 bg-bg-950">
+          <QrCode className="h-20 w-20 text-brand-mint" />
+        </div>
+        <p className="mt-3 text-xs font-bold text-text-muted">Camera permission is ready.</p>
+      </div>
+      <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
+        <p className="text-xs font-bold uppercase text-text-muted">Loaded agent</p>
+        <p className="mt-2 text-base font-extrabold">Research Agent</p>
+        <p className="mt-2 break-all font-mono text-xs text-text-muted">
+          9hSR6S7...xrsUGWBu
+        </p>
+        <button
+          type="button"
+          className="mt-4 h-11 w-full rounded-lg bg-brand-mint px-4 text-sm font-extrabold text-bg-950"
+        >
+          Sign & import agent
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PhoneActivityScreen({ decision }: { decision: Decision }) {
+  const hasHistory = decision !== "pending";
+  const outcome =
+    decision === "approved"
+      ? "Wallet-approved execution. Receipt and signed transaction are visible on Solana Explorer."
+      : decision === "rejected"
+        ? "The wallet owner rejected this request before execution."
+        : decision === "revoked"
+          ? "Agent access was revoked. Future requests are denied."
+          : "Decisions recorded by this wallet will appear here.";
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-bold uppercase text-text-muted">Receipts</p>
+        <p className="mt-1 text-xl font-extrabold">Decision history</p>
+      </div>
+      {hasHistory ? (
+        <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm font-extrabold">Weekly wallet risk report</p>
+            <PhoneBadge tone={decision === "approved" ? "safe" : "danger"}>
+              {decision === "approved" ? "Approved" : decision === "rejected" ? "Rejected" : "Blocked"}
+            </PhoneBadge>
+          </div>
+          <p className="mt-3 font-mono text-xs text-text-muted">sg_1_9x8f...dev</p>
+          <p className="mt-3 text-xs leading-5 text-text-secondary">{outcome}</p>
+          {receiptEvents.slice(1).map((event) => (
+            <div key={event} className="mt-3 flex gap-2 text-xs text-text-secondary">
+              <span className="mt-1 h-2 w-2 rounded-full bg-brand-mint" />
+              <span>{event}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <PhonePanel label="No history yet">
+          <p className="mt-1 text-sm leading-5 text-text-secondary">
+            Pending requests do not count as history until the wallet approves, rejects, blocks, or revokes.
+          </p>
+        </PhonePanel>
+      )}
+    </div>
+  );
+}
+
+function PhoneMetric({
   label,
   tone,
   value,
 }: {
   label: string;
-  tone: string;
+  tone: "danger" | "info" | "safe" | "warning";
   value: string;
 }) {
+  const toneClass = {
+    danger: "border-status-danger/30 bg-status-danger/10",
+    info: "border-brand-blue/25 bg-brand-blue/10",
+    safe: "border-brand-mint/25 bg-brand-mint/10",
+    warning: "border-status-warning/30 bg-status-warning/10",
+  }[tone];
+
   return (
-    <div className="rounded-lg border border-border-subtle bg-bg-950 p-2 text-center">
-      <p className="text-[10px] text-text-muted">{label}</p>
-      <p className={`mt-1 font-semibold ${tone}`}>{value}</p>
+    <div className={`min-h-20 rounded-lg border p-3 ${toneClass}`}>
+      <p className="text-2xl font-extrabold">{value}</p>
+      <p className="mt-1 text-xs font-bold text-text-secondary">{label}</p>
     </div>
+  );
+}
+
+function PhoneQuickAction({
+  body,
+  disabled,
+  label,
+  onClick,
+}: {
+  body: string;
+  disabled?: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="min-h-24 rounded-lg border border-border-subtle bg-surface-900 p-3 text-left transition hover:border-brand-mint/30 disabled:opacity-45"
+    >
+      <p className="text-base font-extrabold">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-text-secondary">{body}</p>
+    </button>
+  );
+}
+
+function PhonePanel({ children, label }: { children: ReactNode; label: string }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-surface-900 p-4">
+      <p className="text-xs font-bold uppercase text-text-muted">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function PhoneInfoCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border-subtle bg-bg-950 p-2">
+      <p className="text-[10px] font-bold text-text-muted">{label}</p>
+      <p className="mt-1 break-words text-xs font-bold text-text-primary">{value}</p>
+    </div>
+  );
+}
+
+function PhoneBadge({
+  children,
+  tone,
+}: {
+  children: ReactNode;
+  tone: "danger" | "info" | "safe";
+}) {
+  const toneClass = {
+    danger: "border-status-danger/40 bg-status-danger/10 text-status-danger",
+    info: "border-brand-blue/35 bg-brand-blue/10 text-brand-blue",
+    safe: "border-brand-mint/35 bg-brand-mint/10 text-brand-mint",
+  }[tone];
+
+  return (
+    <span className={`inline-flex rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${toneClass}`}>
+      {children}
+    </span>
   );
 }
 
@@ -981,27 +1166,6 @@ function SectionHeader({ kicker, title, text }: { kicker: string; title: string;
         {title}
       </h2>
       <p className="mt-4 text-base leading-7 text-text-secondary">{text}</p>
-    </div>
-  );
-}
-
-function ProofCard({
-  icon: Icon,
-  label,
-  value,
-  text,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  text: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
-      <Icon className="h-5 w-5 text-brand-mint" />
-      <p className="mt-4 text-xs text-text-muted">{label}</p>
-      <p className="mt-2 break-words text-base font-semibold">{value}</p>
-      <p className="mt-3 text-sm leading-6 text-text-secondary">{text}</p>
     </div>
   );
 }
