@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import type { RiskTone } from "../demoState";
+import type { RiskTone } from "../liveState";
 import { toneColors } from "../theme";
 
 interface StatusBadgeProps {

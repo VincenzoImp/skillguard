@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import type { PolicyCheck } from "../demoState";
+import type { PolicyCheck } from "../liveState";
 import { colors, toneColors } from "../theme";
 
 interface PolicyCheckListProps {

@@ -1,11 +1,11 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import type { DemoAction } from "../demoState";
+import type { MobileAction } from "../liveState";
 import { colors, labelForStatus, toneForStatus } from "../theme";
 import { StatusBadge } from "../components/StatusBadge";
 import { explorerUrl } from "../wallet";
 
 interface ReceiptScreenProps {
-  actions: DemoAction[];
+  actions: MobileAction[];
 }
 
 export function ReceiptScreen({ actions }: ReceiptScreenProps) {

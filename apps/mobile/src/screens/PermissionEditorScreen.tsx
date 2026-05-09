@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { AgentPolicy, PolicyMode } from "../demoState";
+import type { AgentPolicy, PolicyMode } from "../liveState";
 import { colors, labelForPolicyMode } from "../theme";
 
 interface PermissionEditorScreenProps {

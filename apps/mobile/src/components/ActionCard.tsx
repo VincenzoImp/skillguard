@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { DemoAction } from "../demoState";
+import type { MobileAction } from "../liveState";
 import { colors, labelForStatus, toneForStatus } from "../theme";
 import { StatusBadge } from "./StatusBadge";
 
 interface ActionCardProps {
-  action: DemoAction;
+  action: MobileAction;
   isSelected: boolean;
   onPress: () => void;
 }

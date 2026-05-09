@@ -1,0 +1,173 @@
+import type { ActionManifest, AgentPolicy, PolicyResult } from "@skillguard/protocol";
+import { describe, expect, it } from "vitest";
+
+import {
+  getBlockedActions,
+  getPendingActions,
+  getSelectedAction,
+  selectAction,
+  toMobileState,
+} from "./liveState";
+
+const userWallet = "Wallet111111111111111111111111111111111111";
+
+const policy: AgentPolicy = {
+  active: true,
+  agentId: "agent-research",
+  allowedMints: ["SOL", "USDC"],
+  allowedNetworks: ["solana-devnet"],
+  allowedProtocols: ["helius", "birdeye"],
+  dailySpendCapAtomic: "5000000",
+  expiresAt: 4_100_000_000,
+  maxSpendAtomic: "1000000",
+  mode: "ask_every_time",
+  policyId: "policy-live",
+  revoked: false,
+  userWallet,
+};
+
+const manifest: ActionManifest = {
+  accountsTouched: [userWallet],
+  actionId: "action-live",
+  agentId: "agent-research",
+  createdAt: 1_800_000_000,
+  expiresAt: 4_100_000_000,
+  kind: "wallet_risk_report",
+  network: "solana-devnet",
+  protocols: ["helius"],
+  rawTransactionRef: null,
+  riskSignals: [
+    {
+      code: "read_only",
+      level: "low",
+      message: "No token transfer is requested.",
+    },
+  ],
+  schemaVersion: "skillguard.action.v1",
+  spend: [
+    {
+      amountAtomic: "0",
+      human: "0 USDC",
+      mint: "USDC",
+      reason: "Read-only report",
+    },
+  ],
+  summary: "Analyze wallet risk.",
+  title: "Generate wallet risk report",
+  userWallet,
+};
+
+describe("mobile live state mapping", () => {
+  it("maps API connections and actions to a real mobile state", () => {
+    const result: PolicyResult = {
+      manifestHash: "hash-live",
+      reasons: ["policy_requires_manual_approval"],
+      riskLevel: "medium",
+      status: "requires_approval",
+    };
+
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-live",
+          connectionId: "conn-live",
+          decisionStatus: null,
+          manifest,
+          policyResult: result,
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy,
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.agent?.status).toBe("active");
+    expect(state.selectedActionId).toBe("action-live");
+    expect(getSelectedAction(state)?.id).toBe("action-live");
+    expect(getPendingActions(state)).toHaveLength(1);
+    expect(getBlockedActions(state)).toHaveLength(0);
+    expect(state.actions[0].checks.map((check) => check.label)).toContain(
+      "User approval required"
+    );
+  });
+
+  it("shows revoked agents and blocks failed policy results", () => {
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-blocked",
+          connectionId: "conn-live",
+          decisionStatus: "blocked",
+          manifest: {
+            ...manifest,
+            actionId: "action-blocked",
+            spend: [
+              {
+                amountAtomic: "2000000",
+                human: "2 USDC",
+                mint: "USDC",
+                reason: "Swap preview spend",
+              },
+            ],
+          },
+          policyResult: {
+            manifestHash: "hash-blocked",
+            reasons: ["spend_exceeds_max"],
+            riskLevel: "high",
+            status: "fail",
+          },
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy: { ...policy, active: false, revoked: true },
+          userWallet,
+        },
+      ],
+    });
+
+    expect(state.agent?.status).toBe("revoked");
+    expect(getPendingActions(state)).toHaveLength(0);
+    expect(getBlockedActions(state)[0].decisionReason).toBe("Spend exceeds policy limit.");
+  });
+
+  it("keeps empty live state explicit when no agent request exists yet", () => {
+    const state = toMobileState({ actions: [], connections: [] });
+
+    expect(state.agent).toBeNull();
+    expect(state.selectedActionId).toBeNull();
+    expect(getSelectedAction(state)).toBeNull();
+  });
+
+  it("selects only actions that exist in the live inbox", () => {
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-live",
+          connectionId: "conn-live",
+          decisionStatus: null,
+          manifest,
+          policyResult: null,
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy,
+          userWallet,
+        },
+      ],
+    });
+
+    expect(selectAction(state, "missing").selectedActionId).toBe("action-live");
+    expect(selectAction(state, "action-live").selectedActionId).toBe("action-live");
+  });
+});

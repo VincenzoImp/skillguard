@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { ConnectedAgent } from "../demoState";
+import type { ConnectedAgent } from "../liveState";
 import { colors } from "../theme";
 import { StatusBadge } from "../components/StatusBadge";
 

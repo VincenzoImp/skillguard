@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
-import type { DemoAction } from "../demoState";
+import type { MobileAction } from "../liveState";
 import { ActionCard } from "../components/ActionCard";
 import { colors } from "../theme";
 
 interface InboxScreenProps {
-  actions: DemoAction[];
-  selectedActionId: string;
+  actions: MobileAction[];
+  selectedActionId: string | null;
   onSelectAction: (actionId: string) => void;
 }
 
@@ -21,20 +21,28 @@ export function InboxScreen({
         <Text style={styles.title}>Agent requests</Text>
       </View>
       <View style={styles.list}>
-        {actions.map((action) => (
-          <ActionCard
-            action={action}
-            isSelected={selectedActionId === action.id}
-            key={action.id}
-            onPress={() => onSelectAction(action.id)}
-          />
-        ))}
+        {actions.length === 0 ? (
+          <Text style={styles.emptyText}>
+            No live agent requests yet. Connect your wallet, then run the demo agent
+            with this wallet address.
+          </Text>
+        ) : (
+          actions.map((action) => (
+            <ActionCard
+              action={action}
+              isSelected={selectedActionId === action.id}
+              key={action.id}
+              onPress={() => onSelectAction(action.id)}
+            />
+          ))
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  emptyText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   kicker: {
     color: colors.textMuted,
     fontSize: 12,

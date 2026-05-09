@@ -1,4 +1,4 @@
-import type { ActionStatus, PolicyMode, RiskTone } from "./demoState";
+import type { ActionStatus, PolicyMode, RiskTone } from "./liveState";
 
 export const colors = {
   bg: "#030712",
@@ -53,12 +53,15 @@ export function labelForPolicyMode(mode: PolicyMode): string {
 export function labelForStatus(status: ActionStatus): string {
   if (status === "approved") return "Approved";
   if (status === "blocked") return "Blocked";
+  if (status === "expired") return "Expired";
   if (status === "rejected") return "Rejected";
   return "Pending";
 }
 
 export function toneForStatus(status: ActionStatus): RiskTone {
   if (status === "approved") return "safe";
-  if (status === "blocked" || status === "rejected") return "danger";
+  if (status === "blocked" || status === "expired" || status === "rejected") {
+    return "danger";
+  }
   return "warning";
 }

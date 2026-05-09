@@ -1,11 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { DemoAction } from "../demoState";
+import type { MobileAction } from "../liveState";
 import { PolicyCheckList } from "../components/PolicyCheckList";
 import { StatusBadge } from "../components/StatusBadge";
 import { colors, labelForStatus, toneForStatus } from "../theme";
 
 interface ActionDetailScreenProps {
-  action: DemoAction;
+  action: MobileAction;
   isBusy: boolean;
   onApprove: () => void;
   onReject: () => void;
