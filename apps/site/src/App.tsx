@@ -522,7 +522,7 @@ function RoadmapSection() {
       <SectionHeader
         kicker="Roadmap"
         title="The core proof is local; the remaining gates are account-owned."
-        text="MWA signing, devnet receipts, release signing, and the public site workflow are in place. Final publication now depends on repo visibility, Pages settings, final keystore ownership, and video recording."
+        text="MWA signing, devnet receipts, release signing, the final upload key, and the public site workflow are in place. Final publication now depends on repo visibility, Pages settings, password-manager backup, and video recording."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {roadmapItems.map(({ step, title, status, note }) => (

@@ -6,11 +6,12 @@ describe("submissionStatus", () => {
     expect(statusFor("MWA record_decision proof")).toBe("done");
     expect(statusFor("Devnet program deploy")).toBe("done");
     expect(statusFor("Release APK signing pipeline")).toBe("done");
+    expect(statusFor("Final upload key")).toBe("done");
     expect(statusFor("GitHub Pages workflow")).toBe("ready");
   });
 
   it("keeps account-owned and human-owned submission steps external", () => {
-    expect(statusFor("Final upload key")).toBe("external");
+    expect(statusFor("Password manager backup")).toBe("external");
     expect(statusFor("Demo video")).toBe("external");
   });
 });

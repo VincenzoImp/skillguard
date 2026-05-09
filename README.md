@@ -259,7 +259,7 @@ Core MVP scaffolding is implemented locally: shared protocol, API, Anchor receip
 
 Submission blockers still to close:
 
-- final store/upload keystore owner decision
+- backup of the final upload keystore and signing env in the owner's password manager
 - public site deployment after GitHub Pages is enabled
 - demo video and final screenshots
 
@@ -270,4 +270,5 @@ Verified submission proofs:
 - Standalone local Android APK: `build/mobile/skillguard-standalone-debugsigned.apk`
 - Release signed Android APK proof artifact: `build/mobile/skillguard-release-signed.apk`
 - Release signing pipeline: `SKILLGUARD_ANDROID_BUILD_PROFILE=release scripts/build-mobile-apk.sh`
+- Final owner-controlled upload keystore generated outside git and used for the current release APK.
 - GitHub Pages deployment workflow: `.github/workflows/deploy-site.yml`

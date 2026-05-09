@@ -35,11 +35,17 @@ export const roadmapItems: RoadmapItem[] = [
   {
     step: "5",
     title: "Final upload key",
-    status: "external",
-    note: "The permanent Android upload keystore owner and storage location need a human decision.",
+    status: "done",
+    note: "The owner-controlled Android upload keystore was generated outside git and used for the current release APK.",
   },
   {
     step: "6",
+    title: "Password manager backup",
+    status: "external",
+    note: "The keystore and signing env must be imported into the owner's password manager.",
+  },
+  {
+    step: "7",
     title: "Demo video",
     status: "external",
     note: "The under-3-minute recording needs final human review and narration.",

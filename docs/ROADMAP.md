@@ -285,7 +285,7 @@ Required assets:
 - [x] local debug Android APK build
 - [x] local standalone debug-signed Android APK build
 - [x] release APK signing pipeline with external keystore env vars
-- [ ] final store/upload keystore owner decision
+- [x] final store/upload keystore owner decision
 - [x] Solana program ID reserved in Anchor workspace: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - [x] deployed devnet addresses
 - [x] demo transaction signatures
@@ -310,11 +310,12 @@ Ready locally:
   debug APK build: build/mobile/skillguard-debug.apk
   standalone local APK build: build/mobile/skillguard-standalone-debugsigned.apk
   release signed APK proof artifact: build/mobile/skillguard-release-signed.apk
+  final owner-controlled upload keystore generated outside git
   GitHub Pages deployment workflow: .github/workflows/deploy-site.yml
   local demo orchestration
 
 Not yet submission-ready:
-  final store/upload keystore owner decision
+  password manager backup of the final upload keystore and signing env
   public hosted site
   final video and screenshots
 ```

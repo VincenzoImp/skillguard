@@ -62,8 +62,9 @@ check_text "$MWA_SIGNATURE" README.md
 check_text "SKILLGUARD_ANDROID_BUILD_PROFILE=release" README.md
 check_text "build/mobile/skillguard-release-signed.apk" README.md
 check_text ".github/workflows/deploy-site.yml" README.md
+check_text "Final owner-controlled upload keystore generated outside git" README.md
 check_text "Target length: under 3 minutes." docs/DEMO.md
-check_text "final store/upload keystore owner decision" docs/ROADMAP.md
+check_text "password manager backup of the final upload keystore and signing env" docs/ROADMAP.md
 check_file ".github/workflows/deploy-site.yml" \
   "Restore the GitHub Pages deployment workflow."
 
