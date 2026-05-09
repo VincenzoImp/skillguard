@@ -207,7 +207,7 @@ describe("mobile live state mapping", () => {
     expect(getBlockedActions(state)[0].decisionReason).toBe("Spend exceeds policy limit.");
   });
 
-  it("treats unrecorded expired manifests as expired instead of pending", () => {
+  it("treats unrecorded expired manifests as non-actionable without adding history noise", () => {
     const state = toMobileState(
       {
         actions: [
@@ -238,8 +238,37 @@ describe("mobile live state mapping", () => {
     expect(state.actions[0].status).toBe("expired");
     expect(state.actions[0].decisionReason).toBe("Agent request expired.");
     expect(getPendingActions(state)).toHaveLength(0);
+    expect(getHistoryActions(state)).toEqual([]);
+  });
+
+  it("keeps API-recorded expired decisions in history", () => {
+    const state = toMobileState({
+      actions: [
+        {
+          actionId: "action-expired-recorded",
+          connectionId: "conn-live",
+          decisionStatus: "expired",
+          manifest: {
+            ...manifest,
+            actionId: "action-expired-recorded",
+            expiresAt: 1_800_000_010,
+          },
+          policyResult: null,
+        },
+      ],
+      connections: [
+        {
+          agentId: "agent-research",
+          connectionId: "conn-live",
+          policy,
+          userWallet,
+        },
+      ],
+    });
+
+    expect(getPendingActions(state)).toHaveLength(0);
     expect(getHistoryActions(state).map((action) => action.id)).toEqual([
-      "action-expired",
+      "action-expired-recorded",
     ]);
   });
 

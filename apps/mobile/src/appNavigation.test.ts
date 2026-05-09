@@ -138,9 +138,26 @@ describe("mobile app navigation model", () => {
       totalActions: 3,
     });
   });
+
+  it("does not count stale open expiries as decision history", () => {
+    expect(
+      buildDashboardSummary({
+        ...baseState,
+        actions: [
+          action("pending-a", "pending"),
+          { ...action("stale-expired-a", "expired"), isOpenExpired: true },
+          action("approved-a", "approved"),
+        ],
+      })
+    ).toMatchObject({
+      historyActions: 1,
+      pendingActions: 1,
+      totalActions: 3,
+    });
+  });
 });
 
-function action(id: string, status: "approved" | "blocked" | "pending") {
+function action(id: string, status: "approved" | "blocked" | "expired" | "pending") {
   const manifest: ActionManifest = {
     accountsTouched: ["Wallet111"],
     actionId: id,

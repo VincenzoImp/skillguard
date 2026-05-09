@@ -49,7 +49,8 @@ The product flows are:
 - post approval metadata back to the API with transaction signature and receipt address
 - reject a pending request through the API with wallet-owner proof
 - revoke the connected agent through the API with wallet-owner proof and block future requests
-- see expired open manifests as expired history items, not actionable pending requests
+- keep expired open manifests out of the actionable inbox and out of decision
+  history unless the API recorded an explicit expired decision
 - tap a native notification to refresh the live inbox and select the referenced
   action
 - show decision receipts, manifest hashes, and Explorer links when signatures exist

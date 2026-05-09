@@ -1,5 +1,5 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import type { MobileAction } from "../liveState";
+import { isHistoryAction, type MobileAction } from "../liveState";
 import { colors, labelForStatus, toneForStatus } from "../theme";
 import { StatusBadge } from "../components/StatusBadge";
 import { explorerUrl } from "../wallet";
@@ -9,7 +9,7 @@ interface ReceiptScreenProps {
 }
 
 export function ReceiptScreen({ actions }: ReceiptScreenProps) {
-  const receiptActions = actions.filter((action) => action.status !== "pending");
+  const receiptActions = actions.filter(isHistoryAction);
 
   return (
     <View style={styles.panel}>

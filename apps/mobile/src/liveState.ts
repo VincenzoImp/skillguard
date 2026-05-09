@@ -49,6 +49,7 @@ export interface MobileAction {
   requestedAt: string;
   manifest: ActionManifest;
   manifestHash: string;
+  isOpenExpired?: boolean;
   spend: string;
   checks: PolicyCheck[];
   policyResultSummary: string;
@@ -152,7 +153,11 @@ export function getBlockedActions(state: SkillGuardMobileState): MobileAction[] 
 }
 
 export function getHistoryActions(state: SkillGuardMobileState): MobileAction[] {
-  return state.actions.filter((action) => action.status !== "pending");
+  return state.actions.filter(isHistoryAction);
+}
+
+export function isHistoryAction(action: MobileAction): boolean {
+  return action.status !== "pending" && !action.isOpenExpired;
 }
 
 export function selectAction(
@@ -210,6 +215,7 @@ function formatLamports(value: string): string {
 
 function toMobileAction(action: ApiActionRecord, now: number): MobileAction {
   const status = action.decisionStatus ?? statusForOpenAction(action.manifest, now);
+  const isOpenExpired = action.decisionStatus === null && status === "expired";
   const policyResult = action.policyResult;
   const manifest = action.manifest;
   const risk = riskTone(policyResult?.riskLevel ?? highestManifestRisk(manifest));
@@ -220,6 +226,7 @@ function toMobileAction(action: ApiActionRecord, now: number): MobileAction {
     connectionId: action.connectionId,
     decisionReason: decisionReason(action, status),
     id: action.actionId,
+    isOpenExpired,
     manifest,
     manifestHash: policyResult?.manifestHash ?? action.actionId,
     network: labelNetwork(manifest.network),

@@ -40,7 +40,8 @@ one user job instead of making the user scroll through every control.
 - Pending requests are not counted in `Activity`; that badge only counts final
   decisions.
 - Expired open manifests are shown as expired decisions, not as actionable
-  pending requests.
+  pending requests, and are not counted as user history unless the API recorded
+  an explicit expired decision.
 - Permission controls are scoped to the specific active agent shown on each
   policy card.
 - QR pairing only fills agent identity fields; pairing still requires a
