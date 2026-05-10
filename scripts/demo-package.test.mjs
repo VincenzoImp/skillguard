@@ -1,10 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 const requiredFiles = [
   "demo-package/MASTER_BRIEF.md",
   "demo-package/00_FLAT_VIDEO_AGENT_HANDOFF.md",
+  "demo-package/PROMPT_TO_VIDEO_AGENT.md",
   "demo-package/README.md",
   "demo-package/00-video-brief.md",
   "demo-package/01-voiceover-script.md",
@@ -22,6 +23,12 @@ const requiredFiles = [
   "demo-package/references/product-context.md",
   "demo-package/references/technical-proof.md",
   "demo-package/references/demo-flow.md",
+  "demo-package/video-agent-flat-bundle/00_READ_THIS_FIRST_PROMPT.md",
+  "demo-package/video-agent-flat-bundle/01_STORY_SCRIPT_AND_SHOTS.md",
+  "demo-package/video-agent-flat-bundle/02_VISUAL_COMPONENTS_AND_TECH_PROOF.md",
+  "demo-package/video-agent-flat-bundle/site-home-desktop.png",
+  "demo-package/video-agent-flat-bundle/site-demo-desktop.png",
+  "demo-package/video-agent-flat-bundle/site-home-mobile.png",
 ];
 
 describe("demo package", () => {
@@ -61,6 +68,44 @@ describe("demo package", () => {
     assert.match(flatHandoff, /Do not render the full voiceover as subtitles/i);
     assert.match(flatHandoff, /Low-risk work can proceed automatically/i);
     assert.match(flatHandoff, /Do not say or imply that SkillGuard auto-signs spending transactions/i);
+  });
+
+  it("includes a copy-paste prompt for the external video agent", () => {
+    const prompt = readFileSync("demo-package/PROMPT_TO_VIDEO_AGENT.md", "utf8");
+
+    assert.match(prompt, /00_FLAT_VIDEO_AGENT_HANDOFF\.md/i);
+    assert.match(prompt, /site-home-desktop\.png/i);
+    assert.match(prompt, /No audio track/i);
+    assert.match(prompt, /No full-script subtitles/i);
+    assert.match(prompt, /Do not say or imply that SkillGuard auto-signs spending transactions/i);
+    assert.match(prompt, /Produce the final animated HTML presentation now/i);
+  });
+
+  it("provides a compact flat bundle under the 12-file agent import limit", () => {
+    const bundleDir = "demo-package/video-agent-flat-bundle";
+    const bundleFiles = readdirSync(bundleDir).filter((file) => !file.startsWith("."));
+    const prompt = readFileSync(`${bundleDir}/00_READ_THIS_FIRST_PROMPT.md`, "utf8");
+    const story = readFileSync(`${bundleDir}/01_STORY_SCRIPT_AND_SHOTS.md`, "utf8");
+    const visuals = readFileSync(`${bundleDir}/02_VISUAL_COMPONENTS_AND_TECH_PROOF.md`, "utf8");
+
+    assert.ok(bundleFiles.length <= 12, `bundle contains ${bundleFiles.length} files`);
+    assert.deepEqual(bundleFiles.sort(), [
+      "00_READ_THIS_FIRST_PROMPT.md",
+      "01_STORY_SCRIPT_AND_SHOTS.md",
+      "02_VISUAL_COMPONENTS_AND_TECH_PROOF.md",
+      "site-demo-desktop.png",
+      "site-home-desktop.png",
+      "site-home-mobile.png",
+    ]);
+
+    assert.match(prompt, /compact flat bundle/i);
+    assert.match(prompt, /Runtime under 3 minutes/i);
+    assert.match(prompt, /No audio track/i);
+    assert.match(story, /Voiceover Script/i);
+    assert.match(story, /wallet firewall for AI agents/i);
+    assert.match(visuals, /Phone Screens To Recreate/i);
+    assert.match(visuals, /Technical Proof/i);
+    assert.match(visuals, /auto-sign spending transactions/i);
   });
 
   it("tells the HTML video agent not to render voiceover subtitles", () => {

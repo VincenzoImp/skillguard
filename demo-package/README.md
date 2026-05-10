@@ -23,7 +23,11 @@ transaction manually. SkillGuard is the fourth path.
 
 ## Files
 
+- `video-agent-flat-bundle/`: compact handoff for agents with a 12-file import
+  limit. Pass only this folder if the target agent cannot ingest the full demo
+  package. It contains 3 markdown files and 3 screenshots, all safe to flatten.
 - `00_FLAT_VIDEO_AGENT_HANDOFF.md`: use this if files are imported without folder structure.
+- `PROMPT_TO_VIDEO_AGENT.md`: copy/paste prompt for the external video agent.
 - `MASTER_BRIEF.md`: start here; complete product, story, demo, and honesty context.
 - `00-video-brief.md`: executive brief and success criteria.
 - `01-voiceover-script.md`: timed narration script.
