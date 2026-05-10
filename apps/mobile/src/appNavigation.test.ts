@@ -40,7 +40,7 @@ describe("mobile app navigation model", () => {
             description: "Research",
             id: "agent-research",
             lastSeen: "live API",
-            name: "Research Agent",
+            name: "Demo Agent",
             policy: {
               allowedProtocols: ["helius"],
               mode: "ask_every_time",
@@ -104,7 +104,7 @@ describe("mobile app navigation model", () => {
             description: "Research",
             id: "agent-research",
             lastSeen: "live API",
-            name: "Research Agent",
+            name: "Demo Agent",
             policy: {
               allowedProtocols: ["helius"],
               mode: "ask_every_time",

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildLoopManifest, LOOP_ACTION_SEQUENCE } from "./loopActions.js";
 
-describe("research agent loop actions", () => {
+describe("demo agent loop actions", () => {
   it("runs the wallet risk monitor sequence in demo order", () => {
     expect(LOOP_ACTION_SEQUENCE).toEqual([
       "freeScan",

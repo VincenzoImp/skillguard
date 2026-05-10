@@ -1,4 +1,4 @@
-# SkillGuard Research Agent
+# SkillGuard Demo Agent
 
 Sample research-agent implementation used for the hackathon demo and smoke
 tests. It is a real client of the SkillGuard API, not preloaded mobile state.
@@ -14,11 +14,11 @@ Capabilities:
 
 ## Commands
 
-The research agent must target the wallet currently connected in the mobile app:
+The demo agent must target the wallet currently connected in the mobile app:
 
 Before submitting actions, import this agent in the app for that wallet. The
 smooth path is to open `https://skillguard-sol.vercel.app/developers` and scan
-the Research Agent QR from the app's `Pair` tab. If camera access is not
+the Demo Agent QR from the app's `Pair` tab. If camera access is not
 available, paste this pairing link into the manual fallback field, review
 limits, and sign the wallet-owner challenge:
 
@@ -30,8 +30,8 @@ Manual import values:
 
 ```text
 Agent ID: agent-research
-Display name: Research Agent
-Allowed purpose: Solana research agent that requests wallet-safe actions.
+Display name: Demo Agent
+Allowed purpose: Solana demo agent that requests wallet-safe actions.
 Mode: Ask every time
 Max spend per action: 0.01 SOL
 Daily cap: 0.05 SOL
@@ -57,8 +57,8 @@ overrides to match the QR payload before running the loop:
 
 ```bash
 export SKILLGUARD_AGENT_ID=agent-research-live
-export SKILLGUARD_AGENT_NAME="Research Agent Live"
-export SKILLGUARD_AGENT_DESCRIPTION="Live QR-paired research agent."
+export SKILLGUARD_AGENT_NAME="Demo Agent Live"
+export SKILLGUARD_AGENT_DESCRIPTION="Live QR-paired demo agent."
 export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<matching-agent-secret-key>
 ```
 
@@ -73,5 +73,5 @@ records through `DELETE /smoke-runs/:runId` after the assertions complete.
 Generate a new agent key and pairing link:
 
 ```bash
-node ../../scripts/generate-agent-key.mjs agent-research "Research Agent"
+node ../../scripts/generate-agent-key.mjs agent-research "Demo Agent"
 ```

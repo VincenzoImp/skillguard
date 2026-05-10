@@ -6,9 +6,9 @@ const keyPair = nacl.sign.keyPair();
 const publicKey = bs58.encode(keyPair.publicKey);
 const privateKey = bs58.encode(keyPair.secretKey);
 const agentId = process.argv[2] ?? "agent-research";
-const name = process.argv[3] ?? "Research Agent";
+const name = process.argv[3] ?? "Demo Agent";
 const description =
-  process.argv[4] ?? "Solana research agent that requests wallet-safe actions.";
+  process.argv[4] ?? "Solana demo agent that requests wallet-safe actions.";
 
 const pairing = new URL("skillguard://pair");
 pairing.searchParams.set("agentId", agentId);

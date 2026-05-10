@@ -128,7 +128,7 @@ Script structure (target 110s, hard cap 180s):
 | Beat | Duration | Visual | Voice |
 |---|---|---|---|
 | Hook | 8s | Site hero | "AI agents are about to ask your wallet for a lot. Today there's no permission layer between them and your funds." |
-| Pair agent | 12s | Mobile: paste pairing link, sign challenge, set policy | "I import a Research Agent, sign the wallet challenge, and configure: max 0.01 SOL per action, allowed mints SOL, allowed protocols Helius and Birdeye." |
+| Pair agent | 12s | Mobile: paste pairing link, sign challenge, set policy | "I import a Demo Agent, sign the wallet challenge, and configure: max 0.01 SOL per action, allowed mints SOL, allowed protocols Helius and Birdeye." |
 | Lock screen + push | 10s | Phone screen locks, push notification arrives, swipe to open | "I lock my phone. The agent submits a request. SkillGuard pushes me a notification — same flow as a banking app." |
 | Action 1 approve | 12s | Mobile inbox, approve, show receipt + Solscan | "Read-only wallet scan, zero spend. I approve, the decision is recorded on devnet." |
 | Action 2 approve | 18s | Push arrives, open, approve, show balance drop + receipt on Solscan | "Paid risk report — 0.001 SOL fee. I approve. SkillGuard signs ONE transaction that both transfers the fee AND records the receipt. Atomic." |

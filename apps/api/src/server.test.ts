@@ -324,7 +324,7 @@ describe("SkillGuard API", () => {
     expect(body.agents).toEqual([
       expect.objectContaining({
         agentId: "agent-research",
-        name: "Research Agent",
+        name: "Demo Agent",
       }),
     ]);
   });
@@ -338,7 +338,7 @@ describe("SkillGuard API", () => {
       body: JSON.stringify({
         agentId: "agent-research",
         description: "Solana wallet risk agent that requests wallet-safe actions.",
-        name: "Research Agent",
+        name: "Demo Agent",
         publicKey: "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
       }),
     });

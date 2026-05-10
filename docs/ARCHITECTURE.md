@@ -3,7 +3,7 @@
 ## Components
 
 ```text
-Research Agent / External Agent
+Demo Agent / External Agent
   -> Ed25519-signed ActionManifest
   -> SkillGuard API
   -> Policy Engine

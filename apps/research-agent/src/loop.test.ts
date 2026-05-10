@@ -17,7 +17,7 @@ const blocked: PolicyResult = {
   status: "fail",
 };
 
-describe("research agent loop", () => {
+describe("demo agent loop", () => {
   it("submits free, paid, and subscription actions in order for one cycle", async () => {
     const submittedKinds: string[] = [];
     const waitedActions: string[] = [];

@@ -54,7 +54,7 @@ cat <<EOF
 ==> Agent request commands
 Connect the wallet in the Android app, copy the full wallet address, then run
 the command below in a third terminal while this script keeps API and site alive.
-Import and approve the Research Agent pairing first; the loop then submits the
+Import and approve the Demo Agent pairing first; the loop then submits the
 free scan, paid 0.001 SOL report, and blocked 0.05 SOL upgrade in sequence.
 
   export SKILLGUARD_API_URL="$API_URL"

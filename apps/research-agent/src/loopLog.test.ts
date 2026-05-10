@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createLoopLogger, shortenAddress } from "./loopLog.js";
 
-describe("research agent loop logger", () => {
+describe("demo agent loop logger", () => {
   it("shortens wallet addresses for demo output", () => {
     expect(shortenAddress("Abcdefghijklmnop")).toBe("Abcd...mnop");
   });

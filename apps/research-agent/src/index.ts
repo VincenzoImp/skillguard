@@ -54,7 +54,7 @@ function parseKind(value: string | undefined): ResearchActionKind {
 }
 
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Research agent failed";
+  const message = error instanceof Error ? error.message : "Demo agent failed";
   console.error(message);
   process.exitCode = 1;
 });

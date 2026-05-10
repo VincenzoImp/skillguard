@@ -163,7 +163,7 @@ Actions: Review, Pair
 Screen title: Pair agent
 Copy: Scan a trusted agent QR. Importing creates a wallet-scoped permission, not a private-key handoff.
 Button: Scan pairing QR
-Loaded agent: Research Agent
+Loaded agent: Demo Agent
 Button: Sign & import agent
 ```
 
@@ -175,7 +175,7 @@ Use this for the paid approval beat:
 Screen title: Agent requests
 Action title: Generate wallet risk report
 Spend: 0.001 SOL
-Copy: Research Agent requests 0.001 SOL for a wallet-risk report. SkillGuard asks before any signature.
+Copy: Demo Agent requests 0.001 SOL for a wallet-risk report. SkillGuard asks before any signature.
 Policy checks:
 - Network allowed: solana-devnet
 - Spend under per-action cap
@@ -187,7 +187,7 @@ Buttons: Reject, Approve
 
 ```text
 Connected agents
-Research Agent
+Demo Agent
 Wallet risk checks through SkillGuard.
 Status: Active
 Network: solana-devnet
@@ -224,7 +224,7 @@ Blocked before signing
 Exceeds 0.01 SOL max
 
 Revoked:
-Research Agent revoked
+Demo Agent revoked
 Future requests are denied
 ```
 
@@ -236,7 +236,7 @@ Compact rounded panel with agent icon/dot, agent name, and status.
 
 Labels:
 
-- `Research Agent`
+- `Demo Agent`
 - `Signed manifest`
 - `Waiting for policy`
 
@@ -265,7 +265,7 @@ Use a per-agent policy, not a generic settings dashboard.
 
 Fields:
 
-- `Agent: Research Agent`
+- `Agent: Demo Agent`
 - `Mode: Allow under limits / Ask every time`
 - `Max per action: 0.01 SOL`
 - `Daily cap: 0.05 SOL`
@@ -306,7 +306,7 @@ Use short proof cards:
 - `Android APK`
 - `Mobile Wallet Adapter`
 - `Vercel API`
-- `Research Agent`
+- `Demo Agent`
 - `Anchor receipt program`
 - `Solana devnet`
 
@@ -353,7 +353,7 @@ These parts exist in the real project:
 
 Real flow:
 
-1. Research Agent submits an ActionManifest.
+1. Demo Agent submits an ActionManifest.
 2. API evaluates the wallet-owned policy.
 3. Low-risk zero-spend manifests can pass policy without wallet signing.
 4. Mobile app loads pending spending requests through a signed wallet session.
@@ -365,7 +365,7 @@ Honest boundary:
 SkillGuard protects requests that go through SkillGuard. It does not claim to
 protect arbitrary transactions signed outside the system, and it does not hold
 custody of user funds. It also does not auto-sign spending transactions in the
-MVP. Auto-approval is limited to low-risk zero-spend requests.
+MVP. Auto-approval applies only to low-risk zero-spend requests.
 
 ## HTML Presentation Requirements
 

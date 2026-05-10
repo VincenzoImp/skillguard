@@ -66,8 +66,8 @@ Low-risk work can proceed automatically. The moment money moves, the owner is ba
 0:12-0:32  Bad choices: personal wallet, funded burner, approve everything manually.
 0:32-0:52  Missing layer: SkillGuard sits between agent intent and wallet signatures.
 0:52-1:15  Product model: Allow, Ask, Block, Revoke.
-1:15-2:25  Proof: pair Research Agent, auto-allow zero-spend scan, approve 0.001 SOL, block 0.05 SOL, revoke.
-2:25-2:45  Technical proof: Android, Mobile Wallet Adapter, Vercel API, Research Agent, Anchor, devnet receipt.
+1:15-2:25  Proof: pair Demo Agent, auto-allow zero-spend scan, approve 0.001 SOL, block 0.05 SOL, revoke.
+2:25-2:45  Technical proof: Android, Mobile Wallet Adapter, Vercel API, Demo Agent, Anchor, devnet receipt.
 2:45-2:55  Close: Agents can act. Users stay in control.
 ```
 
@@ -106,7 +106,7 @@ never receives the private key. It waits for a wallet-owned decision.
 ### 1:34-2:25 Real Demo
 
 Here is the live demo path. I connect my devnet wallet, scan a QR, and import
-Research Agent. The QR only imports the agent identity and policy template. I
+Demo Agent. The QR only imports the agent identity and policy template. I
 still review the limits and sign the connection.
 
 First, I switch this agent to allow low-risk work under limits. It submits a
@@ -124,7 +124,7 @@ Finally, I revoke the agent, and future requests from that identity are denied.
 ### 2:25-2:45 Proof
 
 This is not a mockup. The Android app uses Mobile Wallet Adapter. The hosted API
-runs on Vercel. The research agent is a real worker. Wallet-approved spending
+runs on Vercel. The demo agent is a real worker. Wallet-approved spending
 decisions are recorded as Solana devnet receipts tied to the action manifest.
 
 ### 2:45-2:55 Close
@@ -187,7 +187,7 @@ Show:
 - Home with connected devnet wallet.
 - Pair tab.
 - QR scan.
-- Research Agent imported.
+- Demo Agent imported.
 
 Overlay micro-copy: `Pair an agent by QR`
 
@@ -240,7 +240,7 @@ Cards:
 - `Android app`
 - `Mobile Wallet Adapter`
 - `Vercel API`
-- `Research Agent`
+- `Demo Agent`
 - `Anchor program`
 - `Solana devnet receipt`
 

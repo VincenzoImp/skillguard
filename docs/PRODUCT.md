@@ -72,7 +72,7 @@ The user connects an agent in one of three ways:
 The app shows:
 
 ```text
-Research Agent wants to request wallet actions through SkillGuard.
+Demo Agent wants to request wallet actions through SkillGuard.
 
 Permissions:
 - Request wallet-risk reports
@@ -151,7 +151,7 @@ SkillGuard returns:
 The mobile app notifies the user:
 
 ```text
-Research Agent wants to use your wallet
+Demo Agent wants to use your wallet
 0.005 SOL estimated spend
 Policy: within limit
 ```
@@ -467,14 +467,14 @@ Build screens:
 Output:
 
 - APK
-- one connected research agent
+- one connected demo agent
 - one blocked request
 - one approved request
 - one revoked permission scene
 
-### Phase 5: Research Agent
+### Phase 5: Demo Agent
 
-Build a small research agent that uses the SkillGuard SDK.
+Build a small demo agent that uses the SkillGuard SDK.
 
 Agent capabilities:
 
@@ -517,7 +517,7 @@ The demo should show five moments:
    - connects wallet through Mobile Wallet Adapter
 
 2. Connect agent
-   - research agent asks to connect
+   - demo agent asks to connect
    - user chooses `Ask every time`
    - policy is recorded
 
@@ -542,7 +542,7 @@ The demo should show five moments:
 Optional final scene:
 
 - show an external integration snippet using the SkillGuard SDK
-- show webhook callback received by research agent
+- show webhook callback received by demo agent
 
 ## What The Project Produces
 

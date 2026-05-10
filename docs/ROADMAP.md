@@ -155,7 +155,7 @@ Behavior:
 - policy result is computed.
 - backend returns a mobile-friendly action summary.
 - backend prepares transaction or instruction data for the mobile app.
-- backend sends webhook callback to research agent after approval/rejection.
+- backend sends webhook callback to demo agent after approval/rejection.
 
 Storage:
 
@@ -164,12 +164,12 @@ Storage:
 
 Exit criteria:
 
-- A research agent can register after the user imports/configures it.
+- A demo agent can register after the user imports/configures it.
 - User can connect that agent.
 - A fixture action appears in mobile inbox.
 - Backend returns policy result and receipt transaction payload.
 - Receipt can be written to devnet.
-- Research agent receives status callback.
+- Demo agent receives status callback.
 
 ## Milestone 4: Android App
 
@@ -223,7 +223,7 @@ Wallet:
 Exit criteria:
 
 - APK runs on Android emulator or device.
-- User can connect a research agent.
+- User can connect a demo agent.
 - User can edit permissions.
 - User can approve one action and reject one action.
 - User can revoke the agent.
@@ -236,7 +236,7 @@ Goal: create a judge-ready story.
 Workflow A: connect and configure agent.
 
 1. User connects wallet.
-2. User imports Research Agent by ID.
+2. User imports Demo Agent by ID.
 3. User chooses `Ask every time`, max spend, daily cap, allowed protocols, and allowed mints.
 4. Agent connection/policy is visible in app.
 
@@ -258,7 +258,7 @@ Workflow C: approved action.
 Workflow D: revoke agent.
 
 1. User opens agent detail.
-2. User revokes Research Agent.
+2. User revokes Demo Agent.
 3. Agent submits another request.
 4. SkillGuard blocks it because connection is revoked.
 

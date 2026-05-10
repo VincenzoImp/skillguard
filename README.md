@@ -46,7 +46,7 @@ requires wallet review.
 
 ```mermaid
 flowchart LR
-  A[Solana agent or research agent] --> B[SkillGuard SDK]
+  A[Solana agent or demo agent] --> B[SkillGuard SDK]
   B --> C[SkillGuard API]
   C --> D[Canonical manifest hash]
   C --> E[Policy engine]
@@ -76,7 +76,7 @@ The judge demo is a 3-minute vertical slice:
 2. The wallet starts with zero agents; user scans the `agent-research` pairing
    QR from `/developers`, reviews the pairing metadata, signs the wallet-owner
    challenge, and configures spend, protocol, mint, and approval limits.
-3. Research agent runs the autonomous demo loop and submits requests for that
+3. Demo agent runs the autonomous demo loop and submits requests for that
    wallet address through the API after the user-created connection exists.
 4. Pending requests arrive in the mobile inbox and, on supported builds/devices,
    as native push notifications.
@@ -97,7 +97,7 @@ Use this path for the phone demo against the Vercel API:
 scripts/live-demo.sh <connected-mobile-wallet-address>
 ```
 
-The script opens the styled Research Agent pairing QR, waits until the mobile
+The script opens the styled Demo Agent pairing QR, waits until the mobile
 app shows the imported agent, then starts the real autonomous agent loop:
 free scan, `0.001 SOL` paid report, and blocked `0.05 SOL` upgrade. It reads the
 live agent signing key from `~/.skillguard/agent-research-live-230105.env`;
@@ -125,7 +125,7 @@ On Android emulator, the app reaches the host API through `http://10.0.2.2:8787`
 After connecting the wallet, copy the full wallet address from the app and submit
 real requests in a third terminal. For the standard demo, open
 `https://skillguard-sol.vercel.app/developers` on another screen and scan the
-Research Agent pairing QR from the app's `Pair` tab. If camera access is not
+Demo Agent pairing QR from the app's `Pair` tab. If camera access is not
 available, paste this pairing link into the manual fallback field, review the
 limits, and sign the import challenge:
 
@@ -137,8 +137,8 @@ Manual import values:
 
 ```text
 Agent ID: agent-research
-Display name: Research Agent
-Allowed purpose: Solana research agent that requests wallet-safe actions.
+Display name: Demo Agent
+Allowed purpose: Solana demo agent that requests wallet-safe actions.
 Mode: Ask every time
 Max spend per action: 0.01 SOL
 Daily cap: 0.05 SOL
@@ -296,7 +296,7 @@ Core scope:
 
 - Solana: Anchor/Rust receipt program.
 - Solana Mobile: Android approval app using Mobile Wallet Adapter.
-- Agents: deterministic research agent plus reusable TypeScript SDK.
+- Agents: deterministic demo agent plus reusable TypeScript SDK.
 - UX: safe request, unsafe request, approval, rejection, revocation, receipt timeline.
 
 Optional extensions after the vertical slice is stable:

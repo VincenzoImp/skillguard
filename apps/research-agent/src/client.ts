@@ -232,8 +232,8 @@ export interface ResearchAgentIdentity {
 
 export const RESEARCH_AGENT: ResearchAgentIdentity = {
   agentId: "agent-research",
-  description: "Solana research agent that requests wallet-safe actions.",
-  name: "Research Agent",
+  description: "Solana demo agent that requests wallet-safe actions.",
+  name: "Demo Agent",
 };
 
 export function connectionIdForWallet(userWallet: string, agentId = RESEARCH_AGENT.agentId): string {

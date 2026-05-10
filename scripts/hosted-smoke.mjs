@@ -8,7 +8,7 @@ const DEFAULT_EXPECTED_STORAGE = "upstash";
 const SMOKE_AGENT = {
   description: "Isolated hosted smoke agent for production health checks.",
   id: "agent-research-smoke",
-  name: "Research Agent Smoke",
+  name: "Demo Agent Smoke",
 };
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -156,7 +156,7 @@ function runResearchAgent(kind, apiUrl, wallet, runId) {
 
   if (result.status !== 0) {
     throw new Error(
-      `Research agent ${kind} failed with exit ${result.status}:\n${result.stderr || result.stdout}`,
+      `Demo agent ${kind} failed with exit ${result.status}:\n${result.stderr || result.stdout}`,
     );
   }
 
@@ -167,7 +167,7 @@ function parseJsonOutput(output, label) {
   const start = output.indexOf("{");
   const end = output.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) {
-    throw new Error(`Research agent ${label} did not print JSON:\n${output}`);
+    throw new Error(`Demo agent ${label} did not print JSON:\n${output}`);
   }
   return JSON.parse(output.slice(start, end + 1));
 }

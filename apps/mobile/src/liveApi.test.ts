@@ -26,7 +26,7 @@ describe("mobile live API client", () => {
     expect(DEFAULT_SKILLGUARD_API_URL).toBe("https://skillguard-sol.vercel.app/api");
   });
 
-  it("connects an arbitrary agent instead of only the built-in research agent", async () => {
+  it("connects an arbitrary agent instead of only the built-in demo agent", async () => {
     const requests: Array<{ body: unknown; method: string; url: string }> = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       requests.push({
@@ -129,8 +129,8 @@ describe("mobile live API client", () => {
           agents: [
             {
               agentId: "agent-research",
-              description: "Solana research agent.",
-              name: "Research Agent",
+              description: "Solana demo agent.",
+              name: "Demo Agent",
             },
           ],
         });
@@ -187,7 +187,7 @@ describe("mobile live API client", () => {
     const state = await client.loadWalletState(userWallet, "sgw_live_session_token");
 
     expect(state.agent?.status).toBe("active");
-    expect(state.agent?.name).toBe("Research Agent");
+    expect(state.agent?.name).toBe("Demo Agent");
     expect(state.agents.map((agent) => agent.id)).toEqual(["agent-research"]);
     expect(state.selectedActionId).toBe("action-live");
     expect(state.actions[0]).toMatchObject({

@@ -8,9 +8,9 @@ describe("agent runtime identity", () => {
     const seed = "3AQTaduKvYWFTu1ExZSQK1hQp5jSZ2yEt4KzsASAufKd";
 
     const runtime = readAgentRuntimeEnv({
-      SKILLGUARD_AGENT_DESCRIPTION: "Live QR-paired research agent.",
+      SKILLGUARD_AGENT_DESCRIPTION: "Live QR-paired demo agent.",
       SKILLGUARD_AGENT_ID: "agent-research-live",
-      SKILLGUARD_AGENT_NAME: "Research Agent Live",
+      SKILLGUARD_AGENT_NAME: "Demo Agent Live",
       SKILLGUARD_AGENT_PRIVATE_KEY_B58: seed,
       SKILLGUARD_API_URL: "https://skillguard-sol.vercel.app/api",
       SKILLGUARD_USER_WALLET: "Wallet111",
@@ -18,8 +18,8 @@ describe("agent runtime identity", () => {
 
     expect(runtime.agent).toEqual({
       agentId: "agent-research-live",
-      description: "Live QR-paired research agent.",
-      name: "Research Agent Live",
+      description: "Live QR-paired demo agent.",
+      name: "Demo Agent Live",
     });
     expect(runtime.apiUrl).toBe("https://skillguard-sol.vercel.app/api");
     expect(runtime.connectionId).toBe("conn-agent-research-live-Wallet111");

@@ -3,7 +3,7 @@ import { liveSiteUrl } from "./liveApi";
 export const researchAgentPairing = {
   agentId: "agent-research",
   description: "Solana wallet risk agent that requests wallet-safe actions.",
-  name: "Research Agent",
+  name: "Demo Agent",
   protocols: "helius,birdeye",
   publicKey: "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
 };

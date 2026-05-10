@@ -3,8 +3,8 @@ import type { ActionManifest } from "@skillguard/protocol";
 import { safeRiskReportManifest } from "@skillguard/protocol";
 import { createSkillGuardClient, publicKeyForKeyPair, smokeAgentKeyPair } from "./client.js";
 
-describe("research agent client", () => {
-  it("can import the research agent connection when an automation flow explicitly asks for it", async () => {
+describe("demo agent client", () => {
+  it("can import the demo agent connection when an automation flow explicitly asks for it", async () => {
     const calls: Array<{ body?: string; method?: string; url: string }> = [];
     const fetch = async (url: string | URL, init?: RequestInit) => {
       calls.push({
@@ -30,7 +30,7 @@ describe("research agent client", () => {
     ]);
     expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
       agentId: "agent-research",
-      name: "Research Agent",
+      name: "Demo Agent",
       publicKey: publicKeyForKeyPair(smokeAgentKeyPair()),
     });
     expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({
@@ -54,8 +54,8 @@ describe("research agent client", () => {
     const client = createSkillGuardClient({
       agent: {
         agentId: "agent-research-live",
-        description: "Live QR-paired research agent.",
-        name: "Research Agent Live",
+        description: "Live QR-paired demo agent.",
+        name: "Demo Agent Live",
       },
       agentKeyPair: smokeAgentKeyPair(),
       apiUrl: "http://localhost:8787",
@@ -67,8 +67,8 @@ describe("research agent client", () => {
 
     expect(JSON.parse(calls[0]?.body ?? "{}")).toMatchObject({
       agentId: "agent-research-live",
-      description: "Live QR-paired research agent.",
-      name: "Research Agent Live",
+      description: "Live QR-paired demo agent.",
+      name: "Demo Agent Live",
       publicKey: publicKeyForKeyPair(smokeAgentKeyPair()),
     });
     expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({
@@ -144,8 +144,8 @@ describe("research agent client", () => {
     const client = createSkillGuardClient({
       agent: {
         agentId: "agent-research-live",
-        description: "Live QR-paired research agent.",
-        name: "Research Agent Live",
+        description: "Live QR-paired demo agent.",
+        name: "Demo Agent Live",
       },
       agentKeyPair: smokeAgentKeyPair(),
       apiUrl: "http://localhost:8787",

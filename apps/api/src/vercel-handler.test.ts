@@ -240,8 +240,8 @@ describe("Vercel API handler", () => {
     const publicKey = walletFor(testKeyPair(32));
     const created = await callHandler("POST", "/api/agents", {
       agentId: "agent-research",
-      description: "Solana research agent that requests wallet-safe actions.",
-      name: "Research Agent",
+      description: "Solana demo agent that requests wallet-safe actions.",
+      name: "Demo Agent",
       publicKey,
     });
     expect(created.status).toBe(201);
@@ -249,7 +249,7 @@ describe("Vercel API handler", () => {
     const refreshed = await callHandler("POST", "/api/agents", {
       agentId: "agent-research",
       description: "Solana wallet risk agent that requests wallet-safe actions.",
-      name: "Research Agent",
+      name: "Demo Agent",
       publicKey,
     });
 
@@ -345,8 +345,8 @@ describe("Vercel API handler", () => {
             agents: [
               {
                 agentId: "agent-research",
-                description: "Legacy Solana research agent.",
-                name: "Research Agent",
+                description: "Legacy Solana demo agent.",
+                name: "Demo Agent",
                 publicKey: walletFor(testKeyPair(32)),
               },
               {
@@ -676,7 +676,7 @@ describe("Vercel API handler", () => {
           kind: "new_action",
         },
         sound: "default",
-        title: "Research Agent",
+        title: "Demo Agent",
         to: "ExponentPushToken[live-device]",
       },
       {
@@ -686,7 +686,7 @@ describe("Vercel API handler", () => {
           kind: "new_action",
         },
         sound: "default",
-        title: "Research Agent",
+        title: "Demo Agent",
         to: "ExponentPushToken[dead-device]",
       },
     ]);
@@ -867,7 +867,7 @@ describe("Vercel API handler", () => {
     expect(response.body.error).toBe("connection_id_conflict");
   });
 
-  test("keeps a newly registered research agent until the wallet connection is created", async () => {
+  test("keeps a newly registered demo agent until the wallet connection is created", async () => {
     let stored: string | null = null;
     process.env.KV_REST_API_TOKEN = "test-token";
     process.env.KV_REST_API_URL = "https://redis.test";
@@ -885,8 +885,8 @@ describe("Vercel API handler", () => {
 
     const agentResponse = await callHandler("POST", "/api/agents", {
       agentId: "agent-research",
-      description: "Solana research agent that requests wallet-safe actions.",
-      name: "Research Agent",
+      description: "Solana demo agent that requests wallet-safe actions.",
+      name: "Demo Agent",
       publicKey: walletFor(testKeyPair(32)),
     });
     expect(agentResponse.status).toBe(201);
@@ -928,8 +928,8 @@ describe("Vercel API handler", () => {
         agents: [
           {
             agentId: "agent-research",
-            description: "Solana research agent that requests wallet-safe actions.",
-            name: "Research Agent",
+            description: "Solana demo agent that requests wallet-safe actions.",
+            name: "Demo Agent",
             publicKey: walletFor(testKeyPair(32)),
           },
         ],
@@ -958,8 +958,8 @@ describe("Vercel API handler", () => {
     const runId = "smoke-current-1";
     await callHandler("POST", "/api/agents", {
       agentId: "agent-research",
-      description: "Solana research agent that requests wallet-safe actions.",
-      name: "Research Agent",
+      description: "Solana demo agent that requests wallet-safe actions.",
+      name: "Demo Agent",
       publicKey: walletFor(testKeyPair(32)),
     });
     const connectionResponse = await callHandler("POST", "/api/connections", {
@@ -1081,7 +1081,7 @@ async function createConnectionViaHandler({
   await callHandler("POST", "/api/agents", {
     agentId: "agent-research",
     description: "Live test agent.",
-    name: "Research Agent",
+    name: "Demo Agent",
     publicKey: walletFor(agentKeyPair),
   });
 
@@ -1129,7 +1129,7 @@ function snapshotForConnection({
       {
         agentId: "agent-research",
         description: "Live test agent.",
-        name: "Research Agent",
+        name: "Demo Agent",
         publicKey: walletFor(testKeyPair(32)),
       },
     ],

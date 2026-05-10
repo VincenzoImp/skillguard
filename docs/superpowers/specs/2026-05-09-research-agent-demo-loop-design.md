@@ -1,4 +1,4 @@
-# Research Agent Demo Loop — Design
+# Demo Agent Demo Loop — Design
 
 Date: 2026-05-09
 Status: Draft, ready for user review.

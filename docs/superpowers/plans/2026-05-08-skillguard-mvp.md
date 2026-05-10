@@ -4,7 +4,7 @@
 
 **Goal:** Build a hackathon-ready SkillGuard MVP that lets a demo Solana agent request wallet actions, evaluates them against user policy, lets the user approve/reject from a mobile-first UI, and records decision receipts on Solana devnet.
 
-**Architecture:** Use a monorepo-style public repo with a shared TypeScript protocol package, an API server, a research agent, a mobile app, and an Anchor program. The first implementation uses deterministic fixtures and devnet receipts; optional integrations come only after the vertical slice works.
+**Architecture:** Use a monorepo-style public repo with a shared TypeScript protocol package, an API server, a demo agent, a mobile app, and an Anchor program. The first implementation uses deterministic fixtures and devnet receipts; optional integrations come only after the vertical slice works.
 
 **Tech Stack:** TypeScript, Node, React Native/Expo, Solana Mobile Wallet Adapter, `@solana/kit` or `@solana/web3.js` where required by mobile libraries, Anchor 0.32, Rust, SQLite or file-backed JSON for MVP metadata, Vitest for shared/API tests.
 
@@ -22,7 +22,7 @@ The implementation order is strict:
 6. Anchor receipt program.
 7. Mobile signing spike.
 8. Mobile approval UI.
-9. Research agent.
+9. Demo agent.
 10. End-to-end demo script.
 11. Public project site from `apps/site`.
 12. Optional integrations only if time remains.
@@ -405,7 +405,7 @@ Goal: give agents and mobile app a real integration surface.
 - [x] Seed:
 
 ```text
-Research Agent
+Demo Agent
 Demo user wallet placeholder
 Ask-every-time policy
 Unsafe overspend action
@@ -690,7 +690,7 @@ receipt screen shows manifest hash and tx signature
 visual style follows apps/site and docs/DESIGN_SYSTEM.md
 ```
 
-## Milestone 5: Research Agent
+## Milestone 5: Demo Agent
 
 Goal: show that any agent can integrate without getting the user's private key.
 
@@ -746,7 +746,7 @@ client.onDecision(actionId)
 
 Implementation note:
 
-- SDK uses the same API surface as the research agent but exposes a reusable agent-developer entrypoint.
+- SDK uses the same API surface as the demo agent but exposes a reusable agent-developer entrypoint.
 - `connectionId` must be explicit for action submission; the SDK does not default to a demo connection.
 - SDK build and tests are now part of the root precommit gate.
 
@@ -766,7 +766,7 @@ Goal: produce a reliable 3-minute judge demo.
 ```text
 API server
 mobile app instructions
-research agent commands
+demo agent commands
 site public site
 ```
 
@@ -900,7 +900,7 @@ Do not cut:
 
 SkillGuard MVP is done when:
 
-- A research agent can submit safe and unsafe action manifests.
+- A demo agent can submit safe and unsafe action manifests.
 - The API evaluates both deterministically.
 - The user can approve/reject in a mobile-first UI.
 - At least one approval or rejection receipt is recorded on Solana localnet/devnet.

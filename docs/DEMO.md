@@ -54,8 +54,8 @@ scripts/live-demo.sh <connected-mobile-wallet-address>
 
 The wallet address must be the exact address shown in the Android app after
 Mobile Wallet Adapter connection. `scripts/live-demo.sh` opens the styled live
-Research Agent pairing QR, waits until the app shows the imported agent, and
-only then starts the autonomous request loop. The research agent never receives
+Demo Agent pairing QR, waits until the app shows the imported agent, and
+only then starts the autonomous request loop. The demo agent never receives
 the user's private key.
 
 Fund the demo wallet with at least `0.01 SOL` on devnet before the paid request.
@@ -126,7 +126,7 @@ the last third of the video, after the product value is clear.
 Open SkillGuard mobile on the `Home` tab and connect a devnet wallet through
 Mobile Wallet Adapter. Sign the wallet-session message, then show the wallet
 address, devnet badge, live API badge, and zero-agent counters. Move to `Pair`,
-tap `Scan QR`, scan the Research Agent QR from the developer page, review the
+tap `Scan QR`, scan the Demo Agent QR from the developer page, review the
 policy, sign the import challenge, then move to `Agents` and show the
 connection that was created by the wallet owner.
 
@@ -157,7 +157,7 @@ and the SkillGuard `record_decision` receipt.
 
 ## Scene 4: Revoke Agent
 
-Revoke Research Agent in mobile, then run:
+Revoke Demo Agent in mobile, then run:
 
 ```bash
 SKILLGUARD_USER_WALLET=<connected-mobile-wallet-address> \
@@ -165,7 +165,7 @@ SKILLGUARD_AGENT_PRIVATE_KEY_B58=<agent-secret-key-from-password-manager> \
   npm --prefix apps/research-agent run agent:loop
 ```
 
-Open `Agents`, revoke Research Agent, then show in `Inbox` that the future
+Open `Agents`, revoke Demo Agent, then show in `Inbox` that the future
 request is blocked because the policy is inactive/revoked. If the loop is
 already running when you revoke, wait for the next cycle; it exits cleanly after
 `policy_revoked`.

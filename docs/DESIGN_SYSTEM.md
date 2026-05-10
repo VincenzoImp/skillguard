@@ -346,7 +346,7 @@ Tone:
 
 Good copy:
 
-- "Research Agent wants to use your wallet."
+- "Demo Agent wants to use your wallet."
 - "This request is within your policy."
 - "Blocked because spend exceeds your limit."
 - "Revoked agents cannot request new actions."
@@ -382,7 +382,7 @@ Show:
 
 - dark mobile UI
 - shield icon on splash/header
-- connected Research Agent
+- connected Demo Agent
 - permission editor
 - unsafe request blocked
 - safe request approved

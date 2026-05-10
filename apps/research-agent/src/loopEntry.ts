@@ -21,7 +21,7 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Research agent loop failed";
+  const message = error instanceof Error ? error.message : "Demo agent loop failed";
   console.error(message);
   process.exitCode = 1;
 });

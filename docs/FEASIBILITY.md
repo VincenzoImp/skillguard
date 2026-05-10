@@ -38,7 +38,7 @@ Implemented and tested locally:
 - API endpoints for agents, connections, pending actions, policy evaluation, decisions, and revocation
 - wallet-owner proofs for pairing, policy edits, revocation, decisions, and read-session creation
 - agent public-key registration plus signed action submissions
-- research agent CLI that submits signed safe, unsafe, and revoked requests
+- demo agent CLI that submits signed safe, unsafe, and revoked requests
 - reusable TypeScript SDK for signed agent manifests
 - Anchor program for user profiles, agent connections, policies, revocation, decision receipts, and execution signature hashes
 - mobile approval demo screens for wallet connect, agents, permission editor, inbox, action detail, and receipt timeline

@@ -86,7 +86,7 @@ const demoSteps: Array<{
 }> = [
   {
     label: "1. Pair",
-    title: "Connect Research Agent by QR",
+    title: "Connect Demo Agent by QR",
     text: "The owner scans the pairing QR, reviews the policy template, and signs one wallet-scoped permission grant.",
     tone: "safe",
   },
@@ -111,7 +111,7 @@ const demoSteps: Array<{
 ];
 
 const architectureNodes = [
-  "Research agent",
+  "Demo agent",
   "SkillGuard SDK",
   "SkillGuard API",
   "Policy engine",
@@ -121,7 +121,7 @@ const architectureNodes = [
 ];
 
 const receiptEvents = [
-  "Action proposed by Research Agent",
+  "Action proposed by Demo Agent",
   "Policy evaluated against wallet limits",
   "User decision recorded",
   "Receipt anchored on Solana devnet",
@@ -369,7 +369,7 @@ function DemoSection() {
       <SectionHeader
         kicker="Demo runbook"
         title="The demo shows the firewall making three decisions in three minutes."
-        text="Connect Research Agent by QR, approve a 0.001 SOL action, watch a 0.05 SOL overspend get blocked, then revoke the agent and prove future access is cut off."
+        text="Connect Demo Agent by QR, approve a 0.001 SOL action, watch a 0.05 SOL overspend get blocked, then revoke the agent and prove future access is cut off."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {demoSteps.map((step) => (
@@ -497,7 +497,7 @@ function ResearchAgentPairingCard() {
     <div className="mt-5 grid gap-5 rounded-xl border border-border-subtle bg-bg-900/76 p-5 lg:grid-cols-[240px_minmax(0,1fr)]">
       <div className="flex items-center justify-center rounded-xl border border-white/10 bg-white p-3">
         {qrDataUrl ? (
-          <img src={qrDataUrl} alt="Research Agent pairing QR code" className="h-56 w-56" />
+          <img src={qrDataUrl} alt="Demo Agent pairing QR code" className="h-56 w-56" />
         ) : (
           <div className="flex h-56 w-56 items-center justify-center text-bg-950">
             <QrCode className="h-10 w-10" />
@@ -511,7 +511,7 @@ function ResearchAgentPairingCard() {
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
           Open the Android app, connect a wallet, go to Pair, and scan this QR.
-          SkillGuard imports only the Research Agent identity and policy template;
+          SkillGuard imports only the Demo Agent identity and policy template;
           the wallet owner still reviews the limits and signs the connection.
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -532,7 +532,7 @@ function LiveApiSection() {
       <SectionHeader
         kicker="Live API"
         title="The website also exposes the hosted agent gateway."
-        text="The Android app, Research Agent, and demo scripts all use the same Vercel API. It receives agent manifests, applies wallet policy, and returns the decision path."
+        text="The Android app, Demo Agent, and demo scripts all use the same Vercel API. It receives agent manifests, applies wallet policy, and returns the decision path."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
@@ -610,7 +610,7 @@ function SecuritySection() {
           tone="safe"
           items={[
             "Policies are evaluated before SkillGuard-mediated requests reach approval.",
-            "Auto-approval is limited to requests that match owner-defined low-risk rules.",
+            "Auto-approval applies only to owner-defined low-risk rules.",
             "Agents do not receive private keys.",
             "Revocation blocks future SkillGuard requests from that agent.",
             "Receipts can link a decision to a manifest hash.",
@@ -682,7 +682,7 @@ function RoadmapSection() {
       <SectionHeader
         kicker="Submission readiness"
         title="The product proof is in place; the final asset is the narrated demo."
-        text="The app, hosted API, Research Agent loop, devnet receipt flow, release APK, signing pipeline, and documentation are ready for judges. The remaining human task is recording the three-minute walkthrough."
+        text="The app, hosted API, Demo Agent loop, devnet receipt flow, release APK, signing pipeline, and documentation are ready for judges. The remaining human task is recording the three-minute walkthrough."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {roadmapItems.map(({ step, title, status, note }) => (
@@ -890,7 +890,7 @@ function PhoneInboxScreen({
           </span>
         </div>
         <p className="mt-3 text-sm leading-5 text-text-secondary">
-          Research Agent requests 0.001 SOL for a wallet-risk report. SkillGuard asks before any signature.
+          Demo Agent requests 0.001 SOL for a wallet-risk report. SkillGuard asks before any signature.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2">
           <PhoneInfoCell label="Network" value="devnet" />
@@ -950,7 +950,7 @@ function PhoneAgentsScreen({ onRevoke }: { onRevoke: () => void }) {
       <div className="rounded-lg border border-border-subtle bg-bg-900 p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-base font-extrabold">Research Agent</p>
+            <p className="text-base font-extrabold">Demo Agent</p>
             <p className="mt-1 text-sm leading-5 text-text-secondary">
               Wallet risk checks through SkillGuard.
             </p>
@@ -1012,7 +1012,7 @@ function PhonePairScreen() {
       </div>
       <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
         <p className="text-xs font-bold uppercase text-text-muted">Loaded agent</p>
-        <p className="mt-2 text-base font-extrabold">Research Agent</p>
+        <p className="mt-2 text-base font-extrabold">Demo Agent</p>
         <p className="mt-2 break-all font-mono text-xs text-text-muted">
           9hSR6S7...xrsUGWBu
         </p>

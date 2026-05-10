@@ -72,8 +72,8 @@ Commands run locally on 2026-05-08:
 | `apps/mobile npm test` | 11 tests passed | Local mobile tests cover live API client calls, API-to-mobile state mapping, SkillGuard PDA derivation, and `record_decision` instruction serialization. |
 | `apps/mobile npm run doctor` | 18/18 checks passed | The mobile dependency graph is Expo SDK 55-compatible after pinning React, React Native, random values, and quick base64 versions. |
 | `apps/mobile npm audit --omit=dev` | 4 moderate findings | Current findings are PostCSS issues through Expo/Metro. `npm audit fix --force` proposes an Expo major downgrade, so this is tracked as an upstream tooling dependency risk rather than applied blindly. |
-| `apps/research-agent npm test` | 6 tests passed | Research agent manifest generation, connected-wallet targeting, connection creation, and API client request flow are covered. |
-| `apps/research-agent npm run build` | passed | Research agent CLI compiles under TypeScript NodeNext. |
+| `apps/research-agent npm test` | 6 tests passed | Demo agent manifest generation, connected-wallet targeting, connection creation, and API client request flow are covered. |
+| `apps/research-agent npm run build` | passed | Demo agent CLI compiles under TypeScript NodeNext. |
 | `apps/research-agent submit:*` against local API | passed | Safe returns `requires_approval`, unsafe returns `fail` with `spend_exceeds_max`, and revoked returns `fail` with revocation reasons. |
 | `packages/sdk npm test` | 2 tests passed | SDK submit and decision-read flows are covered with injected fetch. |
 | `packages/sdk npm run build` | passed | SDK package compiles under TypeScript NodeNext. |
@@ -128,7 +128,7 @@ Mobile spike update on 2026-05-08:
 - Manual Android wallet verification passed on May 9, 2026 with the official Solana Mobile mock MWA wallet on emulator `skillguard_api36`.
 - The app authorized devnet wallet `Dd6tZmDnTaj9peCbFYdx91CzUEk9YGm1xYqct1UkTdTx` and submitted finalized devnet signature `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`, which created profile `7DrEwjK8YhEDz1K46qtvFFrYzjkvJKVvyptsubS1jQr9`, connection `BEhjLvVgmCUHC3aa7T3yaAhxQ15BWEL9pFCbDdkkDQfr`, and receipt `7SzfjQygT8TgXMEVMB8AKWKnoiXCaMv71WCWXUqrV82Z`.
 
-Research agent update on 2026-05-08:
+Demo agent update on 2026-05-08:
 
 - Added `apps/research-agent` CLI scripts for `submit:safe`, `submit:unsafe`, and `submit:revoked`.
 - The CLI requires `SKILLGUARD_USER_WALLET`, uses an agent private key from `SKILLGUARD_AGENT_PRIVATE_KEY_B58`, posts signed ActionManifest payloads to the API, and immediately requests policy evaluation. For real wallets, the wallet owner must import the agent in mobile first; automatic connection is reserved for generated `SmokeWallet...` test flows.
@@ -183,7 +183,7 @@ This boundary should be in the README, pitch, and demo. It makes the project mor
 Build one polished vertical slice:
 
 ```text
-Research Agent submits two action manifests:
+Demo Agent submits two action manifests:
 1. unsafe overspend request -> blocked/rejected -> rejection receipt
 2. safe wallet-risk receipt request -> approved on mobile -> devnet receipt
 ```
@@ -191,7 +191,7 @@ Research Agent submits two action manifests:
 The demo must show:
 
 - user connects wallet on Android through Mobile Wallet Adapter
-- user connects a research agent
+- user connects a demo agent
 - user sets permission policy
 - agent submits unsafe action
 - SkillGuard explains why it is blocked
@@ -214,7 +214,7 @@ The demo must show:
 4. API with explicit research-agent import and pending actions.
 5. Anchor receipt program on localnet/devnet.
 6. Mobile app with wallet connect and approval UI.
-7. Research agent that submits safe and unsafe actions.
+7. Demo agent that submits safe and unsafe actions.
 8. Receipt timeline with manifest hash and transaction signature.
 9. Demo script and README.
 
@@ -245,7 +245,7 @@ The demo must show:
 | Anchor receipt program | Medium/high | Medium | Requires Solana CLI and Anchor install. |
 | Android app | Medium | High | Requires JDK/Android setup and MWA spike. |
 | Mobile Wallet Adapter signing | Medium | High | Run spike before UI polish. |
-| Research agent | High | Low | Use fixtures first, real agent integration later. |
+| Demo agent | High | Low | Use fixtures first, real agent integration later. |
 | LI.FI/x402 bonus | Medium | Medium/high | Optional only after P0. |
 
 ## Required Spikes
@@ -315,7 +315,7 @@ Goal: prove the core product loop without polish.
 
 Pass criteria:
 
-- Research agent posts action.
+- Demo agent posts action.
 - API evaluates policy.
 - Mobile or web UI approves.
 - Receipt transaction is created and signed.
@@ -345,7 +345,7 @@ Proceed with SkillGuard if:
 - shared policy engine works by tests
 - Anchor receipt program works on localnet or devnet
 - either Android MWA works or fallback web signing works
-- research agent can create clear safe/unsafe requests
+- demo agent can create clear safe/unsafe requests
 
 Switch or reduce scope if:
 

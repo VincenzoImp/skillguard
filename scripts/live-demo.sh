@@ -22,7 +22,7 @@ AGENT_ENV_PATH="${SKILLGUARD_AGENT_ENV_PATH:-$DEFAULT_AGENT_ENV_PATH}"
 
 if [ ! -f "$AGENT_ENV_PATH" ]; then
   echo "Missing live agent env file: $AGENT_ENV_PATH" >&2
-  echo "Generate or restore the live Research Agent key before running the demo." >&2
+  echo "Generate or restore the live Demo Agent key before running the demo." >&2
   exit 1
 fi
 
@@ -113,7 +113,7 @@ if [ "${SKILLGUARD_SKIP_PAIRING_WAIT:-0}" != "1" ]; then
 fi
 
 echo
-echo "==> Starting Research Agent loop"
+echo "==> Starting Demo Agent loop"
 echo "The loop submits: free scan -> 0.001 SOL paid report -> blocked 0.05 SOL upgrade."
 echo "Approve/reject from the app Inbox. Ctrl-C stops the loop."
 

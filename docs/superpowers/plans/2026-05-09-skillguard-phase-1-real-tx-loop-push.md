@@ -1287,7 +1287,7 @@ describe("sendPushNotifications", () => {
     const dropped: string[] = [];
     const result = await sendPushNotifications({
       tokens: ["ExponentPushToken[abc]"],
-      title: "Research Agent",
+      title: "Demo Agent",
       body: "New scan request",
       data: { actionId: "act-1" },
       fetch: fetchSpy as unknown as typeof fetch,
@@ -2030,7 +2030,7 @@ export SKILLGUARD_AGENT_PRIVATE_KEY_B58=<key>
 npm --prefix apps/research-agent run agent:loop
 ```
 
-Expected: lock-screen notification appears with title "Research Agent" and body "Scan wallet for risky token approvals". Tap → app opens to the inbox with that action selected.
+Expected: lock-screen notification appears with title "Demo Agent" and body "Scan wallet for risky token approvals". Tap → app opens to the inbox with that action selected.
 
 If it does not work, debug. Common failure: physical device's notifications channel is muted; check Android settings.
 

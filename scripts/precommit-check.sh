@@ -79,11 +79,11 @@ if [ -f apps/api/package.json ]; then
 fi
 
 if [ -f apps/research-agent/package.json ]; then
-  echo "==> Building research agent"
+  echo "==> Building demo agent"
   npm --prefix apps/research-agent run build
 
   if find apps/research-agent/src \( -name "*.test.ts" -o -name "*.test.tsx" \) | grep -q .; then
-    echo "==> Testing research agent"
+    echo "==> Testing demo agent"
     npm --prefix apps/research-agent test
   fi
 fi

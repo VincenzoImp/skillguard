@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createResearchManifest } from "./actions.js";
 
-describe("research agent actions", () => {
+describe("demo agent actions", () => {
   it("creates a deterministic safe action manifest", () => {
     const manifest = createResearchManifest("safe", "run-1", "Wallet111");
 

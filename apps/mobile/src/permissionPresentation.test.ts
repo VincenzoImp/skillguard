@@ -6,7 +6,7 @@ import type { ConnectedAgent } from "./liveState";
 describe("permission presentation", () => {
   it("builds one permission card per active agent", () => {
     const cards = buildPermissionCards([
-      agent("conn-research", "Research Agent", "active"),
+      agent("conn-research", "Demo Agent", "active"),
       agent("conn-revoked", "Revoked Agent", "revoked"),
       agent("conn-payments", "Payments Agent", "active"),
     ]);
@@ -16,7 +16,7 @@ describe("permission presentation", () => {
       "conn-payments",
     ]);
     expect(cards[0]).toMatchObject({
-      agentName: "Research Agent",
+      agentName: "Demo Agent",
       mode: "ask_every_time",
     });
     expect(cards[0].rules.map((rule) => rule.label)).toEqual([

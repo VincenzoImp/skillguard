@@ -59,7 +59,7 @@ Required story sequence:
 3. Solution: SkillGuard sits between agent intent and wallet signatures.
 4. Product model: Allow, Ask, Block, Revoke.
 5. Demo proof:
-   - pair Research Agent by QR;
+   - pair Demo Agent by QR;
    - show a low-risk `0 SOL` wallet scan auto-approved under `Allow under limits`;
    - show a `0.001 SOL` paid report requiring explicit mobile wallet approval;
    - show a `0.05 SOL` request blocked before signing;
@@ -83,21 +83,21 @@ Low-risk work can proceed automatically. The moment money moves, the owner is ba
 
 Required visual components:
 
-- Agent node: `Research Agent`, `Signed manifest`, `Waiting for policy`.
+- Agent node: `Demo Agent`, `Signed manifest`, `Waiting for policy`.
 - Wallet node: `Owner wallet`, `Solana devnet`, `Funds stay protected`.
 - Central SkillGuard firewall with lanes: `Allow`, `Ask`, `Block`, `Revoke`.
 - Tall phone frame with tabs: `Home`, `Inbox`, `Agents`, `Pair`, `Activity`.
-- Policy card for Research Agent with spend limits and devnet scope.
+- Policy card for Demo Agent with spend limits and devnet scope.
 - Three action cards:
   - `Scan wallet for risky token approvals` / `0 SOL` / `Auto-approved by policy`.
   - `Generate weekly wallet risk PDF` / `0.001 SOL` / `Requires approval`.
   - `Subscribe to real-time risk alerts` / `0.05 SOL` / `Blocked`.
 - Technical proof grid: `Android APK`, `Mobile Wallet Adapter`, `Vercel API`,
-  `Research Agent`, `Anchor receipt program`, `Solana devnet`.
+  `Demo Agent`, `Anchor receipt program`, `Solana devnet`.
 
 Motion requirements:
 
-- Request lines move from Research Agent to SkillGuard.
+- Request lines move from Demo Agent to SkillGuard.
 - Allowed zero-spend request passes in mint.
 - Spending request routes to phone approval in amber.
 - Blocked request stops at the firewall in red.
