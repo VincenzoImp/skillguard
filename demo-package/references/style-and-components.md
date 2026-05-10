@@ -6,6 +6,12 @@ new campaign style.
 
 ## Visual Source
 
+- Concrete site screenshots inside this package:
+  - `demo-package/assets/site-home-desktop.png`
+  - `demo-package/assets/site-demo-desktop.png`
+  - `demo-package/assets/site-home-mobile.png`
+- Site component breakdown:
+  - `demo-package/references/site-home-reference.md`
 - Public site implementation: `apps/site/src/App.tsx`
 - Public site styles: `apps/site/src/styles.css`
 - Brand rules: `docs/DESIGN_SYSTEM.md`
@@ -148,8 +154,10 @@ Expected tabs:
 - `Activity`: approved, blocked, revoked, receipt outcomes
 
 Do not show a huge fake phone that does not match the app. If recreating screens
-instead of inserting real recordings, keep the mobile UI close to the real app:
-dark cards, compact metadata, status chips, and bottom-tab navigation.
+instead of inserting real recordings, copy the proportions and screen density
+from `site-home-desktop.png` and `site-home-reference.md`: black outer device,
+rounded 40px shell, dark inner app, compact metadata, status chips, and
+bottom-tab navigation.
 
 ### Action Cards
 

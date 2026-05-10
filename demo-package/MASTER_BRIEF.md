@@ -153,7 +153,11 @@ Use the existing SkillGuard visual language:
 - phone-shaped app inserts
 - short micro-copy, never full subtitles
 
-Read `references/style-and-components.md` before building visuals.
+Read `references/style-and-components.md` and
+`references/site-home-reference.md` before building visuals. The package also
+includes screenshots in `assets/site-home-desktop.png`,
+`assets/site-demo-desktop.png`, and `assets/site-home-mobile.png`; use them as
+the concrete component/style reference.
 
 ## Required Files To Read Next
 
@@ -165,4 +169,5 @@ Read `references/style-and-components.md` before building visuals.
 6. `05-html-presentation-spec.md`
 7. `06-assets-map.md`
 8. `references/style-and-components.md`
-9. `references/technical-proof.md`
+9. `references/site-home-reference.md`
+10. `references/technical-proof.md`

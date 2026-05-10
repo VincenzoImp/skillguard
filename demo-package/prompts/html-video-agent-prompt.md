@@ -18,6 +18,7 @@ Read these files first:
 - `demo-package/05-html-presentation-spec.md`
 - `demo-package/06-assets-map.md`
 - `demo-package/references/style-and-components.md`
+- `demo-package/references/site-home-reference.md`
 
 Build a screen-recordable animated HTML presentation.
 
@@ -28,6 +29,10 @@ Hard requirements:
 - Use picture-in-picture slots for optional real app recordings.
 - Keep total runtime under 3 minutes.
 - Use the SkillGuard visual style from the existing site.
+- Use the included screenshots as concrete visual references:
+  - `demo-package/assets/site-home-desktop.png`
+  - `demo-package/assets/site-demo-desktop.png`
+  - `demo-package/assets/site-home-mobile.png`
 - Show the Allow, Ask, Block, and Revoke model.
 - Show low-risk zero-spend auto-approval without implying auto-signing.
 - Show the `0.001 SOL` paid request and Solana devnet receipt proof.

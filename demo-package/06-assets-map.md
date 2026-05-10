@@ -13,6 +13,10 @@
 - Pairing QR image: `build/pairing/agent-research-live-qr.png`
 - Pairing HTML: `build/pairing/agent-research-live.html`
 - Pairing metadata: `build/pairing/agent-research-live-meta.json`
+- Site home desktop screenshot: `demo-package/assets/site-home-desktop.png`
+- Site demo desktop screenshot: `demo-package/assets/site-demo-desktop.png`
+- Site home mobile screenshot: `demo-package/assets/site-home-mobile.png`
+- Site component reference: `demo-package/references/site-home-reference.md`
 
 ## Technical References
 

@@ -15,6 +15,8 @@ blocked before signing, and what can be revoked.
 
 Read `demo-package/MASTER_BRIEF.md` first. It contains the full product context
 and the honesty boundary around auto-approval.
+Then read `demo-package/references/site-home-reference.md` and use the included
+site screenshots as the concrete component reference.
 
 ## The Three-Minute Spine
 

@@ -23,6 +23,7 @@ transaction manually. SkillGuard is the fourth path.
 
 ## Files
 
+- `00_FLAT_VIDEO_AGENT_HANDOFF.md`: use this if files are imported without folder structure.
 - `MASTER_BRIEF.md`: start here; complete product, story, demo, and honesty context.
 - `00-video-brief.md`: executive brief and success criteria.
 - `01-voiceover-script.md`: timed narration script.

@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 
 const requiredFiles = [
   "demo-package/MASTER_BRIEF.md",
+  "demo-package/00_FLAT_VIDEO_AGENT_HANDOFF.md",
   "demo-package/README.md",
   "demo-package/00-video-brief.md",
   "demo-package/01-voiceover-script.md",
@@ -17,6 +18,7 @@ const requiredFiles = [
   "demo-package/prompts/html-video-agent-prompt.md",
   "demo-package/prompts/app-capture-agent-prompt.md",
   "demo-package/references/style-and-components.md",
+  "demo-package/references/site-home-reference.md",
   "demo-package/references/product-context.md",
   "demo-package/references/technical-proof.md",
   "demo-package/references/demo-flow.md",
@@ -44,9 +46,21 @@ describe("demo package", () => {
 
     assert.match(directorPrompt, /three-minute spine/i);
     assert.match(directorPrompt, /first 10 seconds/i);
+    assert.match(directorPrompt, /site-home-reference\.md/i);
     assert.match(directorPrompt, /pair, low-risk auto-approval, paid approval, block, revoke/i);
     assert.match(directorPrompt, /Do not say or imply that SkillGuard auto-signs spending transactions/i);
     assert.match(directorPrompt, /do not waste time/i);
+  });
+
+  it("supports flattened file imports with a single self-contained handoff", () => {
+    const flatHandoff = readFileSync("demo-package/00_FLAT_VIDEO_AGENT_HANDOFF.md", "utf8");
+
+    assert.match(flatHandoff, /imported without folder structure/i);
+    assert.match(flatHandoff, /site-home-desktop\.png/i);
+    assert.match(flatHandoff, /Do not generate audio/i);
+    assert.match(flatHandoff, /Do not render the full voiceover as subtitles/i);
+    assert.match(flatHandoff, /Low-risk work can proceed automatically/i);
+    assert.match(flatHandoff, /Do not say or imply that SkillGuard auto-signs spending transactions/i);
   });
 
   it("tells the HTML video agent not to render voiceover subtitles", () => {
