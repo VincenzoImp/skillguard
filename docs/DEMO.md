@@ -23,6 +23,36 @@ The three-minute spine is: problem, bad tradeoff, SkillGuard as wallet firewall,
 then the proof sequence of pair, low-risk zero-spend auto-approval, paid
 approval, block, and revoke.
 
+## Rendered Video Assets
+
+Generated video and audio exports are local release artifacts, not source files.
+They live under `build/demo/`, and `build/demo/` is intentionally ignored by git.
+
+Current local artifact names:
+
+```text
+build/demo/skillguard-story-silent.mp4
+build/demo/skillguard-voiceover-elevenlabs-tony.mp3
+build/demo/skillguard-story-with-audio.mp4
+```
+
+Use the committed story source in `apps/site/public/demo/story/` to regenerate
+the silent video, use `VOICEOVER_ELEVENLABS.txt` to generate the voiceover, then
+merge the two local artifacts with:
+
+```bash
+scripts/merge-demo-audio.sh
+```
+
+The merge script accepts explicit input/output paths when needed:
+
+```bash
+scripts/merge-demo-audio.sh \
+  build/demo/skillguard-story-silent.mp4 \
+  build/demo/skillguard-voiceover-elevenlabs-tony.mp3 \
+  build/demo/skillguard-story-with-audio.mp4
+```
+
 ## Full Local Script
 
 ```bash

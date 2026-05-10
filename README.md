@@ -320,6 +320,7 @@ packages/
   sdk/          TypeScript SDK for agent developers
 docs/
   PRODUCT.md
+  STRATEGY.md
   ROADMAP.md
   FEASIBILITY.md
   CRITICAL_FEASIBILITY_STUDY.md
@@ -334,6 +335,7 @@ assets/
 ## Planning Docs
 
 - [Product](docs/PRODUCT.md)
+- [Strategy](docs/STRATEGY.md)
 - [Critical Feasibility Study](docs/CRITICAL_FEASIBILITY_STUDY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)

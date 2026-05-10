@@ -13,6 +13,7 @@ const requiredFiles = [
   "apps/site/public/demo/story/SCRIPT.md",
   "apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt",
   "apps/site/public/demo/story/VOICEOVER_ELEVENLABS_WITH_BREAKS.txt",
+  "scripts/merge-demo-audio.sh",
 ];
 
 describe("story demo", () => {
@@ -53,6 +54,7 @@ describe("story demo", () => {
 
   it("documents how the committed demo should be used", () => {
     const readme = readFileSync("apps/site/public/demo/story/README.md", "utf8");
+    const demoDocs = readFileSync("docs/DEMO.md", "utf8");
 
     assert.match(readme, /static animated story/i);
     assert.match(readme, /SCRIPT\.md/i);
@@ -60,6 +62,10 @@ describe("story demo", () => {
     assert.match(readme, /VOICEOVER_ELEVENLABS_WITH_BREAKS\.txt/i);
     assert.match(readme, /Do not render the full\s+voiceover as subtitles/i);
     assert.match(readme, /\/demo\/story\/index\.html/i);
+    assert.match(demoDocs, /build\/demo\/skillguard-story-silent\.mp4/i);
+    assert.match(demoDocs, /build\/demo\/skillguard-voiceover-elevenlabs-tony\.mp3/i);
+    assert.match(demoDocs, /scripts\/merge-demo-audio\.sh/i);
+    assert.match(demoDocs, /build\/demo\/.*ignored by git/i);
   });
 
   it("includes a clean ElevenLabs voiceover input without markdown or timecodes", () => {
