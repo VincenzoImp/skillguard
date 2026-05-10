@@ -12,6 +12,7 @@ const requiredFiles = [
   "demo-package/05-html-presentation-spec.md",
   "demo-package/06-assets-map.md",
   "demo-package/07-final-export-checklist.md",
+  "demo-package/08-director-prompt.md",
   "demo-package/prompts/html-video-agent-prompt.md",
   "demo-package/prompts/app-capture-agent-prompt.md",
   "demo-package/references/product-context.md",
@@ -30,10 +31,19 @@ describe("demo package", () => {
     const script = readFileSync("demo-package/01-voiceover-script.md", "utf8");
 
     assert.match(script, /wallet firewall for AI agents/i);
-    assert.match(script, /without handing them your wallet/i);
-    assert.match(script, /Allow, Ask, or Block/i);
+    assert.match(script, /wallet access without giving up control/i);
+    assert.match(script, /Allow, Ask, Block, and Revoke/i);
     assert.match(script, /0\.001 SOL/i);
     assert.match(script, /Solana devnet receipt/i);
+  });
+
+  it("gives the video agent a focused director prompt", () => {
+    const directorPrompt = readFileSync("demo-package/08-director-prompt.md", "utf8");
+
+    assert.match(directorPrompt, /three-minute spine/i);
+    assert.match(directorPrompt, /first 10 seconds/i);
+    assert.match(directorPrompt, /pair, approve, block, revoke/i);
+    assert.match(directorPrompt, /do not waste time/i);
   });
 
   it("tells the HTML video agent not to render voiceover subtitles", () => {

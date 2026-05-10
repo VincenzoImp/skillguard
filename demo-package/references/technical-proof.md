@@ -18,6 +18,17 @@ The demo is not only a storyboard. These parts exist in the repository:
 4. Mobile Wallet Adapter signs approvals.
 5. Anchor program records decision receipts on Solana devnet.
 
+## Proof To Show In The Video
+
+Use short proof cards, not long logs:
+
+- Android APK
+- Mobile Wallet Adapter
+- Hosted Vercel API
+- Research Agent worker
+- Anchor receipt program
+- Solana devnet receipt
+
 ## Honest Boundary
 
 SkillGuard protects requests that go through SkillGuard. It does not claim to

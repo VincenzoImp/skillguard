@@ -2,10 +2,11 @@
 
 ## Content
 
-- [ ] First 15 seconds explain the need, not the architecture.
+- [ ] First 10 seconds make the wallet-risk problem obvious.
 - [ ] Script says `wallet firewall for AI agents`.
-- [ ] Script says agents can use the wallet without owning the wallet.
+- [ ] Script says `wallet access without giving up control`.
 - [ ] Demo shows Allow, Ask, and Block.
+- [ ] Demo shows Revoke.
 - [ ] Paid request clearly shows `0.001 SOL`.
 - [ ] Blocked request clearly shows policy denial before signing.
 - [ ] Closing says `Agents can act. Users stay in control.`
@@ -26,6 +27,7 @@
 - [ ] Mentions Research Agent.
 - [ ] Mentions Solana devnet receipt.
 - [ ] Does not claim mainnet production custody.
+- [ ] Does not imply SkillGuard protects transactions outside the SkillGuard gateway.
 
 ## Export
 

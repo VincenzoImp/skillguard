@@ -3,6 +3,9 @@
 Capture only short proof inserts. The final video should not be a raw app
 walkthrough.
 
+The capture goal is not to explain every screen. The goal is to prove the core
+control loop: pair, approve, block, revoke.
+
 ## Setup
 
 1. Install `build/mobile/skillguard.apk`.
@@ -22,7 +25,7 @@ scripts/live-demo.sh <connected-mobile-wallet-address>
 
 - Start: Pair tab, QR scanner open.
 - Action: scan the Research Agent QR.
-- End: agent imported and visible in Agents.
+- End: agent imported and visible in Agents with policy visible.
 - Length: 8-12 seconds.
 
 ### Clip 2: Paid Approval
@@ -30,15 +33,21 @@ scripts/live-demo.sh <connected-mobile-wallet-address>
 - Start: Inbox with Research Agent paid report.
 - Show: spend `0.001 SOL`, policy checks, approve button.
 - Action: approve through wallet.
-- End: Activity with receipt.
+- End: Activity with receipt or transaction result.
 - Length: 15-20 seconds.
 
 ### Clip 3: Block And Revoke
 
 - Start: blocked overspend visible or Activity showing blocked result.
 - Show: Agents tab and revoke action.
-- End: revoked agent state.
+- End: revoked agent state or future request blocked as revoked.
 - Length: 10-15 seconds.
+
+## Optional Clip: Auto-Approval
+
+Use only if it is clean and fast. Show a low-risk zero-spend request proceeding
+under `Allow under limits`. Do not let this distract from the main paid approval
+and blocked overspend story.
 
 ## Recording Notes
 

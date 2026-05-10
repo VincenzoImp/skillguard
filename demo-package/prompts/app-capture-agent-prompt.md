@@ -19,3 +19,5 @@ signing files, or credential vault screens. Public devnet wallet addresses and
 devnet signatures are acceptable.
 
 The clips will be inserted picture-in-picture into an animated HTML presentation.
+They are proof inserts, not the whole video. The final story is pair, approve,
+block, revoke.

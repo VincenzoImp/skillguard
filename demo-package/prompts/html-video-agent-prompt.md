@@ -2,12 +2,14 @@
 
 You are creating an animated HTML presentation for SkillGuard.
 
-SkillGuard is a wallet firewall for AI agents operating onchain. It lets agents
-request wallet actions while the wallet owner decides what is allowed
-automatically, what requires consent, and what is blocked before signing.
+SkillGuard gives AI agents wallet access without giving up control. It is a
+wallet firewall for AI agents operating onchain: agents request wallet actions,
+but the wallet owner controls what is allowed automatically, what requires
+consent, what is blocked before signing, and what can be revoked.
 
 Read these files first:
 
+- `demo-package/08-director-prompt.md`
 - `demo-package/00-video-brief.md`
 - `demo-package/01-voiceover-script.md`
 - `demo-package/02-shot-list.md`
@@ -26,6 +28,9 @@ Hard requirements:
 - Use the SkillGuard visual style from the existing site.
 - Show the Allow, Ask, Block, and Revoke model.
 - Show the `0.001 SOL` paid request and Solana devnet receipt proof.
+- Make the first 10 seconds about the wallet-risk problem, not architecture.
+- The live proof spine is pair, approve, block, revoke.
+- Do not waste time on full API lists, long code snippets, generic AI hype, or generic Solana education.
 
 Suggested final line on screen:
 

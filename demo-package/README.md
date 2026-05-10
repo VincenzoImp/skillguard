@@ -11,9 +11,15 @@ Core positioning:
 
 > SkillGuard is a wallet firewall for AI agents operating onchain.
 
+Core promise:
+
+> Give AI agents wallet access without giving up control.
+
 Do not present SkillGuard as only a policy API, demo app, or generic wallet. It
 is the missing control layer between AI agents that want to operate onchain and a
-user wallet holding real funds.
+user wallet holding real funds. The video must make the judge feel the bad
+tradeoff first: hand an agent a signer, fund a throwaway wallet, or approve every
+transaction manually. SkillGuard is the fourth path.
 
 ## Files
 
@@ -25,6 +31,7 @@ user wallet holding real funds.
 - `05-html-presentation-spec.md`: build requirements for the animated HTML.
 - `06-assets-map.md`: where to find logos, QR, app, and proof assets.
 - `07-final-export-checklist.md`: final QA checklist before submission.
+- `08-director-prompt.md`: single best prompt and creative brief for the video agent.
 - `prompts/html-video-agent-prompt.md`: prompt for the HTML video agent.
 - `prompts/app-capture-agent-prompt.md`: prompt for an agent capturing app clips.
 - `references/product-context.md`: product explanation for an external agent.
@@ -38,3 +45,5 @@ user wallet holding real funds.
 - Treat app recordings as proof inserts, not as the whole video.
 - Keep the total video under 3 minutes.
 - The story must explain the user struggle before showing the product.
+- The first 10 seconds must make the wallet-risk problem obvious.
+- The live demo spine is: pair, approve, block, revoke.

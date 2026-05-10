@@ -6,6 +6,16 @@ The complete video handoff for an external AI presentation/video agent lives in
 `demo-package/`. Use that folder for the final animated HTML presentation,
 voiceover script, shot list, app recording guide, and export checklist.
 
+For the final video agent, start with:
+
+```text
+demo-package/08-director-prompt.md
+```
+
+That file defines the three-minute spine: problem, bad tradeoff, SkillGuard as
+wallet firewall, then the live proof sequence of pair, approve, block, and
+revoke.
+
 ## Full Local Script
 
 ```bash
@@ -101,6 +111,13 @@ npm --prefix apps/research-agent run submit:revoked
 "The decision is now recorded as a Solana devnet receipt."
 "Now I revoke the agent, and future requests are blocked."
 ```
+
+## Video Pitch Priority
+
+The first 10 seconds should make the risk obvious: useful agents need wallet
+access, but direct signer access puts funds at risk. Do not open the video with
+API routes, code snippets, or Solana architecture. Those are proof points for
+the last third of the video, after the product value is clear.
 
 ## Scene 1: Connect Wallet
 
