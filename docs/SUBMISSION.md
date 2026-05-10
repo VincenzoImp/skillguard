@@ -33,7 +33,8 @@ During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-
 
 These require an account, credential, or human review:
 
-1. Record the under-3-minute demo using `docs/DEMO.md`.
+1. Record the under-3-minute demo using `docs/DEMO.md` and
+   `demo-package/MASTER_BRIEF.md`.
 2. Add the public site URL to the hackathon submission.
 3. Add the unlisted demo video URL to this file, the README, and the public site after recording.
 4. Solana Mobile dApp Store submission is explicitly out of scope for the hackathon package because publisher review/KYC timing is not controllable before deadline.

@@ -9,12 +9,13 @@ voiceover script, shot list, app recording guide, and export checklist.
 For the final video agent, start with:
 
 ```text
+demo-package/MASTER_BRIEF.md
 demo-package/08-director-prompt.md
 ```
 
-That file defines the three-minute spine: problem, bad tradeoff, SkillGuard as
-wallet firewall, then the live proof sequence of pair, approve, block, and
-revoke.
+Those files define the three-minute spine: problem, bad tradeoff, SkillGuard as
+wallet firewall, then the live proof sequence of pair, low-risk zero-spend
+auto-approval, paid approval, block, and revoke.
 
 ## Full Local Script
 

@@ -33,7 +33,7 @@ Three columns with simple icons:
 Place SkillGuard between agent and wallet. Animate requests hitting the firewall
 and splitting into:
 
-- `Allow`: green path continues.
+- `Allow`: green path continues only for low-risk zero-spend work.
 - `Ask`: yellow path moves to phone.
 - `Block`: red path stops.
 - `Revoke`: violet kill switch disables future requests.
@@ -48,6 +48,7 @@ Show compact policy controls:
 - Daily cap: `0.05 SOL`
 - Protocols: `helius, birdeye`
 - Network: `Solana devnet`
+- Boundary: `Auto-approval only for low-risk zero-spend requests`
 
 Keep this section short. The audience does not need every field explained; they
 need to understand that the policy belongs to the wallet owner and applies per
@@ -62,9 +63,10 @@ proof separately with real devnet receipt and APK.
 The real app inserts should show only high-signal moments:
 
 1. QR pairing imports Research Agent.
-2. Inbox asks for `0.001 SOL`.
-3. Overspend is blocked before signing.
-4. Agent is revoked.
+2. Zero-spend scan auto-approves under `Allow under limits`.
+3. Inbox asks for `0.001 SOL`.
+4. Overspend is blocked before signing.
+5. Agent is revoked.
 
 ### Scene F: Receipt Proof
 
@@ -74,6 +76,13 @@ Show a compact proof chain:
 
 Do not show long hashes at full length. Use short fragments and a small Explorer
 icon.
+
+For the zero-spend auto-approval path, show a separate lightweight receipt line:
+
+`Low-risk manifest -> Policy pass -> Auto-approved`
+
+Label it clearly as `No wallet signature needed` so the video does not imply
+automatic spending authority.
 
 ### Scene G: Close
 

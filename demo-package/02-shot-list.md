@@ -31,7 +31,7 @@
 
 ## Shot 4: How It Works
 
-- Duration: 1:15-1:32
+- Duration: 1:15-1:34
 - Visual: six-step flow.
 - Steps:
   - `Pair agent`
@@ -43,7 +43,7 @@
 
 ## Shot 5: App Recording Insert - Pairing
 
-- Duration: 1:32-1:48
+- Duration: 1:34-1:48
 - Visual: real Android app picture-in-picture.
 - Show:
   - Home with connected wallet.
@@ -52,9 +52,20 @@
   - Research Agent imported.
 - Overlay micro-copy: `Pair an agent by QR`
 
-## Shot 6: App Recording Insert - Paid Approval
+## Shot 6: Auto-Allowed Zero-Spend
 
-- Duration: 1:48-2:12
+- Duration: 1:48-1:58
+- Visual: phone frame plus animated policy panel.
+- Show:
+  - Agent mode `Allow under limits`.
+  - Free scan request, spend `0 SOL`.
+  - Activity state: auto-approved / no wallet signature needed.
+- Overlay micro-copy: `Low-risk work can auto-approve`
+- Boundary micro-copy: `No funds moved`
+
+## Shot 7: App Recording Insert - Paid Approval
+
+- Duration: 1:58-2:15
 - Visual: real Android app picture-in-picture plus animated policy panel.
 - Show:
   - Inbox request.
@@ -63,15 +74,15 @@
   - Activity receipt.
 - Overlay micro-copy: `Spending requires consent`
 
-## Shot 7: Blocked Overspend
+## Shot 8: Blocked Overspend
 
-- Duration: 2:12-2:25
+- Duration: 2:15-2:25
 - Visual: policy line slams shut before wallet.
 - Show app if available:
   - blocked `0.05 SOL` request.
 - Overlay micro-copy: `Blocked before signing`
 
-## Shot 8: Technical Proof
+## Shot 9: Technical Proof
 
 - Duration: 2:25-2:45
 - Visual: proof grid.
@@ -83,7 +94,7 @@
   - `Anchor program`
   - `Solana devnet receipt`
 
-## Shot 9: Closing
+## Shot 10: Closing
 
 - Duration: 2:45-2:55
 - Visual: agent continues working, wallet remains locked behind SkillGuard.
@@ -92,4 +103,6 @@
 ## Priority If Runtime Is Tight
 
 Do not cut the hook, the paid approval, the blocked overspend, or the revoke
-moment. If time is tight, shorten the architecture flow and proof grid.
+moment. If time is tight, shorten the architecture flow and proof grid. The
+auto-approval beat can be brief, but keep it if it is clean because it proves
+that SkillGuard preserves autonomy without giving agents custody.

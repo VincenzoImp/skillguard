@@ -9,6 +9,7 @@ consent, what is blocked before signing, and what can be revoked.
 
 Read these files first:
 
+- `demo-package/MASTER_BRIEF.md`
 - `demo-package/08-director-prompt.md`
 - `demo-package/00-video-brief.md`
 - `demo-package/01-voiceover-script.md`
@@ -16,6 +17,7 @@ Read these files first:
 - `demo-package/03-visual-storyboard.md`
 - `demo-package/05-html-presentation-spec.md`
 - `demo-package/06-assets-map.md`
+- `demo-package/references/style-and-components.md`
 
 Build a screen-recordable animated HTML presentation.
 
@@ -27,9 +29,11 @@ Hard requirements:
 - Keep total runtime under 3 minutes.
 - Use the SkillGuard visual style from the existing site.
 - Show the Allow, Ask, Block, and Revoke model.
+- Show low-risk zero-spend auto-approval without implying auto-signing.
 - Show the `0.001 SOL` paid request and Solana devnet receipt proof.
 - Make the first 10 seconds about the wallet-risk problem, not architecture.
-- The live proof spine is pair, approve, block, revoke.
+- The live proof spine is pair, auto-allow zero-spend, approve spend, block, revoke.
+- If a request spends SOL, route it to explicit mobile wallet approval.
 - Do not waste time on full API lists, long code snippets, generic AI hype, or generic Solana education.
 
 Suggested final line on screen:

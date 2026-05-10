@@ -14,9 +14,10 @@ The demo is not only a storyboard. These parts exist in the repository:
 
 1. Research Agent submits an ActionManifest.
 2. API evaluates the wallet-owned policy.
-3. Mobile app loads pending requests through a signed wallet session.
-4. Mobile Wallet Adapter signs approvals.
-5. Anchor program records decision receipts on Solana devnet.
+3. Low-risk zero-spend manifests can pass policy without wallet signing.
+4. Mobile app loads pending spending requests through a signed wallet session.
+5. Mobile Wallet Adapter signs approvals when the owner approves.
+6. Anchor program records wallet-approved decision receipts on Solana devnet.
 
 ## Proof To Show In The Video
 
@@ -33,4 +34,5 @@ Use short proof cards, not long logs:
 
 SkillGuard protects requests that go through SkillGuard. It does not claim to
 protect arbitrary transactions signed outside the system, and it does not hold
-custody of user funds.
+custody of user funds. It also does not auto-sign spending transactions in the
+MVP. Auto-approval is limited to low-risk zero-spend requests.

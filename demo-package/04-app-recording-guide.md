@@ -4,7 +4,8 @@ Capture only short proof inserts. The final video should not be a raw app
 walkthrough.
 
 The capture goal is not to explain every screen. The goal is to prove the core
-control loop: pair, approve, block, revoke.
+control loop: pair, auto-allow zero-spend, approve spend, block overspend, and
+revoke.
 
 ## Setup
 
@@ -36,18 +37,23 @@ scripts/live-demo.sh <connected-mobile-wallet-address>
 - End: Activity with receipt or transaction result.
 - Length: 15-20 seconds.
 
-### Clip 3: Block And Revoke
+### Clip 3: Auto-Approval
+
+- Start: Agents tab with Research Agent policy visible.
+- Action: switch only this agent to `Allow under limits`, then let the free
+  wallet scan submit.
+- Show: `0 SOL`, low risk, auto-approved / no wallet signature needed.
+- End: Activity showing auto-approved receipt-only outcome.
+- Length: 8-10 seconds.
+- Use this clip if clean. It proves autonomy, but do not imply that spending
+  transactions are auto-signed.
+
+### Clip 4: Block And Revoke
 
 - Start: blocked overspend visible or Activity showing blocked result.
 - Show: Agents tab and revoke action.
 - End: revoked agent state or future request blocked as revoked.
 - Length: 10-15 seconds.
-
-## Optional Clip: Auto-Approval
-
-Use only if it is clean and fast. Show a low-risk zero-spend request proceeding
-under `Allow under limits`. Do not let this distract from the main paid approval
-and blocked overspend story.
 
 ## Recording Notes
 
@@ -56,3 +62,5 @@ and blocked overspend story.
 - It is fine to show public wallet addresses and devnet signatures.
 - Crop out Android notification shade unless it helps prove push behavior.
 - Keep tap speed calm. The voiceover will explain the action.
+- If push notifications do not arrive quickly, use the app refresh control. The
+  authenticated live inbox is the source of truth.

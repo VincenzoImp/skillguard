@@ -28,22 +28,25 @@ SkillGuard is that layer: a wallet firewall for AI agents. Agents submit signed
 action manifests. SkillGuard checks wallet-owned policy and decides whether to
 Allow, Ask, Block, and Revoke before anything reaches signing.
 
-## 1:15-1:32 How It Works
+## 1:15-1:34 How It Works
 
 The owner pairs an agent, sets limits, and decides what can proceed
 automatically, what needs explicit consent, and what must be denied. The agent
 never receives the private key. It waits for a wallet-owned decision.
 
-## 1:32-2:25 Real Demo
+## 1:34-2:25 Real Demo
 
 Here is the live demo path. I connect my devnet wallet, scan a QR, and import
 Research Agent. The QR only imports the agent identity and policy template. I
 still review the limits and sign the connection.
 
-First, the agent submits a low-risk wallet scan. Then it asks for a paid report
-that spends `0.001 SOL`. Because money moves, SkillGuard routes the request to
-the mobile inbox. I review the manifest, approve it, and only then does my
-wallet sign.
+First, I switch this agent to allow low-risk work under limits. It submits a
+zero-spend wallet scan, and SkillGuard approves it automatically because no
+funds move and no wallet signature is needed.
+
+Then the same agent asks for a paid report that spends `0.001 SOL`. Because
+money moves, SkillGuard routes the request to the mobile inbox. I review the
+manifest, approve it, and only then does my wallet sign.
 
 Next, the same agent asks for a larger `0.05 SOL` upgrade. This exceeds my
 per-action limit, so SkillGuard blocks it before any wallet signature prompt.
@@ -52,8 +55,8 @@ Finally, I revoke the agent, and future requests from that identity are denied.
 ## 2:25-2:45 Proof
 
 This is not a mockup. The Android app uses Mobile Wallet Adapter. The hosted API
-runs on Vercel. The research agent is a real worker. Approved decisions are
-recorded as Solana devnet receipts tied to the action manifest.
+runs on Vercel. The research agent is a real worker. Wallet-approved spending
+decisions are recorded as Solana devnet receipts tied to the action manifest.
 
 ## 2:45-2:55 Close
 

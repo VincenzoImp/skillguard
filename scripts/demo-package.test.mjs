@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 
 const requiredFiles = [
+  "demo-package/MASTER_BRIEF.md",
   "demo-package/README.md",
   "demo-package/00-video-brief.md",
   "demo-package/01-voiceover-script.md",
@@ -15,6 +16,7 @@ const requiredFiles = [
   "demo-package/08-director-prompt.md",
   "demo-package/prompts/html-video-agent-prompt.md",
   "demo-package/prompts/app-capture-agent-prompt.md",
+  "demo-package/references/style-and-components.md",
   "demo-package/references/product-context.md",
   "demo-package/references/technical-proof.md",
   "demo-package/references/demo-flow.md",
@@ -42,7 +44,8 @@ describe("demo package", () => {
 
     assert.match(directorPrompt, /three-minute spine/i);
     assert.match(directorPrompt, /first 10 seconds/i);
-    assert.match(directorPrompt, /pair, approve, block, revoke/i);
+    assert.match(directorPrompt, /pair, low-risk auto-approval, paid approval, block, revoke/i);
+    assert.match(directorPrompt, /Do not say or imply that SkillGuard auto-signs spending transactions/i);
     assert.match(directorPrompt, /do not waste time/i);
   });
 

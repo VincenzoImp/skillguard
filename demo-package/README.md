@@ -23,6 +23,7 @@ transaction manually. SkillGuard is the fourth path.
 
 ## Files
 
+- `MASTER_BRIEF.md`: start here; complete product, story, demo, and honesty context.
 - `00-video-brief.md`: executive brief and success criteria.
 - `01-voiceover-script.md`: timed narration script.
 - `02-shot-list.md`: exact scenes, visuals, and screen references.
@@ -34,6 +35,7 @@ transaction manually. SkillGuard is the fourth path.
 - `08-director-prompt.md`: single best prompt and creative brief for the video agent.
 - `prompts/html-video-agent-prompt.md`: prompt for the HTML video agent.
 - `prompts/app-capture-agent-prompt.md`: prompt for an agent capturing app clips.
+- `references/style-and-components.md`: visual tokens, app components, and phone-frame rules.
 - `references/product-context.md`: product explanation for an external agent.
 - `references/technical-proof.md`: concrete proof that the demo is real.
 - `references/demo-flow.md`: operational flow and expected demo outcomes.
@@ -46,4 +48,6 @@ transaction manually. SkillGuard is the fourth path.
 - Keep the total video under 3 minutes.
 - The story must explain the user struggle before showing the product.
 - The first 10 seconds must make the wallet-risk problem obvious.
-- The live demo spine is: pair, approve, block, revoke.
+- The live demo spine is: pair, auto-allow zero-spend, approve spend, block overspend, revoke.
+- Never claim SkillGuard auto-signs spending transactions. Auto-approval only
+  applies to low-risk zero-spend requests in the MVP.

@@ -7,6 +7,7 @@
 - [ ] Script says `wallet access without giving up control`.
 - [ ] Demo shows Allow, Ask, and Block.
 - [ ] Demo shows Revoke.
+- [ ] Auto-approval is shown only for a low-risk `0 SOL` request.
 - [ ] Paid request clearly shows `0.001 SOL`.
 - [ ] Blocked request clearly shows policy denial before signing.
 - [ ] Closing says `Agents can act. Users stay in control.`
@@ -28,6 +29,8 @@
 - [ ] Mentions Solana devnet receipt.
 - [ ] Does not claim mainnet production custody.
 - [ ] Does not imply SkillGuard protects transactions outside the SkillGuard gateway.
+- [ ] Does not claim spending transactions are auto-signed by SkillGuard.
+- [ ] Makes clear that spending requires explicit wallet approval in the MVP.
 
 ## Export
 

@@ -13,12 +13,15 @@ wallet firewall for onchain AI agents: agents can request actions, but the walle
 owner decides what is allowed automatically, what requires consent, what is
 blocked before signing, and what can be revoked.
 
+Read `demo-package/MASTER_BRIEF.md` first. It contains the full product context
+and the honesty boundary around auto-approval.
+
 ## The Three-Minute Spine
 
 1. Problem: useful agents need wallet access, and wallet access means fund risk.
 2. Bad tradeoff: personal wallet, funded burner wallet, or manual approval.
 3. Solution: SkillGuard sits between agent intent and wallet signatures.
-4. Proof: show pair, approve, block, revoke in the Android app.
+4. Proof: show pair, low-risk auto-approval, paid approval, block, revoke in the Android app.
 5. Credibility: show Android app, Mobile Wallet Adapter, Vercel API, Research Agent, Anchor, Solana devnet receipt.
 6. Close: agents can act; users stay in control.
 
@@ -38,13 +41,18 @@ hero.
 Prioritize these app/proof moments:
 
 1. Pair Research Agent by QR.
-2. Approve the `0.001 SOL` wallet-risk report.
-3. Block the `0.05 SOL` overspend before signing.
-4. Revoke the agent.
-5. Show or reference the Solana devnet receipt.
+2. Show a `0 SOL` wallet scan auto-approved under `Allow under limits`.
+3. Approve the `0.001 SOL` wallet-risk report.
+4. Block the `0.05 SOL` overspend before signing.
+5. Revoke the agent.
+6. Show or reference the Solana devnet receipt.
 
 Use app recordings as proof inserts inside the animated presentation. Do not
 make the whole video a raw phone walkthrough.
+
+Do not say or imply that SkillGuard auto-signs spending transactions. The
+auto-approved path is only for low-risk zero-spend work. Any spend still
+requires explicit wallet approval.
 
 ## What Not To Waste Time On
 
@@ -66,6 +74,7 @@ Use only short micro-copy:
 - `Wallet access means fund risk`
 - `Wallet firewall for AI agents`
 - `Allow / Ask / Block / Revoke`
+- `Low-risk work can auto-approve`
 - `Spending requires consent`
 - `Blocked before signing`
 - `Recorded on Solana devnet`
