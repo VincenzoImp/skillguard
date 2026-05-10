@@ -11,6 +11,7 @@ const requiredFiles = [
   "apps/site/public/demo/story/scenes.jsx",
   "apps/site/public/demo/story/README.md",
   "apps/site/public/demo/story/SCRIPT.md",
+  "apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt",
 ];
 
 describe("story demo", () => {
@@ -54,7 +55,22 @@ describe("story demo", () => {
 
     assert.match(readme, /static animated story/i);
     assert.match(readme, /SCRIPT\.md/i);
+    assert.match(readme, /VOICEOVER_ELEVENLABS\.txt/i);
     assert.match(readme, /Do not render the full\s+voiceover as subtitles/i);
     assert.match(readme, /\/demo\/story\/index\.html/i);
+  });
+
+  it("includes a clean ElevenLabs voiceover input without markdown or timecodes", () => {
+    const voiceover = readFileSync("apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt", "utf8");
+    const wordCount = voiceover.trim().split(/\s+/).length;
+
+    assert.match(voiceover, /SkillGuard is (a|the) wallet firewall for AI agents/i);
+    assert.match(voiceover, /Agents can act\.\s+Users stay in control\./i);
+    assert.match(voiceover, /Mobile Wallet Adapter/i);
+    assert.match(voiceover, /Solana devnet receipts/i);
+    assert.ok(wordCount >= 350 && wordCount <= 470, `unexpected voiceover word count: ${wordCount}`);
+    assert.doesNotMatch(voiceover, /^#/m);
+    assert.doesNotMatch(voiceover, /\d:\d{2}/);
+    assert.doesNotMatch(voiceover, /Shot \d/i);
   });
 });

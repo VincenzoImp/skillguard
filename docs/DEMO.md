@@ -12,6 +12,11 @@ It is served by the public site at `/demo/story/index.html`. The full pitch,
 voiceover, timing, shot list, and product boundary are preserved next to it in
 `apps/site/public/demo/story/SCRIPT.md`.
 
+For voice generation, paste the clean script from
+`apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt` into ElevenLabs. That
+file intentionally contains only spoken text: no markdown, no timecodes, and no
+visual directions.
+
 The three-minute spine is: problem, bad tradeoff, SkillGuard as wallet firewall,
 then the proof sequence of pair, low-risk zero-spend auto-approval, paid
 approval, block, and revoke.

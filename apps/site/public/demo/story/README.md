@@ -30,11 +30,14 @@ http://localhost:5173/demo/story/index.html
 - `phone.jsx`: reconstructed SkillGuard mobile screens.
 - `scenes.jsx`: the full three-minute story sequence.
 - `SCRIPT.md`: voiceover, timing, shot list, and product boundary.
+- `VOICEOVER_ELEVENLABS.txt`: clean plain-text input for ElevenLabs.
 
 ## Production Notes
 
 The recorded voiceover should be produced separately. Do not render the full
 voiceover as subtitles in the animation. Keep only short on-screen micro-copy.
+Use `VOICEOVER_ELEVENLABS.txt` as the direct ElevenLabs input; it intentionally
+has no markdown headings, no timecodes, and no visual directions.
 
 The core product boundary must stay explicit:
 
