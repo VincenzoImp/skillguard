@@ -2,21 +2,19 @@
 
 Target length: under 3 minutes.
 
-The complete video handoff for an external AI presentation/video agent lives in
-`demo-package/`. It is intentionally flat and compact, with 6 files total, so it
-can be imported into agents with a strict file limit.
-
-For the final video agent, start with:
+The committed animated story demo lives in:
 
 ```text
-demo-package/00_READ_THIS_FIRST_PROMPT.md
-demo-package/01_STORY_SCRIPT_AND_SHOTS.md
-demo-package/02_VISUAL_COMPONENTS_AND_TECH_PROOF.md
+apps/site/public/demo/story/
 ```
 
-Those files define the three-minute spine: problem, bad tradeoff, SkillGuard as
-wallet firewall, then the live proof sequence of pair, low-risk zero-spend
-auto-approval, paid approval, block, and revoke.
+It is served by the public site at `/demo/story/index.html`. The full pitch,
+voiceover, timing, shot list, and product boundary are preserved next to it in
+`apps/site/public/demo/story/SCRIPT.md`.
+
+The three-minute spine is: problem, bad tradeoff, SkillGuard as wallet firewall,
+then the proof sequence of pair, low-risk zero-spend auto-approval, paid
+approval, block, and revoke.
 
 ## Full Local Script
 
@@ -73,7 +71,7 @@ agent to `Allow under limits`; only low-risk zero-spend requests can auto-approv
 If camera access is unavailable, use the manual fallback and paste:
 
 ```text
-skillguard://pair?agentId=agent-research-live-230105&name=Research+Agent+Live&description=Solana+research+agent+that+requests+wallet-safe+actions.&protocols=helius%2Cbirdeye&publicKey=CWYnjAvQF85gAHtAWZETH2DcD1WQbRfTaf64Xvu1juZF
+skillguard://pair?agentId=agent-demo-live-230105&name=Demo+Agent&description=Solana+agent+that+requests+wallet-safe+actions.&protocols=helius%2Cbirdeye&publicKey=CWYnjAvQF85gAHtAWZETH2DcD1WQbRfTaf64Xvu1juZF
 ```
 
 The APK registers an Expo push token after the wallet session is signed. On a

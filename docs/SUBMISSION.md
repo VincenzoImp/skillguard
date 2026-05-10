@@ -33,8 +33,9 @@ During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-
 
 These require an account, credential, or human review:
 
-1. Record the under-3-minute demo using `docs/DEMO.md` and the flat handoff in
-   `demo-package/`.
+1. Record the under-3-minute demo using `docs/DEMO.md`, the animated story at
+   `apps/site/public/demo/story/index.html`, and the voiceover timing in
+   `apps/site/public/demo/story/SCRIPT.md`.
 2. Add the public site URL to the hackathon submission.
 3. Add the unlisted demo video URL to this file, the README, and the public site after recording.
 4. Solana Mobile dApp Store submission is explicitly out of scope for the hackathon package because publisher review/KYC timing is not controllable before deadline.
@@ -46,7 +47,7 @@ Completed owner-held secret step:
 ## Video Arc
 
 1. Open with the site hero: SkillGuard is the firewall between AI agents and a Solana wallet.
-2. Scan the `agent-research` pairing QR, sign the wallet-owner challenge, and show the default `0.01 SOL` policy.
+2. Scan the Demo Agent pairing QR, sign the wallet-owner challenge, and show the default `0.01 SOL` policy.
 3. Run `npm --prefix apps/research-agent run agent:loop`; show inbox delivery and, if the device receives it, the native push.
 4. Switch the agent to `Allow under limits` and show the low-risk zero-spend scan auto-approval path.
 5. Approve the `0.001 SOL` paid report and show one devnet transaction with SOL transfer plus SkillGuard receipt.
