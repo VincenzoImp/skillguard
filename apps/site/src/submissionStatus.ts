@@ -10,44 +10,44 @@ export type RoadmapItem = {
 export const roadmapItems: RoadmapItem[] = [
   {
     step: "1",
-    title: "MWA record_decision proof",
+    title: "Mobile wallet receipt proof",
     status: "done",
-    note: "A real Android Mobile Wallet Adapter flow wrote a finalized devnet receipt.",
+    note: "The Android app signs through Mobile Wallet Adapter and writes a finalized devnet decision receipt.",
   },
   {
     step: "2",
-    title: "Devnet program deploy",
+    title: "Devnet receipt program",
     status: "done",
-    note: "The Anchor program and IDL are deployed and documented for judges.",
+    note: "The Anchor receipt program and IDL are deployed on Solana devnet and linked from the docs.",
   },
   {
     step: "3",
     title: "Release APK signing pipeline",
     status: "done",
-    note: "Release signing is verified with an external keystore path and no secrets in git.",
+    note: "The release APK is signed from an external keystore path; no signing secrets are committed.",
   },
   {
     step: "4",
     title: "Public project site",
     status: "done",
-    note: "Vercel is the canonical public site and API surface at skillguard-sol.vercel.app.",
+    note: "Vercel serves the public pitch, demo runbook, and hosted API at skillguard-sol.vercel.app.",
   },
   {
     step: "5",
     title: "Final upload key",
     status: "done",
-    note: "The owner-controlled Android upload keystore was generated outside git and used for the current release APK.",
+    note: "The owner-controlled Android upload keystore was generated outside git and used for the release APK.",
   },
   {
     step: "6",
     title: "Password manager backup",
     status: "done",
-    note: "The owner confirmed the final upload keystore and signing env are stored in the password manager.",
+    note: "The final upload keystore and signing environment are backed up in the owner password manager.",
   },
   {
     step: "7",
     title: "Demo video",
     status: "external",
-    note: "The under-3-minute recording needs final human review and narration.",
+    note: "The remaining human task is recording the under-three-minute narrated walkthrough.",
   },
 ];

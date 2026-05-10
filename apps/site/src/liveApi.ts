@@ -11,42 +11,42 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   {
     method: "GET",
     path: "/api/health",
-    description: "Check service status and storage mode.",
+    description: "Check service status, network target, and storage mode.",
   },
   {
     method: "GET",
     path: "/api/agents",
-    description: "List registered agents.",
+    description: "List agent public identities known to SkillGuard.",
   },
   {
     method: "POST",
     path: "/api/agents",
-    description: "Register or upsert an immutable agent public key.",
+    description: "Register an agent identity and immutable public key.",
   },
   {
     method: "POST",
     path: "/api/wallet-sessions",
-    description: "Create a short-lived wallet read session with ownerProof.",
+    description: "Create a short-lived wallet session with ownerProof.",
   },
   {
     method: "GET",
     path: "/api/connections?wallet=<wallet>",
-    description: "List agent connections for a wallet.",
+    description: "List wallet-approved agent connections.",
   },
   {
     method: "POST",
     path: "/api/connections",
-    description: "Connect an agent to a wallet policy with ownerProof.",
+    description: "Pair an agent to a wallet-scoped policy with ownerProof.",
   },
   {
     method: "PATCH",
     path: "/api/connections/:connectionId/policy",
-    description: "Edit policy limits and approval mode with ownerProof.",
+    description: "Edit policy limits, allowlists, and approval mode with ownerProof.",
   },
   {
     method: "POST",
     path: "/api/connections/:connectionId/revoke",
-    description: "Revoke an agent connection with ownerProof.",
+    description: "Revoke one agent connection for one wallet.",
   },
   {
     method: "POST",
@@ -66,17 +66,17 @@ export const liveApiEndpoints: LiveApiEndpoint[] = [
   {
     method: "GET",
     path: "/api/actions?wallet=<wallet>",
-    description: "Read wallet action history.",
+    description: "Read wallet-scoped request history and outcomes.",
   },
   {
     method: "POST",
     path: "/api/actions/:actionId/evaluate",
-    description: "Re-run policy evaluation for an action.",
+    description: "Re-run policy evaluation before a final decision.",
   },
   {
     method: "POST",
     path: "/api/actions/:actionId/decision",
-    description: "Record approval, rejection, blocked, or expired decision with ownerProof.",
+    description: "Record approval, rejection, block, or expiry with ownerProof.",
   },
 ];
 

@@ -31,50 +31,50 @@ type Decision = "pending" | "approved" | "rejected" | "revoked";
 
 const repositoryUrl = "https://github.com/VincenzoImp/skillguard";
 const proofPoints = [
-  ["Allow", "Safe zero-spend actions"],
-  ["Ask", "Spending needs consent"],
-  ["Block", "Overspend never reaches signing"],
-  ["Revoke", "Cut agent access anytime"],
+  ["Allow", "Low-risk automation"],
+  ["Ask", "Spending approval"],
+  ["Block", "Out-of-policy requests"],
+  ["Revoke", "Agent access instantly"],
 ];
 
 const problemCards = [
   {
     icon: WalletCards,
-    title: "Agents need wallet power to be useful",
-    text: "Research, trading, routing, payments, and reporting agents eventually need to act with real funds, not just suggest what a user should do.",
+    title: "Useful agents need wallet access",
+    text: "The best onchain agents should pay, route, rebalance, claim, report, or execute. They cannot do that if every workflow ends as advice.",
   },
   {
     icon: ShieldAlert,
-    title: "Direct wallet access is too risky",
-    text: "Giving an agent a signer, a funded wallet, or broad wallet permissions can turn one bad prompt, bug, or exploit into lost funds.",
+    title: "Private keys are the wrong interface",
+    text: "Giving an agent a signer, a funded wallet, or broad wallet permission turns one bad prompt, bug, or compromised model into real loss.",
   },
   {
     icon: LockKeyhole,
-    title: "Manual approval kills autonomy",
-    text: "If every small action needs a human signature, the agent stops being autonomous. Users need granular consent, not all-or-nothing control.",
+    title: "All-or-nothing consent does not scale",
+    text: "If every action needs a human signature, the agent is not autonomous. If nothing needs consent, the wallet owner is exposed. The missing layer is policy.",
   },
 ];
 
 const solutionSteps = [
   {
     title: "Pair",
-    text: "The wallet owner connects an agent by QR and imports its public identity.",
+    text: "The wallet owner scans an agent QR and imports its public identity. No private key is shared.",
   },
   {
     title: "Configure",
-    text: "The user sets protocol allowlists, spend caps, daily limits, network, expiry, and approval mode.",
+    text: "Set per-agent rules: network, protocols, spend caps, daily limits, approval mode, and expiry.",
   },
   {
     title: "Filter",
-    text: "Each agent request is normalized into a manifest and classified as allow, ask, or block.",
+    text: "Each request becomes a manifest: who is asking, what may move, where, and under which limits.",
   },
   {
     title: "Sign",
-    text: "Sensitive actions reach the wallet only after the user approves from the mobile control center.",
+    text: "Low-risk actions can proceed; sensitive actions wait for mobile approval; blocked actions never reach a wallet prompt.",
   },
   {
     title: "Prove",
-    text: "The decision is stored as a Solana devnet receipt tied to the manifest hash.",
+    text: "Decisions can be linked to a Solana devnet receipt and manifest hash for auditability.",
   },
 ];
 
@@ -86,26 +86,26 @@ const demoSteps: Array<{
 }> = [
   {
     label: "1. Pair",
-    title: "Import Research Agent by QR",
-    text: "The wallet owner scans the pairing QR, reviews limits, and signs one permission grant for that agent.",
+    title: "Connect Research Agent by QR",
+    text: "The owner scans the pairing QR, reviews the policy template, and signs one wallet-scoped permission grant.",
     tone: "safe",
   },
   {
     label: "2. Ask",
-    title: "Approve the 0.001 SOL report",
-    text: "The agent requests a paid report. SkillGuard sends it to mobile and the wallet signs only after approval.",
+    title: "Approve a 0.001 SOL action",
+    text: "The agent asks to run a paid wallet-risk report. SkillGuard routes it to mobile because SOL movement needs consent.",
     tone: "violet",
   },
   {
     label: "3. Block",
-    title: "Stop the 0.05 SOL upgrade",
-    text: "The request exceeds the per-action cap, so it is denied before any wallet signature prompt can appear.",
+    title: "Block a 0.05 SOL overspend",
+    text: "The next request exceeds the configured cap, so the policy engine denies it before a signature prompt appears.",
     tone: "danger",
   },
   {
     label: "4. Revoke",
-    title: "Cut off future requests",
-    text: "The user revokes the agent. New requests from that identity are denied for this wallet.",
+    title: "Revoke the agent",
+    text: "The owner cuts off that agent identity. Future requests from it are denied for this wallet.",
     tone: "danger",
   },
 ];
@@ -124,7 +124,7 @@ const receiptEvents = [
   "Action proposed by Research Agent",
   "Policy evaluated against wallet limits",
   "User decision recorded",
-  "Receipt ready for Solana devnet",
+  "Receipt anchored on Solana devnet",
 ];
 
 const colorTokens = [
@@ -138,27 +138,27 @@ const colorTokens = [
 const resourceLinks = [
   {
     title: "GitHub repo",
-    text: "Source, issues, and final public submission.",
+    text: "Source code, reproducible checks, and the public hackathon submission.",
     href: repositoryUrl,
-    status: "configured",
+    status: "source",
   },
   {
     title: "Docs",
-    text: "Product, feasibility, architecture, demo, and operating protocol.",
+    text: "Architecture, feasibility notes, operating protocol, and demo instructions.",
     href: `${repositoryUrl}/tree/main/docs`,
-    status: "ready",
+    status: "reference",
   },
   {
     title: "Brand assets",
-    text: "Single SkillGuard logo mark used across the site and mobile UI.",
+    text: "Logo and visual system used by the site, app, README, and demo.",
     href: `${repositoryUrl}/tree/main/assets/brand`,
-    status: "ready",
+    status: "assets",
   },
   {
     title: "Demo video",
-    text: "Final recording slot for the 3-minute judge walkthrough.",
+    text: "Narrated three-minute walkthrough showing pair, approve, block, and revoke.",
     href: "/demo",
-    status: "pending",
+    status: "script",
   },
 ];
 
@@ -325,8 +325,8 @@ function ProblemSection() {
     <section id="problem" className="scroll-mt-28">
       <SectionHeader
         kicker="Need"
-        title="Onchain agents are useful only when they can act. That is also when they become risky."
-        text="The hard part is not generating an action. It is giving an AI agent access to a wallet with real funds without turning that agent into a silent signer."
+        title="Onchain agents become valuable when they can act. That is exactly when they become risky."
+        text="The hard part is not asking an agent what to do. It is letting that agent use a wallet with real funds while the wallet owner keeps policy, consent, and revocation."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {problemCards.map((card) => (
@@ -342,8 +342,8 @@ function SolutionSection() {
     <section className="scroll-mt-28" id="solution">
       <SectionHeader
         kicker="Solution"
-        title="SkillGuard is the permission layer between the agent and wallet signing."
-        text="Agents can keep operating, but every request passes through wallet-owned policy. The result is simple: allow safe automation, ask for sensitive approval, block dangerous actions."
+        title="SkillGuard puts a wallet-owned policy layer between agent intent and wallet signatures."
+        text="Agents can keep working, but every request passes through rules the owner controls. Safe work can continue automatically, sensitive work asks first, and dangerous work is blocked."
       />
       <div className="mt-8 grid gap-3 lg:grid-cols-5">
         {solutionSteps.map((step, index) => (
@@ -368,8 +368,8 @@ function DemoSection() {
     <section id="demo" className="scroll-mt-28">
       <SectionHeader
         kicker="Demo runbook"
-        title="A three-minute proof that an agent can act without owning the wallet."
-        text="Record this exact path in the Android app: pair Research Agent by QR, approve one 0.001 SOL request, block the 0.05 SOL overspend, then revoke the agent."
+        title="The demo shows the firewall making three decisions in three minutes."
+        text="Connect Research Agent by QR, approve a 0.001 SOL action, watch a 0.05 SOL overspend get blocked, then revoke the agent and prove future access is cut off."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {demoSteps.map((step) => (
@@ -392,7 +392,7 @@ function ArchitectureSection() {
       <SectionHeader
         kicker="How it works"
         title="SkillGuard filters signing access the way a firewall filters network access."
-        text="The agent never receives the wallet key. It submits a signed request; SkillGuard checks the wallet-owned policy; mobile collects consent when needed; Solana records the decision."
+        text="The agent never receives the wallet key. It submits a signed manifest, SkillGuard evaluates wallet-owned policy, the app collects consent when needed, and Solana can record the decision."
       />
       <div className="mt-8 rounded-2xl border border-border-subtle bg-bg-900/76 p-5">
         <div className="grid gap-3 md:grid-cols-7">
@@ -413,15 +413,15 @@ function ArchitectureSection() {
               "User profile and agent connection",
               "Policy state and revocation status",
               "Action receipt with manifest hash and decision code",
-              "Optional execution signature hash",
+              "Optional transaction signature reference",
             ]}
           />
           <ArchitectureText
             title="What stays off-chain"
             items={[
               "Full human-readable ActionManifest",
-              "Agent callback and pending-action state",
-              "Demo fixtures and route summaries",
+              "Agent callback and pending request state",
+              "Route summaries and human-readable request context",
               "Private keys and wallet custody",
             ]}
           />
@@ -436,8 +436,8 @@ function DeveloperSection() {
     <section id="developers" className="scroll-mt-28">
       <SectionHeader
         kicker="Developers"
-        title="Any agent can integrate by requesting permission instead of owning the signer."
-        text="SkillGuard fits after Solana Skills, Agent Kit, wallet MCPs, or custom agent workers. The integration surface is deliberately small: submit a manifest, wait for allow/ask/block, receive a decision and receipt."
+        title="Any agent can integrate by requesting a decision, not controlling a signer."
+        text="SkillGuard fits behind Solana Skills, Agent Kit, wallet MCPs, or a custom worker. Submit an ActionManifest, wait for allow, ask, or block, then continue only with a wallet-owned decision."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
@@ -510,9 +510,9 @@ function ResearchAgentPairingCard() {
           <h3 className="text-lg font-semibold">Default mobile pairing</h3>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
-          Open the Android app, connect a wallet, go to Pair, and scan this QR. The
-          app fills the trusted Research Agent identity, then the wallet owner
-          reviews policy limits and signs the import.
+          Open the Android app, connect a wallet, go to Pair, and scan this QR.
+          SkillGuard imports only the Research Agent identity and policy template;
+          the wallet owner still reviews the limits and signs the connection.
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <DeveloperTile title="Agent" value={researchAgentPairing.name} />
@@ -531,8 +531,8 @@ function LiveApiSection() {
     <section id="api" className="scroll-mt-28">
       <SectionHeader
         kicker="Live API"
-        title="The public site is also the hosted permission API."
-        text="The Android app, Research Agent, and demo scripts all target the same Vercel API. This is the connective layer that turns agent requests into wallet-owned decisions."
+        title="The website also exposes the hosted agent gateway."
+        text="The Android app, Research Agent, and demo scripts all use the same Vercel API. It receives agent manifests, applies wallet policy, and returns the decision path."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
@@ -548,8 +548,8 @@ function LiveApiSection() {
           <div className="mt-5 border-t border-status-warning/30 pt-4">
             <p className="text-sm font-semibold text-status-warning">Storage gate</p>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Hosted demo flows need Vercel KV or Upstash Redis env vars. Without them, the API stays usable for
-              single requests but health reports memory storage.
+              Hosted demo flows use Vercel KV or Upstash Redis for durable state. If those env vars are missing, the
+              API can still answer requests but health reports memory storage.
             </p>
           </div>
         </div>
@@ -575,7 +575,7 @@ function LiveApiSection() {
       <div className="mt-5 rounded-xl border border-border-subtle bg-surface-900/70 p-5">
         <div className="flex items-center gap-3">
           <Code2 className="h-5 w-5 text-brand-mint" />
-          <h3 className="text-lg font-semibold">Endpoints exposed for the demo</h3>
+          <h3 className="text-lg font-semibold">Endpoints used by app and agents</h3>
         </div>
         <div className="mt-4 grid gap-2">
           {liveApiEndpoints.map((endpoint) => (
@@ -601,8 +601,8 @@ function SecuritySection() {
     <section className="scroll-mt-28">
       <SectionHeader
         kicker="Security boundary"
-        title="SkillGuard is honest about what it protects."
-        text="The MVP is a permission and audit layer for mediated requests. It does not cover signing paths outside SkillGuard."
+        title="SkillGuard is explicit about its security boundary."
+        text="It protects requests that flow through the SkillGuard gateway. It does not claim to secure unrelated signers, custodial wallets, or transactions made outside the app."
       />
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <BoundaryCard
@@ -610,8 +610,8 @@ function SecuritySection() {
           tone="safe"
           items={[
             "Policies are evaluated before SkillGuard-mediated requests reach approval.",
-            "Auto-approval is limited to low-risk zero-spend manifest-only requests.",
-            "Agents do not receive user private keys.",
+            "Auto-approval is limited to requests that match owner-defined low-risk rules.",
+            "Agents do not receive private keys.",
             "Revocation blocks future SkillGuard requests from that agent.",
             "Receipts can link a decision to a manifest hash.",
           ]}
@@ -622,7 +622,7 @@ function SecuritySection() {
           items={[
             "It cannot stop transactions signed outside SkillGuard.",
             "It cannot protect wallets if an agent already controls a key elsewhere.",
-            "It does not guarantee every downstream protocol effect in the MVP.",
+            "It does not guarantee every downstream protocol effect in the current demo build.",
             "It is not a custody product.",
           ]}
         />
@@ -636,8 +636,8 @@ function BrandSystemSection() {
     <section className="scroll-mt-28">
       <SectionHeader
         kicker="Design system"
-        title="Wallet-grade, dark, compact, and status-driven."
-        text="The site is the visual source of truth for mobile screens, README visuals, and demo framing."
+        title="A high-trust interface for a high-risk action."
+        text="The visual system is dark, compact, and status-driven so approval, denial, revocation, and network state stay legible on mobile and in the demo."
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-xl border border-border-subtle bg-surface-900/70 p-5">
@@ -680,9 +680,9 @@ function RoadmapSection() {
   return (
     <section className="scroll-mt-28">
       <SectionHeader
-        kicker="Roadmap"
-        title="The core proof is local; the remaining gates are account-owned."
-        text="MWA signing, devnet receipts, release signing, the final upload key, password-manager backup, Vercel site/API, push registration, and the research-agent loop are in place. Final publication now depends on video recording and the submission form."
+        kicker="Submission readiness"
+        title="The product proof is in place; the final asset is the narrated demo."
+        text="The app, hosted API, Research Agent loop, devnet receipt flow, release APK, signing pipeline, and documentation are ready for judges. The remaining human task is recording the three-minute walkthrough."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {roadmapItems.map(({ step, title, status, note }) => (
@@ -718,8 +718,8 @@ function ResourceSection() {
     <section className="pb-10">
       <SectionHeader
         kicker="Submission links"
-        title="Everything points to one public project repo."
-        text="These links are the final hackathon submission surface: repo, Vercel site/API, docs, brand assets, and the video slot."
+        title="One public package for judges and developers."
+        text="The submission points to the same source, hosted site/API, technical docs, brand assets, and demo script so the project is easy to inspect and rerun."
       />
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {resourceLinks.map((link) => (
@@ -837,7 +837,7 @@ function PhoneHomeScreen({
           <PhoneBadge tone="info">live api</PhoneBadge>
         </div>
         <p className="mt-4 text-2xl font-extrabold leading-tight">
-          {decision === "pending" ? "1 request needs review." : "Your wallet is guarded."}
+          {decision === "pending" ? "1 agent request needs review." : "Your wallet is guarded."}
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -856,7 +856,7 @@ function PhoneHomeScreen({
         </button>
       </PhonePanel>
       <div className="grid grid-cols-2 gap-2">
-        <PhoneQuickAction body="Open approval queue" disabled={decision !== "pending"} label="Review" onClick={onOpenInbox} />
+        <PhoneQuickAction body="Open pending request" disabled={decision !== "pending"} label="Review" onClick={onOpenInbox} />
         <PhoneQuickAction body="Scan QR or paste fallback" label="Pair" onClick={onOpenPair} />
       </div>
     </div>
@@ -882,7 +882,7 @@ function PhoneInboxScreen({
       </div>
       <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-base font-extrabold leading-5">Generate weekly wallet risk report</p>
+          <p className="text-base font-extrabold leading-5">Generate wallet risk report</p>
           <span
             className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${decisionCopy.border} ${decisionCopy.background} ${decisionCopy.tone}`}
           >
@@ -890,7 +890,7 @@ function PhoneInboxScreen({
           </span>
         </div>
         <p className="mt-3 text-sm leading-5 text-text-secondary">
-          Research Agent wants to spend 0.001 SOL and record a SkillGuard receipt.
+          Research Agent requests 0.001 SOL for a wallet-risk report. SkillGuard asks before any signature.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2">
           <PhoneInfoCell label="Network" value="devnet" />
@@ -901,7 +901,7 @@ function PhoneInboxScreen({
       <div className={`rounded-lg border p-4 ${decisionCopy.border} ${decisionCopy.background}`}>
         <p className="flex items-center gap-2 text-sm font-extrabold">
           <DecisionIcon className="h-4 w-4" />
-          Wallet review required
+          Policy says ask
         </p>
         <div className="mt-3 space-y-2">
           {[
@@ -1000,7 +1000,7 @@ function PhonePairScreen() {
     <div className="space-y-4">
       <PhonePanel label="Pair agent">
         <p className="mt-1 text-sm leading-5 text-text-secondary">
-          Scan a trusted agent QR. Importing still requires your wallet signature.
+          Scan a trusted agent QR. Importing creates a wallet-scoped permission, not a private-key handoff.
         </p>
       </PhonePanel>
       <div className="rounded-xl border border-brand-mint/25 bg-brand-mint/10 p-4">
@@ -1008,7 +1008,7 @@ function PhonePairScreen() {
         <div className="mt-4 flex h-40 items-center justify-center rounded-xl border border-brand-mint/35 bg-bg-950">
           <QrCode className="h-20 w-20 text-brand-mint" />
         </div>
-        <p className="mt-3 text-xs font-bold text-text-muted">Camera permission is ready.</p>
+        <p className="mt-3 text-xs font-bold text-text-muted">QR scanner ready.</p>
       </div>
       <div className="rounded-lg border border-border-subtle bg-surface-900 p-4">
         <p className="text-xs font-bold uppercase text-text-muted">Loaded agent</p>

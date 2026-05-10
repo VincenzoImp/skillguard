@@ -3,8 +3,8 @@ import { roadmapItems } from "./submissionStatus";
 
 describe("submissionStatus", () => {
   it("marks verified local submission proofs with non-pending statuses", () => {
-    expect(statusFor("MWA record_decision proof")).toBe("done");
-    expect(statusFor("Devnet program deploy")).toBe("done");
+    expect(statusFor("Mobile wallet receipt proof")).toBe("done");
+    expect(statusFor("Devnet receipt program")).toBe("done");
     expect(statusFor("Release APK signing pipeline")).toBe("done");
     expect(statusFor("Final upload key")).toBe("done");
     expect(statusFor("Public project site")).toBe("done");

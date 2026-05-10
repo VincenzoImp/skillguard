@@ -13,8 +13,9 @@ describe("siteNavigation", () => {
   });
 
   it("keeps the public pitch focused on the agent wallet-control gap", () => {
-    expect(firewallHero.title).toBe("Let AI agents use your wallet without handing them your wallet.");
+    expect(firewallHero.title).toBe("Give AI agents wallet access without giving up control.");
     expect(firewallHero.subhead).toMatch(/transaction firewall/i);
+    expect(firewallHero.subhead).toMatch(/revoke access anytime/i);
     expect(firewallHero.primaryCta).toBe("Open the 3-minute demo");
     expect(firewallHero.secondaryCta).toBe("See how it works");
   });

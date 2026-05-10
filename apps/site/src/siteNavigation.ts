@@ -11,9 +11,9 @@ export const siteRoutes: SiteRoute[] = [
 ];
 
 export const firewallHero = {
-  title: "Let AI agents use your wallet without handing them your wallet.",
+  title: "Give AI agents wallet access without giving up control.",
   subhead:
-    "SkillGuard is a transaction firewall for onchain AI agents: pair agents, set wallet permissions, auto-allow safe actions, require consent for sensitive ones, block dangerous requests, and revoke access anytime.",
+    "SkillGuard is a transaction firewall for onchain AI agents. Pair an agent, define exactly what it can do, auto-allow low-risk work, require consent for spending, block out-of-policy requests, and revoke access anytime.",
   primaryCta: "Open the 3-minute demo",
   secondaryCta: "See how it works",
 };
