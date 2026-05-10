@@ -287,8 +287,8 @@ npm --prefix apps/site run dev -- --host 0.0.0.0
 ```
 
 It includes the public pitch, three-minute demo framing, how-it-works flow,
-developer SDK snippet, live API surface, and security boundary. The complete
-video handoff package lives in `demo-package/`.
+developer SDK snippet, live API surface, and security boundary. The compact
+video handoff bundle lives in `demo-package/`.
 
 ## Hackathon Scope
 
@@ -313,7 +313,7 @@ apps/
   api/          SkillGuard API, policy engine, webhooks
   research-agent/   Sample agent that integrates with SkillGuard
   site/        Public project site and visual source of truth
-demo-package/  Video script, storyboard, app capture guide, and agent prompts
+demo-package/  Flat video-agent handoff bundle, 6 files total
 programs/
   skillguard/   Anchor program for agent connections, policies, receipts
 packages/
@@ -338,7 +338,7 @@ assets/
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Demo](docs/DEMO.md)
-- [Video Handoff Package](demo-package/README.md)
+- [Video Handoff Bundle](demo-package/00_READ_THIS_FIRST_PROMPT.md)
 - [Submission Checklist](docs/SUBMISSION.md)
 - [Design System](docs/DESIGN_SYSTEM.md)
 - [Vercel Deployment](docs/VERCEL.md)

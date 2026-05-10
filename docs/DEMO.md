@@ -3,14 +3,15 @@
 Target length: under 3 minutes.
 
 The complete video handoff for an external AI presentation/video agent lives in
-`demo-package/`. Use that folder for the final animated HTML presentation,
-voiceover script, shot list, app recording guide, and export checklist.
+`demo-package/`. It is intentionally flat and compact, with 6 files total, so it
+can be imported into agents with a strict file limit.
 
 For the final video agent, start with:
 
 ```text
-demo-package/MASTER_BRIEF.md
-demo-package/08-director-prompt.md
+demo-package/00_READ_THIS_FIRST_PROMPT.md
+demo-package/01_STORY_SCRIPT_AND_SHOTS.md
+demo-package/02_VISUAL_COMPONENTS_AND_TECH_PROOF.md
 ```
 
 Those files define the three-minute spine: problem, bad tradeoff, SkillGuard as
