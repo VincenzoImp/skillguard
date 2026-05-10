@@ -301,7 +301,7 @@ function HeroCopy() {
         {firewallHero.subhead}
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
-        <HeroButton to="/demo" icon={Smartphone}>
+        <HeroButton href={firewallHero.primaryCtaHref} icon={Smartphone}>
           {firewallHero.primaryCta}
         </HeroButton>
         <HeroButton to="/how-it-works" icon={ShieldCheck} muted>
@@ -1302,6 +1302,8 @@ function HeroButton({
   return (
     <a
       href={href}
+      target="_blank"
+      rel="noreferrer"
       className={className}
     >
       {content}

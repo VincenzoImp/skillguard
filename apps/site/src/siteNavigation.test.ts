@@ -17,6 +17,7 @@ describe("siteNavigation", () => {
     expect(firewallHero.subhead).toMatch(/transaction firewall/i);
     expect(firewallHero.subhead).toMatch(/revoke access anytime/i);
     expect(firewallHero.primaryCta).toBe("Open the 3-minute demo");
+    expect(firewallHero.primaryCtaHref).toBe("https://youtu.be/sb2B-vPU9l8");
     expect(firewallHero.secondaryCta).toBe("See how it works");
   });
 });

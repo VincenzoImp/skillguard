@@ -15,5 +15,6 @@ export const firewallHero = {
   subhead:
     "SkillGuard is a transaction firewall for onchain AI agents. Pair an agent, define exactly what it can do, auto-allow low-risk work, require consent for spending, block out-of-policy requests, and revoke access anytime.",
   primaryCta: "Open the 3-minute demo",
+  primaryCtaHref: "https://youtu.be/sb2B-vPU9l8",
   secondaryCta: "See how it works",
 };
