@@ -11,6 +11,8 @@ PROGRAM_ID="HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam"
 MWA_SIGNATURE="5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF"
 REPOSITORY_URL="https://github.com/VincenzoImp/skillguard.git"
 VERCEL_SITE_URL="https://skillguard-sol.vercel.app/"
+DEMO_VIDEO_URL="https://youtu.be/sb2B-vPU9l8"
+APK_DOWNLOAD_URL="https://github.com/VincenzoImp/skillguard/releases/download/v0.1.0-devnet/skillguard.apk"
 
 check_file() {
   local path="$1"
@@ -78,6 +80,10 @@ echo "==> Submission source checks"
 check_text "$PROGRAM_ID" README.md
 check_text "$MWA_SIGNATURE" README.md
 check_text "$VERCEL_SITE_URL" README.md
+check_text "$DEMO_VIDEO_URL" README.md
+check_text "$DEMO_VIDEO_URL" docs/SUBMISSION.md
+check_text "$APK_DOWNLOAD_URL" README.md
+check_text "$APK_DOWNLOAD_URL" docs/SUBMISSION.md
 check_text "SKILLGUARD_ANDROID_BUILD_PROFILE=release" README.md
 check_text "build/mobile/skillguard.apk" README.md
 check_text "KV_REST_API_URL" docs/VERCEL.md

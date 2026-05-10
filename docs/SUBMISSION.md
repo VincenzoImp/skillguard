@@ -5,6 +5,8 @@ This file separates what is locally verified from what still requires an externa
 ## Local Proofs
 
 - Repository remote: `https://github.com/VincenzoImp/skillguard.git`
+- Demo video: `https://youtu.be/sb2B-vPU9l8`
+- Android APK download: `https://github.com/VincenzoImp/skillguard/releases/download/v0.1.0-devnet/skillguard.apk`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Devnet Mobile Wallet Adapter receipt transaction: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
 - Canonical installable APK: `build/mobile/skillguard.apk`
@@ -33,16 +35,16 @@ During development, use `SKILLGUARD_SUBMISSION_ALLOW_DIRTY=1 scripts/submission-
 
 These require an account, credential, or human review:
 
-1. Record the under-3-minute demo using `docs/DEMO.md`, the animated story at
-   `apps/site/public/demo/story/index.html`, and the voiceover timing in
-   `apps/site/public/demo/story/SCRIPT.md`.
-2. Add the public site URL to the hackathon submission.
-3. Add the unlisted demo video URL to this file, the README, and the public site after recording.
-4. Solana Mobile dApp Store submission is explicitly out of scope for the hackathon package because publisher review/KYC timing is not controllable before deadline.
+1. Add the public site URL and demo video URL to the hackathon submission form.
+2. Solana Mobile dApp Store submission is explicitly out of scope for the hackathon package because publisher review/KYC timing is not controllable before deadline.
 
 Completed owner-held secret step:
 
 - The final Android upload keystore and signing env are backed up in the owner's password manager.
+
+Completed media step:
+
+- The under-3-minute demo video is published at `https://youtu.be/sb2B-vPU9l8`.
 
 ## Video Arc
 

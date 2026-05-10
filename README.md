@@ -8,6 +8,19 @@ SkillGuard lets Solana agents ask for wallet actions without receiving private
 keys: policies filter each manifest, the user approves from mobile, and Solana
 records the proof.
 
+## Submission Links
+
+| Resource | Link |
+| --- | --- |
+| Demo video | https://youtu.be/sb2B-vPU9l8 |
+| Live site | https://skillguard-sol.vercel.app/ |
+| Live API | https://skillguard-sol.vercel.app/api |
+| GitHub repository | https://github.com/VincenzoImp/skillguard |
+| Solana devnet program | `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam` |
+| Android APK download | https://github.com/VincenzoImp/skillguard/releases/download/v0.1.0-devnet/skillguard.apk |
+| Local APK artifact | `build/mobile/skillguard.apk` |
+| Brand logo | `assets/brand/icon.png` |
+
 ## Problem
 
 Solana agent skills make it increasingly easy for AI agents to call wallets, DeFi protocols, infrastructure APIs, and paid resources. The missing layer is user control:
@@ -373,7 +386,10 @@ the precommit gate.
 
 Verified submission proofs:
 
+- Demo video: `https://youtu.be/sb2B-vPU9l8`
 - Vercel production site/API: `https://skillguard-sol.vercel.app/`, `https://skillguard-sol.vercel.app/api`
+- GitHub repository: `https://github.com/VincenzoImp/skillguard`
+- Android APK download: `https://github.com/VincenzoImp/skillguard/releases/download/v0.1.0-devnet/skillguard.apk`
 - Devnet program: `HScpxWTMba1w73S4Qc7RZLm8nTj1SnRNBiANWbgaNNam`
 - Mobile Wallet Adapter `record_decision` signature: `5FQoAasPEDvWuNcpDcHzJS3svM8Mz8v2Nnkjw2PSEYLNPAtjNeR1CCw6vzKumKPF8EydB5yv8nQKTwW4LsotRijF`
 - Canonical installable Android APK: `build/mobile/skillguard.apk`
