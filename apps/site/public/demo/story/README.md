@@ -31,13 +31,17 @@ http://localhost:5173/demo/story/index.html
 - `scenes.jsx`: the full three-minute story sequence.
 - `SCRIPT.md`: voiceover, timing, shot list, and product boundary.
 - `VOICEOVER_ELEVENLABS.txt`: clean plain-text input for ElevenLabs.
+- `VOICEOVER_ELEVENLABS_WITH_BREAKS.txt`: optional ElevenLabs input with short
+  SSML break tags for supported models.
 
 ## Production Notes
 
 The recorded voiceover should be produced separately. Do not render the full
 voiceover as subtitles in the animation. Keep only short on-screen micro-copy.
-Use `VOICEOVER_ELEVENLABS.txt` as the direct ElevenLabs input; it intentionally
-has no markdown headings, no timecodes, and no visual directions.
+Use `VOICEOVER_ELEVENLABS.txt` as the safest direct ElevenLabs input; it
+intentionally has no markdown headings, no timecodes, and no visual directions.
+Use `VOICEOVER_ELEVENLABS_WITH_BREAKS.txt` only with an ElevenLabs model that
+supports SSML break tags.
 
 The core product boundary must stay explicit:
 

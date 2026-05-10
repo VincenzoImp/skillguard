@@ -12,6 +12,7 @@ const requiredFiles = [
   "apps/site/public/demo/story/README.md",
   "apps/site/public/demo/story/SCRIPT.md",
   "apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt",
+  "apps/site/public/demo/story/VOICEOVER_ELEVENLABS_WITH_BREAKS.txt",
 ];
 
 describe("story demo", () => {
@@ -56,6 +57,7 @@ describe("story demo", () => {
     assert.match(readme, /static animated story/i);
     assert.match(readme, /SCRIPT\.md/i);
     assert.match(readme, /VOICEOVER_ELEVENLABS\.txt/i);
+    assert.match(readme, /VOICEOVER_ELEVENLABS_WITH_BREAKS\.txt/i);
     assert.match(readme, /Do not render the full\s+voiceover as subtitles/i);
     assert.match(readme, /\/demo\/story\/index\.html/i);
   });
@@ -64,7 +66,7 @@ describe("story demo", () => {
     const voiceover = readFileSync("apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt", "utf8");
     const wordCount = voiceover.trim().split(/\s+/).length;
 
-    assert.match(voiceover, /SkillGuard is (a|the) wallet firewall for AI agents/i);
+    assert.match(voiceover, /SkillGuard, the wallet firewall for AI agents/i);
     assert.match(voiceover, /Agents can act\.\s+Users stay in control\./i);
     assert.match(voiceover, /Mobile Wallet Adapter/i);
     assert.match(voiceover, /Solana devnet receipts/i);
@@ -72,5 +74,19 @@ describe("story demo", () => {
     assert.doesNotMatch(voiceover, /^#/m);
     assert.doesNotMatch(voiceover, /\d:\d{2}/);
     assert.doesNotMatch(voiceover, /Shot \d/i);
+  });
+
+  it("includes an optional ElevenLabs break-tag version for supported models", () => {
+    const voiceover = readFileSync(
+      "apps/site/public/demo/story/VOICEOVER_ELEVENLABS_WITH_BREAKS.txt",
+      "utf8",
+    );
+
+    assert.match(voiceover, /<break time="0\.[0-9]+s" \/>/);
+    assert.match(voiceover, /The next wave of AI agents/i);
+    assert.match(voiceover, /Users stay in control\./i);
+    assert.doesNotMatch(voiceover, /<break time="[3-9]\.[0-9]+s" \/>/);
+    assert.doesNotMatch(voiceover, /^#/m);
+    assert.doesNotMatch(voiceover, /\d:\d{2}/);
   });
 });

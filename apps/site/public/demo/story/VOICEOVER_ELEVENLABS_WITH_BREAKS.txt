@@ -1,21 +1,31 @@
 The next wave of AI agents will not just answer questions. They will act onchain: scan wallets, route swaps, pay for services. But once an agent needs wallet access, real money is on the table.
+<break time="0.5s" />
 
 That creates a brutal tradeoff. Hand over my personal wallet, and I risk everything. Fund a burner wallet, and I still risk that balance. Approve every transaction by hand, and the agent is no longer autonomous. So the real bottleneck is not intelligence. It is safe authority.
+<break time="0.45s" />
 
 Wallets know how to sign. Agent frameworks know how to produce actions. What is missing is the layer between them: a wallet-owned firewall that lets an agent ask for work, enforces policy first, and keeps the private key out of the agent's hands.
+<break time="0.45s" />
 
 That layer is SkillGuard, the wallet firewall for AI agents. An agent submits a signed action manifest. SkillGuard checks the policy owned by the wallet and turns every request into one of four outcomes: allow safe automation, ask for mobile consent, block unsafe requests, or revoke the agent entirely.
+<break time="0.35s" />
 
 The owner pairs an agent, reviews its purpose, and sets limits for spend, protocol, asset, risk, and approval mode. The agent can request wallet actions, but it never receives the private key. It waits for a decision controlled by the wallet owner.
+<break time="0.5s" />
 
 Here is the live path. I connect my Solana devnet wallet, scan a QR code, and import Demo Agent. The QR only brings in the agent identity and a policy template. I still review the limits and sign the connection.
+<break time="0.3s" />
 
 Now Demo Agent requests a zero-spend wallet scan. No funds move, and no wallet signature is needed, so SkillGuard can allow it automatically under policy. The agent keeps autonomy, but only inside the guardrails I configured.
+<break time="0.3s" />
 
 Then the same agent asks for a paid report that spends 0.001 SOL. Money moves, so SkillGuard sends it to the mobile inbox. I review the manifest, approve it, and only then does my wallet sign.
+<break time="0.3s" />
 
 Next, the agent asks for a 0.05 SOL upgrade. That breaks my per-action limit, so SkillGuard blocks it before any wallet prompt. I revoke the agent, and future requests from that identity are denied.
+<break time="0.5s" />
 
 This is not just a storyboard. The Android app uses Mobile Wallet Adapter. The API runs on Vercel. Demo Agent is a real worker submitting signed manifests. Wallet-approved spending decisions are recorded as Solana devnet receipts tied to the manifest.
+<break time="0.4s" />
 
 SkillGuard lets agents use wallet authority without taking custody. Safe work can continue automatically. The moment money moves, the owner is back in control. Agents can act. Users stay in control.

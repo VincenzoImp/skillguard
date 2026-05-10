@@ -15,7 +15,9 @@ voiceover, timing, shot list, and product boundary are preserved next to it in
 For voice generation, paste the clean script from
 `apps/site/public/demo/story/VOICEOVER_ELEVENLABS.txt` into ElevenLabs. That
 file intentionally contains only spoken text: no markdown, no timecodes, and no
-visual directions.
+visual directions. If using an ElevenLabs model that supports SSML break tags,
+`apps/site/public/demo/story/VOICEOVER_ELEVENLABS_WITH_BREAKS.txt` has the same
+script with short pause hints.
 
 The three-minute spine is: problem, bad tradeoff, SkillGuard as wallet firewall,
 then the proof sequence of pair, low-risk zero-spend auto-approval, paid
