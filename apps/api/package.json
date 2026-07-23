@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.7",
+    "@hono/node-server": "^2.0.10",
     "@skillguard/protocol": "file:../../packages/protocol",
     "bs58": "^6.0.0",
     "hono": "^4.12.3",
