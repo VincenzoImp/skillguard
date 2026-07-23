@@ -8,7 +8,7 @@
     "vercel:build": "npm --prefix packages/protocol ci && npm --prefix packages/protocol run build && npm --prefix apps/site ci && npm --prefix apps/site run build"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.7",
+    "@hono/node-server": "^2.0.10",
     "@skillguard/protocol": "file:packages/protocol",
     "bs58": "^6.0.0",
     "hono": "^4.12.31",
