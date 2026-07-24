@@ -17,5 +17,12 @@
     "@types/mocha": "^9.0.0",
     "typescript": "^5.7.3",
     "prettier": "^2.6.2"
+  },
+  "overrides": {
+    "js-yaml": ">=4.1.1",
+    "brace-expansion": ">=1.1.16",
+    "serialize-javascript": ">=6.0.2",
+    "uuid": ">=11.1.1",
+    "minimatch": ">=4.2.5"
   }
 }
