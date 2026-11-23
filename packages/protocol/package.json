@@ -17,7 +17,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "zod": "^4.1.13"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "^25.6.2",
